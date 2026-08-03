@@ -122,7 +122,29 @@ class TimetableGeneratorService
                         continue;
                     }
 
-                    for ($period = 1; $period <= $maxPeriodsPerDay; $period++) {
+                    $availablePeriods = [];
+                    for ($p = 1; $p <= $maxPeriodsPerDay; $p++) {
+                        $availablePeriods[] = $p;
+                    }
+                    shuffle($availablePeriods);
+
+                    // If subject is already on this day, prioritize adjacent slots
+                    if ($subjectDayCount[$day] > 0) {
+                        $preferredPeriods = [];
+                        foreach ($grid[$day] as $p => $s_id) {
+                            if ($s_id == $subject->subject_id) {
+                                if ($p > 1) $preferredPeriods[] = $p - 1;
+                                if ($p < $maxPeriodsPerDay) $preferredPeriods[] = $p + 1;
+                            }
+                        }
+                        usort($availablePeriods, function($a, $b) use ($preferredPeriods) {
+                            $aPref = in_array($a, $preferredPeriods) ? 1 : 0;
+                            $bPref = in_array($b, $preferredPeriods) ? 1 : 0;
+                            return $bPref <=> $aPref;
+                        });
+                    }
+
+                    foreach ($availablePeriods as $period) {
                         // Rule 2: Section slot must be free
                         if ($grid[$day][$period] !== null) continue;
 
@@ -163,7 +185,13 @@ class TimetableGeneratorService
                 // If no slot found in normal order, try any free slot (fallback)
                 if (!$slotFound) {
                     foreach ($this->days as $day) {
-                        for ($period = 1; $period <= $maxPeriodsPerDay; $period++) {
+                        $availablePeriods = [];
+                        for ($p = 1; $p <= $maxPeriodsPerDay; $p++) {
+                            $availablePeriods[] = $p;
+                        }
+                        shuffle($availablePeriods);
+
+                        foreach ($availablePeriods as $period) {
                             if ($grid[$day][$period] !== null) continue;
 
                             if ($subject->teacher_id) {
@@ -189,9 +217,8 @@ class TimetableGeneratorService
             }
         }
 
-        // Rule 7: Post-process - group consecutive periods for subjects that benefit from it
-        $grid = $this->optimizeConsecutive($grid, $assignments, $maxPeriodsPerDay);
-
+        // The initial assignment now naturally groups consecutive periods without violating teacher constraints.
+        
         return [
             'success' => true,
             'message' => 'تم توليد الجدول بنجاح.',
@@ -297,29 +324,4 @@ class TimetableGeneratorService
         return $records->pluck('total', 'teacher_id')->toArray();
     }
 
-    /**
-     * Post-processing: group consecutive periods for the same subject where possible.
-     * This is applied as an optimization, not a strict rule.
-     */
-    private function optimizeConsecutive(array $grid, $assignments, int $maxPeriods): array
-    {
-        foreach ($this->days as $day) {
-            for ($p = 1; $p < $maxPeriods; $p++) {
-                $current = $grid[$day][$p];
-                $next = $grid[$day][$p + 1] ?? null;
-
-                if ($current === null || $next === null || $current === $next) continue;
-
-                // Check if $p+2 exists and is the same as current
-                // If so, swap $p+1 and $p+2 to make consecutive
-                $pPlus2 = $grid[$day][$p + 2] ?? null;
-                if ($pPlus2 === $current && $next !== $current) {
-                    // Swap p+1 and p+2 to bring them together
-                    $grid[$day][$p + 1] = $current;
-                    $grid[$day][$p + 2] = $next;
-                }
-            }
-        }
-        return $grid;
-    }
 }
