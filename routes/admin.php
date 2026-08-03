@@ -51,10 +51,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('teacher-distributions', [App\Http\Controllers\Admin\TeacherDistributionController::class, 'store'])->name('teacher-distributions.store');
 
         // Timetables
-        Route::resource('timetables', TimetableController::class);
-        Route::get('timetables/teacher/{teacher}', [TimetableController::class, 'teacherSchedule'])->name('timetables.teacher_schedule');
         Route::get('timetables', [TimetableController::class, 'index'])->name('timetables.index');
         Route::get('timetables/build', [TimetableController::class, 'build'])->name('timetables.build');
+        Route::get('timetables/teacher/{teacher}', [TimetableController::class, 'teacherSchedule'])->name('timetables.teacher_schedule');
         Route::post('timetables/check-conflict', [TimetableController::class, 'checkConflict'])->name('timetables.check_conflict');
         Route::post('timetables/save', [TimetableController::class, 'save'])->name('timetables.save');
         Route::post('timetables/generate', [TimetableController::class, 'generate'])->name('timetables.generate');
@@ -63,6 +62,8 @@ Route::middleware(['auth', 'role:admin'])
         // Study Plans
         Route::get('study-plans', [App\Http\Controllers\Admin\StudyPlanController::class, 'index'])->name('study-plans.index');
         Route::post('study-plans/save', [App\Http\Controllers\Admin\StudyPlanController::class, 'save'])->name('study-plans.save');
+        Route::get('study-plans/by-subject', [App\Http\Controllers\Admin\StudyPlanController::class, 'bySubject'])->name('study-plans.by-subject');
+        Route::post('study-plans/by-subject/save', [App\Http\Controllers\Admin\StudyPlanController::class, 'saveBySubject'])->name('study-plans.save-by-subject');
         
         Route::resource('academic-years', AcademicYearController::class);
         Route::resource('semesters', SemesterController::class);

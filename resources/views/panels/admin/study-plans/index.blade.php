@@ -9,8 +9,20 @@
 <x-breadcrumb :items="[
     ['name' => 'الرئيسية', 'url' => route('admin.dashboard')],
     ['name' => 'المناهج', 'url' => '#'],
-    ['name' => 'الخطة الدراسية']
+    ['name' => 'الخطة الدراسية'],
 ]" />
+
+{{-- Tabs --}}
+<div class="mb-4">
+    <div class="nav nav-pills gap-2">
+        <a href="{{ route('admin.study-plans.index') }}" class="nav-link bg-primary text-white active">
+            <i class="fas fa-school me-1"></i> حسب الصف
+        </a>
+        <a href="{{ route('admin.study-plans.by-subject') }}" class="nav-link border">
+            <i class="fas fa-book me-1"></i> حسب المادة
+        </a>
+    </div>
+</div>
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
