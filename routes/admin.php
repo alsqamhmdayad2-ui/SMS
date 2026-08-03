@@ -125,5 +125,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('archive', [App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('archive.index');
         Route::post('archive/{type}/{id}/restore', [App\Http\Controllers\Admin\ArchiveController::class, 'restore'])->name('archive.restore');
         Route::delete('archive/{type}/{id}/force-delete', [App\Http\Controllers\Admin\ArchiveController::class, 'forceDelete'])->name('archive.force-delete');
+        Route::delete('archive/{type}/empty', [App\Http\Controllers\Admin\ArchiveController::class, 'emptyTrash'])->name('archive.empty');
     });
 
