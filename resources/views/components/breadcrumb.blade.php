@@ -1,4 +1,4 @@
-<nav aria-label="breadcrumb">
+<nav aria-label="breadcrumb" class="my-3">
     <ol class="breadcrumb mb-0 small" style="background:transparent; padding:0;">
         @foreach($items as $item)
             @if($loop->last)
