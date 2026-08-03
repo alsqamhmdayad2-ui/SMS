@@ -1,0 +1,21 @@
+/* SMS Core Utilities */
+
+.text-sms-primary { color: var(--sms-primary) !important; }
+.bg-sms-primary { background-color: var(--sms-primary) !important; }
+.bg-sms-surface { background-color: var(--sms-bg-surface) !important; }
+
+.radius-sms { border-radius: var(--sms-radius) !important; }
+.radius-sms-lg { border-radius: var(--sms-radius-lg) !important; }
+.radius-sms-sm { border-radius: var(--sms-radius-sm) !important; }
+
+.shadow-sms { box-shadow: var(--sms-shadow) !important; }
+.shadow-sms-sm { box-shadow: var(--sms-shadow-sm) !important; }
+.shadow-sms-lg { box-shadow: var(--sms-shadow-lg) !important; }
+
+.transition-sms { transition: all var(--sms-transition) !important; }
+
+/* Interactive Utilities */
+.cursor-pointer { cursor: pointer !important; }
+.cursor-not-allowed { cursor: not-allowed !important; }
+
+.hover-bg-surface:hover { background-color: var(--sms-bg-surface-hover) !important; }

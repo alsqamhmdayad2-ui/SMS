@@ -1,0 +1,43 @@
+:root {
+    /* Brand Colors */
+    --sms-primary: #4f46e5;
+    --sms-primary-rgb: 79, 70, 229;
+    --sms-secondary: #6c757d;
+    --sms-success: #198754;
+    --sms-info: #0dcaf0;
+    --sms-warning: #ffc107;
+    --sms-danger: #dc3545;
+    --sms-light: #f8f9fa;
+    --sms-dark: #212529;
+
+    /* Backgrounds */
+    --sms-bg-body: #f4f6f9;
+    --sms-bg-surface: #ffffff;
+    --sms-bg-surface-hover: #f8f9fa;
+
+    /* Text Colors */
+    --sms-text-main: #333333;
+    --sms-text-muted: #6c757d;
+
+    /* Borders */
+    --sms-border-color: #dee2e6;
+    --sms-border-width: 1px;
+
+    /* Metrics */
+    --sms-radius: 0.5rem;
+    --sms-radius-lg: 0.75rem;
+    --sms-radius-sm: 0.25rem;
+    
+    --sms-shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+    --sms-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    --sms-shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
+
+    /* Transitions */
+    --sms-transition-fast: 150ms ease-in-out;
+    --sms-transition: 300ms ease-in-out;
+}
+
+body {
+    background-color: var(--sms-bg-body);
+    color: var(--sms-text-main);
+}

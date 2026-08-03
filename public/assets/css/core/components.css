@@ -1,0 +1,34 @@
+/* SMS Core Component Styles */
+
+/* Base component styles that extend bootstrap but use our variables */
+.sms-card {
+    background-color: var(--sms-bg-surface);
+    border: var(--sms-border-width) solid var(--sms-border-color);
+    border-radius: var(--sms-radius);
+    box-shadow: var(--sms-shadow-sm);
+    transition: box-shadow var(--sms-transition-fast);
+}
+
+.sms-card:hover {
+    /* Optional: subtle lift effect for interactive cards */
+}
+
+/* Custom Table extensions */
+.sms-table-wrapper {
+    background: var(--sms-bg-surface);
+    border-radius: var(--sms-radius);
+    box-shadow: var(--sms-shadow-sm);
+    overflow: hidden;
+}
+
+/* Empty State */
+.sms-empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--sms-text-muted);
+}
+.sms-empty-state i {
+    font-size: 3rem;
+    color: var(--sms-border-color);
+    margin-bottom: 1rem;
+}

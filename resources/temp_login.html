@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مدرسة نور المعارف | تسجيل دخول</title>
+    <meta name="description" content="مدرسة نور المعارف | تسجيل دخول" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../../css/base.css" />
+    <link rel="stylesheet" href="../../css/auth.css" />
+  </head>
+  <body>
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <div
+            class="logo-wrapper mx-auto mb-4 d-flex justify-content-center align-items-center bg-white shadow-sm"
+            style="
+              width: 140px;
+              height: 140px;
+              border-radius: 50%;
+              border: 2px solid var(--primary-color, #0d2a54);
+            "
+          >
+            <img
+              src="../../assets/img/logo2.svg"
+              alt="شعار مدرسة نور المعارف"
+              style="
+                width: 90%;
+                height: 90%;
+                object-fit: contain;
+                transform: scale(1.15);
+              "
+            />
+          </div>
+          <h3 class="mb-1">تسجيل الدخول</h3>
+          <p class="text-muted" id="sub-title">أدخل بياناتك للمتابعة</p>
+        </div>
+
+        <form id="login-form">
+          <div class="mb-3">
+            <label class="form-label">البريد الإلكتروني</label>
+            <div class="input-group">
+              <span class="input-group-text"
+                ><i class="fas fa-envelope"></i
+              ></span>
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="user@gmail.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">كلمة المرور</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input
+                type="password"
+                id="pass"
+                class="form-control"
+                placeholder="أدخل كلمة المرور"
+                required
+              />
+              <button
+                type="button"
+                class="btn btn-outline-secondary toggle-password"
+                data-target="pass"
+              >
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mb-4 mt-2">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="rem" />
+              <label class="form-check-label" for="rem">تذكرني</label>
+            </div>
+            <a
+              href="forgot-password.html"
+              class="text-decoration-none"
+              style="font-size: 14px"
+              >نسيت كلمة المرور؟</a
+            >
+          </div>
+
+          <button type="submit" class="btn btn-secondary w-50 mx-auto d-block btn-lg mb-3" style="border-radius: var(--border-radius-xl); font-weight: 600; transition: var(--transition);">
+            دخول
+          </button>
+        </form>
+
+        <!-- back btn -->
+        <div class="text-center mt-2">
+          <a
+            href="../../index.html"
+            class="text-muted text-decoration-none"
+            style="font-size: 14px"
+          >
+            <i class="fas fa-arrow-right"></i> رجوع للرئيسية
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script src="../../js/core.js"></script>
+    <script>
+      // get type from url and set title
+      let type =
+        new URLSearchParams(window.location.search).get("type") || "admin";
+      let subtitle = "تسجيل دخول المدير";
+
+      if (type == "teacher") subtitle = "تسجيل دخول المعلم";
+      else if (type == "student") subtitle = "تسجيل دخول الطالب";
+      else if (type == "parent") subtitle = "تسجيل دخول ولي الأمر";
+
+      document.getElementById("sub-title").innerText = subtitle;
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          let em = document.getElementById("email").value.trim().toLowerCase();
+          let pw = document.getElementById("pass").value;
+
+          if (!em || !pw) {
+            showToast('يرجى تعبئة جميع الحقول', 'error');
+            return;
+          }
+
+          // Dynamically detect role from email if it contains keywords, otherwise fallback to URL 'type'
+          let loginType = type;
+          if (em.includes("admin")) {
+            loginType = "admin";
+          } else if (em.includes("teacher")) {
+            loginType = "teacher";
+          } else if (em.includes("student")) {
+            loginType = "student";
+          } else if (em.includes("parent")) {
+            loginType = "parent";
+          }
+
+          // redirect based on user type
+          let dashRoute = "../admin/dashboard.html";
+
+          switch (loginType) {
+            case "teacher":
+              dashRoute = "../teacher/dashboard.html";
+              break;
+            case "student":
+              dashRoute = "../student/dashboard.html";
+              break;
+            case "parent":
+              dashRoute = "../parent/dashboard.html";
+              break;
+          }
+
+          showToast('تم تسجيل الدخول بنجاح', 'success');
+
+          // small timeout for beautiful transition
+          setTimeout(function() {
+            window.location.href = dashRoute;
+          }, 800);
+        });
+    </script>
+  </body>
+</html>

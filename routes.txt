@@ -1,0 +1,166 @@
+﻿
+  GET|HEAD        / ................................................................................. routes/web.php:6
+  GET|HEAD        admin/academic-years ............... admin.academic-years.index ΓÇ║ Admin\AcademicYearController@index
+  POST            admin/academic-years ............... admin.academic-years.store ΓÇ║ Admin\AcademicYearController@store
+  GET|HEAD        admin/academic-years/create ...... admin.academic-years.create ΓÇ║ Admin\AcademicYearController@create
+  GET|HEAD        admin/academic-years/{academic_year} . admin.academic-years.show ΓÇ║ Admin\AcademicYearController@show
+  PUT|PATCH       admin/academic-years/{academic_year} admin.academic-years.update ΓÇ║ Admin\AcademicYearController@updΓÇª
+  DELETE          admin/academic-years/{academic_year} admin.academic-years.destroy ΓÇ║ Admin\AcademicYearController@deΓÇª
+  GET|HEAD        admin/academic-years/{academic_year}/edit admin.academic-years.edit ΓÇ║ Admin\AcademicYearController@ΓÇª
+  GET|HEAD        admin/assessment-components admin.assessment-components.index ΓÇ║ Admin\AssessmentComponentControllerΓÇª
+  POST            admin/assessment-components admin.assessment-components.store ΓÇ║ Admin\AssessmentComponentControllerΓÇª
+  POST            admin/assessment-components/copy admin.assessment-components.copy ΓÇ║ Admin\AssessmentComponentControΓÇª
+  POST            admin/assessment-components/reorder admin.assessment-components.reorder ΓÇ║ Admin\AssessmentComponentΓÇª
+  PUT|PATCH       admin/assessment-components/{assessment_component} admin.assessment-components.update ΓÇ║ Admin\AssesΓÇª
+  DELETE          admin/assessment-components/{assessment_component} admin.assessment-components.destroy ΓÇ║ Admin\AsseΓÇª
+  POST            admin/assessment-components/{assessment_component}/duplicate admin.assessment-components.duplicate ΓÇª
+  GET|HEAD        admin/attendance-reports/daily admin.attendance-reports.daily ΓÇ║ Admin\AttendanceReportController@daΓÇª
+  GET|HEAD        admin/attendance-reports/dashboard admin.attendance-reports.dashboard ΓÇ║ Admin\AttendanceReportContrΓÇª
+  GET|HEAD        admin/attendance-reports/monthly admin.attendance-reports.monthly ΓÇ║ Admin\AttendanceReportControlleΓÇª
+  GET|HEAD        admin/attendance-reports/section admin.attendance-reports.section ΓÇ║ Admin\AttendanceReportControlleΓÇª
+  GET|HEAD        admin/attendance-reports/student admin.attendance-reports.student ΓÇ║ Admin\AttendanceReportControlleΓÇª
+  GET|HEAD        admin/attendance-reports/teacher admin.attendance-reports.teacher ΓÇ║ Admin\AttendanceReportControlleΓÇª
+  GET|HEAD        admin/attendance-sessions .. admin.attendance-sessions.index ΓÇ║ Admin\AttendanceAdminController@index
+  GET|HEAD        admin/attendance-sessions/{session} admin.attendance-sessions.show ΓÇ║ Admin\AttendanceAdminControlleΓÇª
+  POST            admin/attendance-sessions/{session}/lock admin.attendance-sessions.lock ΓÇ║ Admin\AttendanceAdminContΓÇª
+  POST            admin/attendance-sessions/{session}/override admin.attendance-sessions.override ΓÇ║ Admin\AttendanceAΓÇª
+  POST            admin/attendance-sessions/{session}/unlock admin.attendance-sessions.unlock ΓÇ║ Admin\AttendanceAdminΓÇª
+  GET|HEAD        admin/attendances ....................... admin.attendances.index ΓÇ║ Admin\AttendanceController@index
+  POST            admin/attendances ....................... admin.attendances.store ΓÇ║ Admin\AttendanceController@store
+  GET|HEAD        admin/classes .............................. admin.classes.index ΓÇ║ Admin\SchoolClassController@index
+  POST            admin/classes .............................. admin.classes.store ΓÇ║ Admin\SchoolClassController@store
+  GET|HEAD        admin/classes/create ..................... admin.classes.create ΓÇ║ Admin\SchoolClassController@create
+  GET|HEAD        admin/classes/{class} ........................ admin.classes.show ΓÇ║ Admin\SchoolClassController@show
+  PUT|PATCH       admin/classes/{class} .................... admin.classes.update ΓÇ║ Admin\SchoolClassController@update
+  DELETE          admin/classes/{class} .................. admin.classes.destroy ΓÇ║ Admin\SchoolClassController@destroy
+  GET|HEAD        admin/classes/{class}/edit ................... admin.classes.edit ΓÇ║ Admin\SchoolClassController@edit
+  GET|HEAD        admin/dashboard .................................. admin.dashboard ΓÇ║ Admin\DashboardController@index
+  GET|HEAD        admin/exams ......................................... admin.exams.index ΓÇ║ Admin\ExamController@index
+  POST            admin/exams ......................................... admin.exams.store ΓÇ║ Admin\ExamController@store
+  GET|HEAD        admin/exams/create ................................ admin.exams.create ΓÇ║ Admin\ExamController@create
+  GET|HEAD        admin/exams/{exam} .................................... admin.exams.show ΓÇ║ Admin\ExamController@show
+  PUT|PATCH       admin/exams/{exam} ................................ admin.exams.update ΓÇ║ Admin\ExamController@update
+  DELETE          admin/exams/{exam} .............................. admin.exams.destroy ΓÇ║ Admin\ExamController@destroy
+  GET|HEAD        admin/exams/{exam}/edit ............................... admin.exams.edit ΓÇ║ Admin\ExamController@edit
+  GET|HEAD        admin/exams/{exam}/print ............................ admin.exams.print ΓÇ║ Admin\ExamController@print
+  POST            admin/exams/{exam}/publish ...................... admin.exams.publish ΓÇ║ Admin\ExamController@publish
+  POST            admin/exams/{exam}/questions ................ admin.questions.store ΓÇ║ Admin\QuestionController@store
+  GET|HEAD        admin/exams/{exam}/questions/bank .......... admin.questions.bank ΓÇ║ Admin\QuestionController@getBank
+  POST            admin/exams/{exam}/questions/import ....... admin.questions.import ΓÇ║ Admin\QuestionController@import
+  POST            admin/exams/{exam}/questions/reorder .... admin.questions.reorder ΓÇ║ Admin\QuestionController@reorder
+  PUT             admin/exams/{exam}/questions/{question} ... admin.questions.update ΓÇ║ Admin\QuestionController@update
+  DELETE          admin/exams/{exam}/questions/{question} . admin.questions.destroy ΓÇ║ Admin\QuestionController@destroy
+  POST            admin/exams/{exam}/questions/{question}/duplicate admin.questions.duplicate ΓÇ║ Admin\QuestionControlΓÇª
+  POST            admin/exams/{exam}/unlock ......................... admin.exams.unlock ΓÇ║ Admin\ExamController@unlock
+  GET|HEAD        admin/grade-scales ..................... admin.grade-scales.index ΓÇ║ Admin\GradeScaleController@index
+  POST            admin/grade-scales ..................... admin.grade-scales.store ΓÇ║ Admin\GradeScaleController@store
+  PUT|PATCH       admin/grade-scales/{grade_scale} ..... admin.grade-scales.update ΓÇ║ Admin\GradeScaleController@update
+  DELETE          admin/grade-scales/{grade_scale} ... admin.grade-scales.destroy ΓÇ║ Admin\GradeScaleController@destroy
+  GET|HEAD        admin/gradebook ............................ admin.gradebook.index ΓÇ║ Admin\GradebookController@index
+  GET|HEAD        admin/gradebook/student-breakdown admin.gradebook.student-breakdown ΓÇ║ Admin\GradebookController@stuΓÇª
+  GET|HEAD        admin/grades ...................................... admin.grades.index ΓÇ║ Admin\GradeController@index
+  POST            admin/grades ...................................... admin.grades.store ΓÇ║ Admin\GradeController@store
+  GET|HEAD        admin/grades/create ............................. admin.grades.create ΓÇ║ Admin\GradeController@create
+  GET|HEAD        admin/grades/{grade} ................................ admin.grades.show ΓÇ║ Admin\GradeController@show
+  PUT|PATCH       admin/grades/{grade} ............................ admin.grades.update ΓÇ║ Admin\GradeController@update
+  DELETE          admin/grades/{grade} .......................... admin.grades.destroy ΓÇ║ Admin\GradeController@destroy
+  GET|HEAD        admin/grades/{grade}/edit ........................... admin.grades.edit ΓÇ║ Admin\GradeController@edit
+  GET|HEAD        admin/marks-entry ....................... admin.marks-entry.index ΓÇ║ Admin\MarksEntryController@index
+  GET|HEAD        admin/marks-entry/get-exams ...... admin.marks-entry.get-exams ΓÇ║ Admin\MarksEntryController@getExams
+  GET|HEAD        admin/marks-entry/get-sections admin.marks-entry.get-sections ΓÇ║ Admin\MarksEntryController@getSectiΓÇª
+  POST            admin/marks-entry/save-all ......... admin.marks-entry.save-all ΓÇ║ Admin\MarksEntryController@saveAll
+  POST            admin/marks-entry/save-mark ...... admin.marks-entry.save-mark ΓÇ║ Admin\MarksEntryController@saveMark
+  GET|HEAD        admin/parents ................................... admin.parents.index ΓÇ║ Admin\ParentController@index
+  POST            admin/parents ................................... admin.parents.store ΓÇ║ Admin\ParentController@store
+  GET|HEAD        admin/parents/create .......................... admin.parents.create ΓÇ║ Admin\ParentController@create
+  GET|HEAD        admin/parents/{parent} ............................ admin.parents.show ΓÇ║ Admin\ParentController@show
+  PUT|PATCH       admin/parents/{parent} ........................ admin.parents.update ΓÇ║ Admin\ParentController@update
+  DELETE          admin/parents/{parent} ...................... admin.parents.destroy ΓÇ║ Admin\ParentController@destroy
+  GET|HEAD        admin/parents/{parent}/edit ....................... admin.parents.edit ΓÇ║ Admin\ParentController@edit
+  GET|HEAD        admin/report-cards ..................... admin.report-cards.index ΓÇ║ Admin\ReportCardController@index
+  POST            admin/report-cards/generate ...... admin.report-cards.generate ΓÇ║ Admin\ReportCardController@generate
+  GET|HEAD        admin/report-cards/{reportCard}/pdf ........ admin.report-cards.pdf ΓÇ║ Admin\ReportCardController@pdf
+  POST            admin/report-cards/{reportCard}/publish admin.report-cards.publish ΓÇ║ Admin\ReportCardController@pubΓÇª
+  POST            admin/report-cards/{reportCard}/revoke admin.report-cards.revoke ΓÇ║ Admin\ReportCardController@revoke
+  GET|HEAD        admin/reports ................................... admin.reports.index ΓÇ║ Admin\ReportController@index
+  GET|HEAD        admin/reports/generate/{type} ............. admin.reports.generate ΓÇ║ Admin\ReportController@generate
+  GET|HEAD        admin/result-publications admin.result-publications.index ΓÇ║ Admin\ResultPublicationController@index
+  POST            admin/result-publications admin.result-publications.store ΓÇ║ Admin\ResultPublicationController@store
+  DELETE          admin/result-publications/{publication} admin.result-publications.destroy ΓÇ║ Admin\ResultPublicationΓÇª
+  POST            admin/result-publications/{publication}/unpublish admin.result-publications.unpublish ΓÇ║ Admin\ResulΓÇª
+  GET|HEAD        admin/sections ................................ admin.sections.index ΓÇ║ Admin\SectionController@index
+  POST            admin/sections ................................ admin.sections.store ΓÇ║ Admin\SectionController@store
+  GET|HEAD        admin/sections/create ....................... admin.sections.create ΓÇ║ Admin\SectionController@create
+  GET|HEAD        admin/sections/{section} ........................ admin.sections.show ΓÇ║ Admin\SectionController@show
+  PUT|PATCH       admin/sections/{section} .................... admin.sections.update ΓÇ║ Admin\SectionController@update
+  DELETE          admin/sections/{section} .................. admin.sections.destroy ΓÇ║ Admin\SectionController@destroy
+  GET|HEAD        admin/sections/{section}/edit ................... admin.sections.edit ΓÇ║ Admin\SectionController@edit
+  GET|HEAD        admin/semesters ............................. admin.semesters.index ΓÇ║ Admin\SemesterController@index
+  POST            admin/semesters ............................. admin.semesters.store ΓÇ║ Admin\SemesterController@store
+  GET|HEAD        admin/semesters/create .................... admin.semesters.create ΓÇ║ Admin\SemesterController@create
+  GET|HEAD        admin/semesters/{semester} .................... admin.semesters.show ΓÇ║ Admin\SemesterController@show
+  PUT|PATCH       admin/semesters/{semester} ................ admin.semesters.update ΓÇ║ Admin\SemesterController@update
+  DELETE          admin/semesters/{semester} .............. admin.semesters.destroy ΓÇ║ Admin\SemesterController@destroy
+  GET|HEAD        admin/semesters/{semester}/edit ............... admin.semesters.edit ΓÇ║ Admin\SemesterController@edit
+  GET|HEAD        admin/student-results ............ admin.students.result.index ΓÇ║ Admin\StudentResultController@index
+  GET|HEAD        admin/students ................................ admin.students.index ΓÇ║ Admin\StudentController@index
+  POST            admin/students ................................ admin.students.store ΓÇ║ Admin\StudentController@store
+  GET|HEAD        admin/students/create ....................... admin.students.create ΓÇ║ Admin\StudentController@create
+  GET|HEAD        admin/students/{student} ........................ admin.students.show ΓÇ║ Admin\StudentController@show
+  PUT|PATCH       admin/students/{student} .................... admin.students.update ΓÇ║ Admin\StudentController@update
+  DELETE          admin/students/{student} .................. admin.students.destroy ΓÇ║ Admin\StudentController@destroy
+  GET|HEAD        admin/students/{student}/edit ................... admin.students.edit ΓÇ║ Admin\StudentController@edit
+  GET|HEAD        admin/students/{student}/result .... admin.students.result.show ΓÇ║ Admin\StudentResultController@show
+  GET|HEAD        admin/students/{student}/result/print admin.students.result.print ΓÇ║ Admin\StudentResultController@pΓÇª
+  GET|HEAD        admin/subjects ................................ admin.subjects.index ΓÇ║ Admin\SubjectController@index
+  POST            admin/subjects ................................ admin.subjects.store ΓÇ║ Admin\SubjectController@store
+  GET|HEAD        admin/subjects/create ....................... admin.subjects.create ΓÇ║ Admin\SubjectController@create
+  GET|HEAD        admin/subjects/{subject} ........................ admin.subjects.show ΓÇ║ Admin\SubjectController@show
+  PUT|PATCH       admin/subjects/{subject} .................... admin.subjects.update ΓÇ║ Admin\SubjectController@update
+  DELETE          admin/subjects/{subject} .................. admin.subjects.destroy ΓÇ║ Admin\SubjectController@destroy
+  GET|HEAD        admin/subjects/{subject}/edit ................... admin.subjects.edit ΓÇ║ Admin\SubjectController@edit
+  GET|HEAD        admin/teachers ................................ admin.teachers.index ΓÇ║ Admin\TeacherController@index
+  POST            admin/teachers ................................ admin.teachers.store ΓÇ║ Admin\TeacherController@store
+  GET|HEAD        admin/teachers/create ....................... admin.teachers.create ΓÇ║ Admin\TeacherController@create
+  GET|HEAD        admin/teachers/{teacher} ........................ admin.teachers.show ΓÇ║ Admin\TeacherController@show
+  PUT|PATCH       admin/teachers/{teacher} .................... admin.teachers.update ΓÇ║ Admin\TeacherController@update
+  DELETE          admin/teachers/{teacher} .................. admin.teachers.destroy ΓÇ║ Admin\TeacherController@destroy
+  GET|HEAD        admin/teachers/{teacher}/edit ................... admin.teachers.edit ΓÇ║ Admin\TeacherController@edit
+  GET|HEAD        admin/timetables .......................... admin.timetables.index ΓÇ║ Admin\TimetableController@index
+  POST            admin/timetables .......................... admin.timetables.store ΓÇ║ Admin\TimetableController@store
+  GET|HEAD        admin/timetables/create ................. admin.timetables.create ΓÇ║ Admin\TimetableController@create
+  GET|HEAD        admin/timetables/teacher/{teacher} admin.timetables.teacher_schedule ΓÇ║ Admin\TimetableController@teΓÇª
+  GET|HEAD        admin/timetables/{timetable} ................ admin.timetables.show ΓÇ║ Admin\TimetableController@show
+  PUT|PATCH       admin/timetables/{timetable} ............ admin.timetables.update ΓÇ║ Admin\TimetableController@update
+  DELETE          admin/timetables/{timetable} .......... admin.timetables.destroy ΓÇ║ Admin\TimetableController@destroy
+  GET|HEAD        admin/timetables/{timetable}/edit ........... admin.timetables.edit ΓÇ║ Admin\TimetableController@edit
+  GET|HEAD        confirm-password ........................ password.confirm ΓÇ║ Auth\ConfirmablePasswordController@show
+  POST            confirm-password .......................................... Auth\ConfirmablePasswordController@store
+  GET|HEAD        dashboard ............................................................ dashboard ΓÇ║ routes/web.php:13
+  POST            email/verification-notification verification.send ΓÇ║ Auth\EmailVerificationNotificationController@stΓÇª
+  GET|HEAD        forgot-password ......................... password.request ΓÇ║ Auth\PasswordResetLinkController@create
+  POST            forgot-password ............................ password.email ΓÇ║ Auth\PasswordResetLinkController@store
+  GET|HEAD        login ........................................... login ΓÇ║ Auth\AuthenticatedSessionController@create
+  POST            login .................................................... Auth\AuthenticatedSessionController@store
+  POST            logout ........................................ logout ΓÇ║ Auth\AuthenticatedSessionController@destroy
+  PUT             password .......................................... password.update ΓÇ║ Auth\PasswordController@update
+  GET|HEAD        profile ...................................................... profile.edit ΓÇ║ ProfileController@edit
+  PATCH           profile .................................................. profile.update ΓÇ║ ProfileController@update
+  DELETE          profile ................................................ profile.destroy ΓÇ║ ProfileController@destroy
+  GET|HEAD        register ........................................... register ΓÇ║ Auth\RegisteredUserController@create
+  POST            register ....................................................... Auth\RegisteredUserController@store
+  POST            reset-password ................................... password.store ΓÇ║ Auth\NewPasswordController@store
+  GET|HEAD        reset-password/{token} .......................... password.reset ΓÇ║ Auth\NewPasswordController@create
+  GET|HEAD        storage/{path} storage.local ΓÇ║ vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceΓÇª
+  PUT             storage/{path} storage.local.upload ΓÇ║ vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemΓÇª
+  GET|HEAD        teacher/attendance/take/{timetable} .... teacher.attendance.take ΓÇ║ Teacher\AttendanceController@take
+  GET|HEAD        teacher/attendance/today ............. teacher.attendance.today ΓÇ║ Teacher\AttendanceController@today
+  POST            teacher/attendance/{session}/lock ...... teacher.attendance.lock ΓÇ║ Teacher\AttendanceController@lock
+  POST            teacher/attendance/{session}/save ...... teacher.attendance.save ΓÇ║ Teacher\AttendanceController@save
+  GET|HEAD        up ..... vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:219
+  GET|HEAD        verify-email .......................... verification.notice ΓÇ║ Auth\EmailVerificationPromptController
+  GET|HEAD        verify-email/{id}/{hash} .......................... verification.verify ΓÇ║ Auth\VerifyEmailController
+  GET|HEAD        verify/report/{uuid} ................................. verify.report ΓÇ║ VerificationController@verify
+
+                                                                                                  Showing [162] routes
+
