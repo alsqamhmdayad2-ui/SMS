@@ -36,7 +36,7 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3">
             <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-book-open me-2"></i> الخطة الدراسية لـ: {{ $selectedClass->name }}</h6>
-            <small class="text-muted">قم بتحديد عدد الحصص الأسبوعية لكل مادة تُدرَّس في هذا الصف وفقاً لخطة وزارة التربية والتعليم.</small>
+            <small class="text-muted">قم بتحديد عدد الحصص الأسبوعية لكل مادة تُدرَّس في هذا الصف .</small>
         </div>
         <div class="card-body p-4">
             @if($subjects->isEmpty())
@@ -66,16 +66,29 @@
                                         </td>
                                         <td>
                                             <div class="input-group mx-auto" style="max-width: 150px;">
-                                                <input type="number" class="form-control text-center fw-bold" 
+                                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-control text-center fw-bold numeric-input" 
                                                        name="weekly_periods[{{ $subject->id }}]" 
                                                        value="{{ old('weekly_periods.'.$subject->id, $subject->pivot->weekly_periods) }}" 
-                                                       min="0" max="40" required>
+                                                       required>
                                                 <span class="input-group-text">حصة</span>
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td class="text-start text-primary">
+                                        <i class="fas fa-calculator me-2"></i> إجمالي الحصص الأسبوعية
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <span id="total-periods" class="fs-5 me-2">0</span>
+                                            <span class="text-muted small">حصة</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
 
@@ -89,3 +102,53 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+    // Convert Arabic indic numerals to standard English numerals on input
+    document.addEventListener('DOMContentLoaded', function() {
+        const numericInputs = document.querySelectorAll('.numeric-input');
+        const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        
+        const totalPeriodsEl = document.getElementById('total-periods');
+
+        function calculateTotal() {
+            let total = 0;
+            numericInputs.forEach(input => {
+                total += parseInt(input.value || 0, 10);
+            });
+            
+            totalPeriodsEl.textContent = total;
+            
+            // Optional visual feedback for max limits (Gaza schools typically 30 or 36)
+            if (total > 36) {
+                totalPeriodsEl.classList.remove('text-success', 'text-dark');
+                totalPeriodsEl.classList.add('text-danger');
+            } else if (total >= 25 && total <= 36) {
+                totalPeriodsEl.classList.remove('text-danger', 'text-dark');
+                totalPeriodsEl.classList.add('text-success');
+            } else {
+                totalPeriodsEl.classList.remove('text-danger', 'text-success');
+                totalPeriodsEl.classList.add('text-dark');
+            }
+        }
+
+        numericInputs.forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = this.value;
+                for (let i = 0; i < 10; i++) {
+                    const regex = new RegExp(arabicNumbers[i], 'g');
+                    value = value.replace(regex, i);
+                }
+                // Remove any non-numeric characters
+                this.value = value.replace(/[^0-9]/g, '');
+                
+                calculateTotal();
+            });
+        });
+        
+        // Initial calculation
+        calculateTotal();
+    });
+</script>
+@endpush
