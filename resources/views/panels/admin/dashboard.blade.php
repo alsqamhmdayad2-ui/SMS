@@ -87,31 +87,56 @@
     </div>
 
     <div class="col-12 col-lg-4">
-        <x-shared.card class="h-100">
+        <x-shared.card class="h-100 border-0 shadow-sm rounded-4">
             <x-slot:header>
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <h5 class="mb-0 fw-bold">آخر الطلاب المسجلين</h5>
-                    <a href="{{ route('admin.students.index') }}" class="text-decoration-none small">عرض الكل</a>
+                <div class="d-flex justify-content-between align-items-center w-100 pb-2 border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="fas fa-user-plus me-2 text-primary"></i>آخر الطلاب المسجلين
+                    </h5>
+                    <a href="{{ route('admin.students.index') }}" class="btn btn-sm btn-primary-subtle text-primary rounded-pill px-3 fw-semibold transition-all hover-lift">
+                        عرض الكل <i class="fas fa-arrow-left ms-1" style="font-size: 0.8em;"></i>
+                    </a>
                 </div>
             </x-slot:header>
             
-            <div class="activity-list">
+            <div class="activity-list mt-3">
                 @forelse($recentStudents as $student)
-                <div class="activity-item d-flex gap-3 mb-3">
-                    <div class="icon rounded-circle bg-sms-primary bg-opacity-10 text-sms-primary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                <div class="activity-item d-flex align-items-center gap-3 p-3 mb-2 rounded-3 bg-light border border-white hover-shadow transition-all">
+                    <div class="icon rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-5 shadow-sm" style="width:45px;height:45px;">
                         {{ mb_substr($student->first_name, 0, 1) }}
                     </div>
-                    <div class="details">
-                        <p class="mb-0 small fw-bold">{{ $student->first_name }} {{ $student->family_name }}</p>
-                        <small class="text-sms-muted">{{ $student->created_at->diffForHumans() }}</small>
+                    <div class="details flex-grow-1">
+                        <p class="mb-1 fw-bold text-dark">{{ $student->first_name }} {{ $student->family_name }}</p>
+                        <div class="d-flex align-items-center text-muted small">
+                            <i class="far fa-clock me-1"></i> {{ $student->created_at->diffForHumans() }}
+                        </div>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{{ route('admin.students.index') }}" class="btn btn-icon btn-sm btn-light text-secondary rounded-circle">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
                     </div>
                 </div>
                 @empty
-                <p class="text-center text-sms-muted py-3">لا يوجد طلاب حتى الآن</p>
+                <div class="text-center py-5">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-user-slash text-muted fs-3"></i>
+                    </div>
+                    <p class="text-muted fw-semibold">لا يوجد طلاب حتى الآن</p>
+                </div>
                 @endforelse
             </div>
         </x-shared.card>
     </div>
+    
+    @push('scripts')
+    <style>
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.05)!important; }
+        .hover-shadow:hover { box-shadow: 0 .25rem .5rem rgba(0,0,0,.05); background-color: #fff !important; border-color: #e9ecef !important;}
+        .btn-primary-subtle { background-color: rgba(13, 110, 253, 0.1); border: none; }
+        .btn-primary-subtle:hover { background-color: rgba(13, 110, 253, 0.2); }
+    </style>
+    @endpush
 </div>
 
 @endsection

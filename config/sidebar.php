@@ -67,7 +67,7 @@ return [
             ],
             [
                 'name'   => 'نقل الطلاب',
-                'route'  => 'admin.students.index', // TODO: قم بإنشاء واجهة ومسار خاص بنقل الطلاب لاحقاً
+                'route'  => 'admin.transfers.index',
                 'roles'  => ['admin'],
             ],
             [

@@ -14,12 +14,7 @@
     ['name' => 'الجداول الدراسية']
 ]" />
 
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
+
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">

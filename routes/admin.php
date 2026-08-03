@@ -27,6 +27,11 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        // Student Transfers
+        Route::get('transfers', [App\Http\Controllers\Admin\TransferController::class, 'index'])->name('transfers.index');
+        Route::post('transfers/internal', [App\Http\Controllers\Admin\TransferController::class, 'internalTransfer'])->name('transfers.internal');
+        Route::post('transfers/external', [App\Http\Controllers\Admin\TransferController::class, 'externalTransfer'])->name('transfers.external');
+        
         Route::post('students/{student}/transfer', [StudentController::class, 'transfer'])->name('students.transfer');
         Route::resource('students', StudentController::class);
         Route::resource('teachers', TeacherController::class);
