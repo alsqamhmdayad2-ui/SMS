@@ -152,9 +152,22 @@ class SubjectController extends Controller
             'teacher_id' => 'nullable|exists:teachers,id',
         ]);
 
+        $activeYear = \App\Models\AcademicYear::where('status', true)->first();
+        if (!$activeYear) {
+            return back()->withErrors('يجب تفعيل عام دراسي أولاً.');
+        }
+
         DB::table('subject_section_teacher')->updateOrInsert(
-            ['subject_id' => $subject->id, 'section_id' => $request->section_id],
-            ['teacher_id' => $request->teacher_id ?: null, 'updated_at' => now(), 'created_at' => now()]
+            [
+                'academic_year_id' => $activeYear->id,
+                'subject_id' => $subject->id, 
+                'section_id' => $request->section_id
+            ],
+            [
+                'teacher_id' => $request->teacher_id ?: null, 
+                'updated_at' => now(), 
+                'created_at' => now()
+            ]
         );
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -190,10 +203,14 @@ class SubjectController extends Controller
             'updated_at' => now(),
         ]);
 
+        $activeYear = \App\Models\AcademicYear::where('status', true)->first();
+        if (!$activeYear) return;
+
         // Register all sections of this class for section-level teacher assignment
-        $sections = Section::where('class_id', $classId)->get();
+        $sections = \App\Models\Section::where('class_id', $classId)->get();
         foreach ($sections as $section) {
             DB::table('subject_section_teacher')->insertOrIgnore([
+                'academic_year_id' => $activeYear->id,
                 'subject_id' => $subjectId,
                 'section_id' => $section->id,
                 'teacher_id' => null,

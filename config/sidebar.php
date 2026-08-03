@@ -54,6 +54,40 @@ return [
         ],
     ],
 
+    // شؤون الطلاب
+    [
+        'title'  => 'شؤون الطلاب',
+        'icon'   => 'user-graduate',
+        'roles'  => ['admin'],
+        'items'  => [
+            [
+                'name'   => 'تسجيل الطلاب',
+                'route'  => 'admin.students.index',
+                'roles'  => ['admin'],
+            ],
+            [
+                'name'   => 'نقل الطلاب',
+                'route'  => 'admin.students.index', // TODO: قم بإنشاء واجهة ومسار خاص بنقل الطلاب لاحقاً
+                'roles'  => ['admin'],
+            ],
+            [
+                'name'   => 'ترقية الطلاب',
+                'route'  => 'admin.promotions.index',
+                'roles'  => ['admin'],
+            ],
+            [
+                'name'   => 'إدارة الترقيات (التراجع)',
+                'route'  => 'admin.promotions.management',
+                'roles'  => ['admin'],
+            ],
+            [
+                'name'   => 'توزيع الطلاب على الشعب',
+                'route'  => 'admin.section-assignments.index',
+                'roles'  => ['admin'],
+            ],
+        ],
+    ],
+
     // الهيكل الأكاديمي
     [
         'title'  => 'الهيكل الأكاديمي',
@@ -97,6 +131,11 @@ return [
             [
                 'name'   => 'المواد الدراسية',
                 'route'  => 'admin.subjects.index',
+                'roles'  => ['admin'],
+            ],
+            [
+                'name'   => 'توزيع المعلمين',
+                'route'  => 'admin.teacher-distributions.index',
                 'roles'  => ['admin'],
             ],
             [

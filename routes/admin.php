@@ -35,15 +35,25 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('classes', SchoolClassController::class);
         Route::post('sections/{section}/assign-student', [SectionController::class, 'assignStudent'])->name('sections.assignStudent');
         Route::resource('sections', SectionController::class);
-        Route::post('subjects/{subject}/assign-teacher', [SubjectController::class, 'assignTeacher'])->name('subjects.assignTeacher');
+
+        // المناهج والجداول
         Route::resource('subjects', SubjectController::class);
-        Route::resource('academic-years', AcademicYearController::class);
-        Route::resource('semesters', SemesterController::class);
+        Route::post('subjects/{subject}/assign-teacher', [SubjectController::class, 'assignTeacher'])->name('subjects.assignTeacher');
+        Route::post('subjects/{subject}/sync-classes', [SubjectController::class, 'syncClassSections'])->name('subjects.syncClasses');
+        
+        // Teacher Distribution System
+        Route::get('teacher-distributions', [App\Http\Controllers\Admin\TeacherDistributionController::class, 'index'])->name('teacher-distributions.index');
+        Route::post('teacher-distributions', [App\Http\Controllers\Admin\TeacherDistributionController::class, 'store'])->name('teacher-distributions.store');
+
+        // Timetables
+        Route::resource('timetables', TimetableController::class);
         Route::get('timetables/teacher/{teacher}', [TimetableController::class, 'teacherSchedule'])->name('timetables.teacher_schedule');
         Route::get('timetables', [TimetableController::class, 'index'])->name('timetables.index');
         Route::get('timetables/build', [TimetableController::class, 'build'])->name('timetables.build');
         Route::post('timetables/check-conflict', [TimetableController::class, 'checkConflict'])->name('timetables.check_conflict');
         Route::post('timetables/save', [TimetableController::class, 'save'])->name('timetables.save');
+        Route::resource('academic-years', AcademicYearController::class);
+        Route::resource('semesters', SemesterController::class);
         Route::resource('grade-scales', GradeScaleController::class)->except(['show', 'create', 'edit']);
         
         // Assessment Components Routes
@@ -120,6 +130,17 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('users', UserController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+        // Student Promotion System
+        Route::get('promotions/management', [App\Http\Controllers\Admin\PromotionController::class, 'management'])->name('promotions.management');
+        Route::delete('promotions/undo-all', [App\Http\Controllers\Admin\PromotionController::class, 'undoAll'])->name('promotions.undo-all');
+        Route::delete('promotions/{enrollment}/undo', [App\Http\Controllers\Admin\PromotionController::class, 'undo'])->name('promotions.undo');
+        Route::get('promotions', [App\Http\Controllers\Admin\PromotionController::class, 'index'])->name('promotions.index');
+        Route::post('promotions', [App\Http\Controllers\Admin\PromotionController::class, 'store'])->name('promotions.store');
+        
+        // Section Assignments (Phase 2 of Promotion)
+        Route::get('section-assignments', [App\Http\Controllers\Admin\SectionAssignmentController::class, 'index'])->name('section-assignments.index');
+        Route::post('section-assignments', [App\Http\Controllers\Admin\SectionAssignmentController::class, 'store'])->name('section-assignments.store');
 
         // Archive / Trash
         Route::get('archive', [App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('archive.index');
