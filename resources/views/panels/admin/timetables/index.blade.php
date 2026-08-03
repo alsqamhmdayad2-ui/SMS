@@ -5,7 +5,9 @@
 
 <x-page-header title="الجداول الدراسية الأسبوعية">
     <x-slot:actions>
-        <a href="{{ route('admin.timetables.build') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i> بناء/تعديل جدول</a>
+        <a href="{{ route('admin.timetables.build') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-edit me-1"></i> تعديل يدوي
+        </a>
     </x-slot:actions>
 </x-page-header>
 
@@ -45,9 +47,34 @@
 
 @if($selectedSection)
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-calendar-alt me-2"></i>جدول شعبة: {{ $selectedSection->name }} - {{ $selectedSection->schoolClass->name }}</h6>
-            <a href="{{ route('admin.timetables.build', ['section_id' => $selectedSection->id]) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> تعديل الجدول</a>
+            <div class="d-flex gap-2 flex-wrap">
+                {{-- Auto Generate Button --}}
+                <form action="{{ route('admin.timetables.generate') }}" method="POST" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="section_id" value="{{ $selectedSection->id }}">
+                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3"
+                        onclick="return confirm('سيتم إنشاء جدول جديد من الصفر لهذه الشعبة. هل تريد المتابعة؟')">
+                        <i class="fas fa-magic me-1"></i> إنشاء تلقائي
+                    </button>
+                </form>
+                {{-- Regenerate Button (only if timetable exists) --}}
+                @if(collect($weeklySchedule)->flatten()->filter()->isNotEmpty())
+                <form action="{{ route('admin.timetables.regenerate') }}" method="POST" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="section_id" value="{{ $selectedSection->id }}">
+                    <button type="submit" class="btn btn-sm btn-warning rounded-pill px-3"
+                        onclick="return confirm('سيتم إعادة توليد الجدول وحذف الجدول الحالي. هل تريد المتابعة؟')">
+                        <i class="fas fa-sync-alt me-1"></i> إعادة توليد
+                    </button>
+                </form>
+                @endif
+                {{-- Manual Edit Button --}}
+                <a href="{{ route('admin.timetables.build', ['section_id' => $selectedSection->id]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-edit me-1"></i> تعديل يدوي
+                </a>
+            </div>
         </div>
         <div class="card-body p-0">
             @php $hasData = collect($weeklySchedule)->flatten()->filter()->isNotEmpty(); @endphp
@@ -55,9 +82,19 @@
             @if(!$hasData)
                 <div class="text-center py-5 text-muted">
                     <i class="fas fa-calendar-times fa-3x mb-3 opacity-25"></i>
-                    <p class="mb-0">لم يتم بناء جدول لهذه الشعبة بعد.<br>
-                        <a href="{{ route('admin.timetables.build', ['section_id' => $selectedSection->id]) }}" class="fw-bold">اضغط هنا لبناء الجدول الآن</a>
-                    </p>
+                    <p class="mb-2 fw-bold">لم يتم بناء جدول لهذه الشعبة بعد.</p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+                        <form action="{{ route('admin.timetables.generate') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="section_id" value="{{ $selectedSection->id }}">
+                            <button type="submit" class="btn btn-success rounded-pill px-4">
+                                <i class="fas fa-magic me-2"></i> إنشاء تلقائي
+                            </button>
+                        </form>
+                        <a href="{{ route('admin.timetables.build', ['section_id' => $selectedSection->id]) }}" class="btn btn-outline-primary rounded-pill px-4">
+                            <i class="fas fa-pencil-alt me-2"></i> بناء يدوي
+                        </a>
+                    </div>
                 </div>
             @else
                 <div class="table-responsive">

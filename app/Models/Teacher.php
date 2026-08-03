@@ -21,6 +21,7 @@ class Teacher extends Model
         'phone',
         'specialization',
         'salary',
+        'max_weekly_periods',
         'address',
         'avatar'
     ];

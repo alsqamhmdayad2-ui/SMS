@@ -23,9 +23,9 @@ class StoreSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
-            'code'        => 'required|string|max:50|unique:subjects,code',
-            'description' => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'code'           => 'required|string|max:50|unique:subjects,code',
+            'description'    => 'nullable|string',
             'status'      => 'nullable|boolean',
             // class_ids: array of class IDs to link (optional, managed via pivot)
             'class_ids'   => 'nullable|array',

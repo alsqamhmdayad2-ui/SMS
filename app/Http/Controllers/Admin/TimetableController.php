@@ -9,6 +9,7 @@ use App\Models\Section;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\Timetable;
+use App\Services\TimetableGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -212,4 +213,46 @@ class TimetableController extends Controller
 
         return response()->json(['hasConflict' => false]);
     }
+
+    /**
+     * Auto-generate timetable for a section from scratch.
+     */
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'section_id' => 'required|exists:sections,id',
+        ]);
+
+        $section = Section::with('schoolClass.grade')->findOrFail($request->section_id);
+        $academicYear = AcademicYear::where('status', true)->first();
+        $semester = Semester::where('status', true)->first();
+
+        if (!$academicYear || !$semester) {
+            return back()->withErrors('يجب تفعيل عام دراسي وفصل دراسي أولاً.');
+        }
+
+        $generator = new TimetableGeneratorService();
+        $result = $generator->generateForSection($section, $academicYear, $semester);
+
+        if (!$result['success']) {
+            return back()->withErrors($result['message']);
+        }
+
+        $generator->saveSchedule($section, $academicYear, $semester, $result['schedule']);
+
+        return redirect()
+            ->route('admin.timetables.index', ['section_id' => $section->id])
+            ->with('success', '✅ تم توليد الجدول الدراسي تلقائياً بنجاح!');
+    }
+
+    /**
+     * Regenerate timetable (wipe existing and rebuild).
+     * Used when teacher assignments have changed.
+     */
+    public function regenerate(Request $request)
+    {
+        // Same logic as generate — saves over existing schedule
+        return $this->generate($request);
+    }
 }
+

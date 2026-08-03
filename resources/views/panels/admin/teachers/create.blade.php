@@ -104,6 +104,15 @@
                             @error('specialization') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label required">
+                                <i class="fas fa-clock text-primary me-1"></i> النصاب الأسبوعي
+                            </label>
+                            <input type="number" class="form-control @error('max_weekly_periods') is-invalid @enderror"
+                                   name="max_weekly_periods" value="{{ old('max_weekly_periods', 24) }}" required
+                                   min="0" max="40" placeholder="مثال: 24" />
+                            @error('max_weekly_periods') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">المواد التي يستطيع تدريسها</label>
                             <select name="subjects[]" class="form-select select2" multiple data-placeholder="اختر المواد...">
                                 @foreach($subjects as $subject)

@@ -22,6 +22,7 @@ class UpdateTeacherRequest extends FormRequest
             'phone'            => 'nullable|string|max:20',
             'specialization'   => 'nullable|string|max:255',
             'salary'           => 'nullable|numeric',
+            'max_weekly_periods' => 'required|integer|min:0|max:40',
             'address'          => 'nullable|string',
             'subjects'         => 'nullable|array',
             'subjects.*'       => 'exists:subjects,id',

@@ -57,6 +57,13 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('timetables/build', [TimetableController::class, 'build'])->name('timetables.build');
         Route::post('timetables/check-conflict', [TimetableController::class, 'checkConflict'])->name('timetables.check_conflict');
         Route::post('timetables/save', [TimetableController::class, 'save'])->name('timetables.save');
+        Route::post('timetables/generate', [TimetableController::class, 'generate'])->name('timetables.generate');
+        Route::post('timetables/regenerate', [TimetableController::class, 'regenerate'])->name('timetables.regenerate');
+        
+        // Study Plans
+        Route::get('study-plans', [App\Http\Controllers\Admin\StudyPlanController::class, 'index'])->name('study-plans.index');
+        Route::post('study-plans/save', [App\Http\Controllers\Admin\StudyPlanController::class, 'save'])->name('study-plans.save');
+        
         Route::resource('academic-years', AcademicYearController::class);
         Route::resource('semesters', SemesterController::class);
         Route::resource('grade-scales', GradeScaleController::class)->except(['show', 'create', 'edit']);

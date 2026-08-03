@@ -23,12 +23,12 @@ class UpdateSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
-            'code'        => [
+            'name'           => 'required|string|max:255',
+            'code'           => [
                 'required', 'string', 'max:50',
                 \Illuminate\Validation\Rule::unique('subjects')->ignore($this->route('subject')),
             ],
-            'description' => 'nullable|string',
+            'description'    => 'nullable|string',
             'status'      => 'nullable|boolean',
             // class_ids: array of class IDs to link (optional, managed via pivot)
             'class_ids'   => 'nullable|array',

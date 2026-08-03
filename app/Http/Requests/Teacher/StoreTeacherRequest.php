@@ -22,6 +22,7 @@ class StoreTeacherRequest extends FormRequest
             'phone' => 'required|string|max:20',
             'specialization' => 'required|string|max:255',
             'salary' => 'nullable|numeric',
+            'max_weekly_periods' => 'required|integer|min:0|max:40',
             'address' => 'nullable|string',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'subjects' => 'nullable|array',

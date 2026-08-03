@@ -129,6 +129,11 @@ return [
         'roles'  => ['admin'],
         'items'  => [
             [
+                'name'   => 'الخطة الدراسية',
+                'route'  => 'admin.study-plans.index',
+                'roles'  => ['admin'],
+            ],
+            [
                 'name'   => 'المواد الدراسية',
                 'route'  => 'admin.subjects.index',
                 'roles'  => ['admin'],
