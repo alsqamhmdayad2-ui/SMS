@@ -12,7 +12,7 @@ use App\Models\Section;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(\App\Services\AttendanceAnalyticsService $attendanceAnalytics)
     {
         $stats = [
             'students' => Student::count(),
@@ -25,6 +25,17 @@ class DashboardController extends Controller
 
         $recentStudents = Student::latest()->take(5)->get();
 
-        return view('panels.admin.dashboard', compact('stats', 'recentStudents'));
+        // Active Academic Year & Semester
+        $activeYear = \App\Models\AcademicYear::where('status', 1)->first();
+        $activeSemester = \App\Models\Semester::where('status', 1)->first();
+
+        // Today's Attendance Stats
+        $todayStats = null;
+        if ($activeYear) {
+            $todayStats = $attendanceAnalytics->getDailySummary(date('Y-m-d'), $activeYear->id);
+        }
+
+        return view('panels.admin.dashboard', compact('stats', 'recentStudents', 'activeYear', 'activeSemester', 'todayStats'));
+
     }
 }
