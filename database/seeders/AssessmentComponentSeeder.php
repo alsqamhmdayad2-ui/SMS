@@ -21,12 +21,11 @@ class AssessmentComponentSeeder extends Seeder
         }
 
         $components = [
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Homework', 'code' => 'HOMEWORK', 'weight_percentage' => 10.00, 'order' => 1],
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Attendance', 'code' => 'ATTENDANCE', 'weight_percentage' => 10.00, 'order' => 2],
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Quiz', 'code' => 'QUIZ', 'weight_percentage' => 20.00, 'order' => 3],
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Monthly Exam', 'code' => 'MONTHLY', 'weight_percentage' => 20.00, 'order' => 4],
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Midterm', 'code' => 'MIDTERM', 'weight_percentage' => 20.00, 'order' => 5],
-            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'Final Exam', 'code' => 'FINAL', 'weight_percentage' => 20.00, 'order' => 6],
+            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'أنشطة وواجبات', 'code' => 'ACTIVITIES', 'weight_percentage' => 10.00, 'order' => 1],
+            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'حضور ومشاركة', 'code' => 'ATTENDANCE', 'weight_percentage' => 10.00, 'order' => 2],
+            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'اختبار قصير', 'code' => 'QUIZ', 'weight_percentage' => 10.00, 'order' => 3],
+            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'امتحان نصف الفصل', 'code' => 'MIDTERM', 'weight_percentage' => 30.00, 'order' => 4],
+            ['academic_year_id' => $academicYear->id, 'subject_id' => $subject->id, 'name' => 'امتحان نهاية الفصل', 'code' => 'FINAL', 'weight_percentage' => 40.00, 'order' => 5],
         ];
 
         foreach ($components as $component) {

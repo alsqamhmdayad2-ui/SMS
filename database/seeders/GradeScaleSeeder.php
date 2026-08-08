@@ -13,14 +13,12 @@ class GradeScaleSeeder extends Seeder
     public function run(): void
     {
         $scales = [
-            ['name' => 'Default Scale', 'percentage_from' => 97.00, 'percentage_to' => 100.00, 'letter_grade' => 'A+', 'gpa_point' => 4.00, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 93.00, 'percentage_to' => 96.99, 'letter_grade' => 'A', 'gpa_point' => 4.00, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 89.00, 'percentage_to' => 92.99, 'letter_grade' => 'B+', 'gpa_point' => 3.30, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 84.00, 'percentage_to' => 88.99, 'letter_grade' => 'B', 'gpa_point' => 3.00, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 80.00, 'percentage_to' => 83.99, 'letter_grade' => 'C+', 'gpa_point' => 2.30, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 75.00, 'percentage_to' => 79.99, 'letter_grade' => 'C', 'gpa_point' => 2.00, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 60.00, 'percentage_to' => 74.99, 'letter_grade' => 'D', 'gpa_point' => 1.00, 'is_passing' => true, 'minimum_required_percentage' => 60.00],
-            ['name' => 'Default Scale', 'percentage_from' => 0.00, 'percentage_to' => 59.99, 'letter_grade' => 'F', 'gpa_point' => 0.00, 'is_passing' => false, 'minimum_required_percentage' => 60.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 90.00, 'percentage_to' => 100.00, 'letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true, 'minimum_required_percentage' => 50.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 80.00, 'percentage_to' => 89.99, 'letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true, 'minimum_required_percentage' => 50.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 70.00, 'percentage_to' => 79.99, 'letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true, 'minimum_required_percentage' => 50.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 60.00, 'percentage_to' => 69.99, 'letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true, 'minimum_required_percentage' => 50.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 50.00, 'percentage_to' => 59.99, 'letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true, 'minimum_required_percentage' => 50.00],
+            ['name' => 'سلم الدرجات والتقديرات', 'percentage_from' => 0.00, 'percentage_to' => 49.99, 'letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false, 'minimum_required_percentage' => 50.00],
         ];
 
         foreach ($scales as $scale) {
