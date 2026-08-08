@@ -25,7 +25,7 @@
     @foreach($roles as $role)
     <div class="col-12 col-md-3">
         <x-dashboard.stat-card
-            title="{{ __('roles.'.$role->name) ?? $role->name }}"
+            title="{{ match($role->name) { 'admin' => 'مدير النظام', 'teacher' => 'معلم', 'student' => 'طالب', 'parent' => 'ولي أمر', default => $role->name } }}"
             value="{{ \App\Models\User::role($role->name)->count() }}"
             icon="{{ match($role->name) { 'admin' => 'fas fa-user-shield', 'teacher' => 'fas fa-chalkboard-teacher', 'student' => 'fas fa-user-graduate', 'parent' => 'fas fa-user-friends', default => 'fas fa-user' } }}"
             color="{{ match($role->name) { 'admin' => 'danger', 'teacher' => 'info', 'student' => 'success', 'parent' => 'warning', default => 'secondary' } }}"
@@ -51,7 +51,7 @@
                     <option value="">-- جميع الأدوار --</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->name }}" {{ $roleFilter == $role->name ? 'selected' : '' }}>
-                            {{ __('roles.'.$role->name) ?? $role->name }}
+                            {{ match($role->name) { 'admin' => 'مدير النظام', 'teacher' => 'معلم', 'student' => 'طالب', 'parent' => 'ولي أمر', default => $role->name } }}
                         </option>
                     @endforeach
                 </select>

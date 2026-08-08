@@ -39,10 +39,6 @@
                            value="{{ old('login') }}" required autofocus
                            placeholder="أدخل رقم الهوية أو البريد الإلكتروني" />
                 </div>
-                <div class="text-muted mt-1" style="font-size: 0.8rem;">
-                    <i class="fas fa-info-circle me-1"></i>
-                    يمكنك الدخول باستخدام رقم الهوية الوطنية أو البريد الإلكتروني
-                </div>
                 @error('login')
                     <div class="text-danger mt-1" style="font-size: 0.85rem;">{{ $message }}</div>
                 @enderror

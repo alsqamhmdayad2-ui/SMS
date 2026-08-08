@@ -49,11 +49,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" for="email">البريد الإلكتروني <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" for="email">البريد الإلكتروني</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                             <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                                   value="{{ old('email', $user->email) }}" required>
+                                   value="{{ old('email', $user->email) }}" placeholder="اتركه فارغاً للدخول برقم الهوية فقط">
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
