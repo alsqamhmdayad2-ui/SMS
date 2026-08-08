@@ -215,9 +215,8 @@ class AttendanceAnalyticsService
         $absent  = $records->where('status', AttendanceStatus::Absent->value)->count();
         $late    = $records->where('status', AttendanceStatus::Late->value)->count();
         $excused = $records->where('status', AttendanceStatus::Excused->value)->count();
-        $sick    = $records->where('status', AttendanceStatus::Sick->value)->count();
 
-        $effective  = $present + ($late * 0.5) + $excused + $sick;
+        $effective  = $present + ($late * 0.5) + $excused;
         $rate       = $total > 0 ? round(($effective / $total) * 100, 1) : 0;
 
         return [
@@ -226,7 +225,7 @@ class AttendanceAnalyticsService
             'absent_count'          => $absent,
             'late_count'            => $late,
             'excused_count'         => $excused,
-            'sick_count'            => $sick,
+            'sick_count'            => 0, // Kept for backward compatibility if used in views
             'attendance_percentage' => $rate, // Ready for GradeCalculationService
             'present_percentage'    => $total > 0 ? round(($present / $total) * 100, 1) : 0,
             'absent_percentage'     => $total > 0 ? round(($absent  / $total) * 100, 1) : 0,

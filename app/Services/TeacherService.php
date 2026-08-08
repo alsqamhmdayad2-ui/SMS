@@ -6,7 +6,6 @@ use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class TeacherService
 {
@@ -18,12 +17,9 @@ class TeacherService
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
-            // Generate a system email (internal use only)
-            $email = strtolower(Str::ascii($data['first_name'] . '.' . $data['family_name'])) . mt_rand(100, 999) . '@school.internal';
-
             $user = User::create([
                 'name'        => $data['first_name'] . ' ' . $data['family_name'],
-                'email'       => $email,
+                'email'       => null,
                 'national_id' => $data['national_id'],
                 'password'    => Hash::make($data['national_id']), // Default password = national_id
             ]);

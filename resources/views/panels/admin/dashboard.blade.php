@@ -17,16 +17,16 @@
 
 <!-- Active Settings Banner -->
 @if($activeYear && $activeSemester)
-<div class="alert bg-sms-primary bg-opacity-10 border-0 border-start border-sms-primary border-4 d-flex align-items-center mb-4 p-3 shadow-sm rounded-end">
+<div class="alert bg-sms-primary text-white border-0 shadow-sm rounded-4 d-flex align-items-center mb-4 p-3">
     <div class="rounded-circle bg-white text-sms-primary p-2 d-flex align-items-center justify-content-center shadow-sm me-3" style="width: 48px; height: 48px;">
         <i class="fas fa-calendar-check fs-4"></i>
     </div>
     <div>
-        <h6 class="mb-1 fw-bold text-sms-main">العام الدراسي النشط: {{ $activeYear->name }}</h6>
-        <p class="mb-0 text-sms-muted small">
-            الفصل الدراسي: <strong>{{ $activeSemester->name }}</strong>
-            <span class="mx-2 text-muted">|</span>
-            <a href="{{ route('admin.academic-years.index') }}" class="text-decoration-none">تغيير الإعدادات <i class="fas fa-arrow-left ms-1" style="font-size: 0.8em;"></i></a>
+        <h5 class="mb-1 fw-bold text-white">العام الدراسي النشط: {{ $activeYear->name }}</h5>
+        <p class="mb-0 text-white-50 small">
+            الفصل الدراسي: <strong class="text-white">{{ $activeSemester->name }}</strong>
+            <span class="mx-2 text-white-50">|</span>
+            <a href="{{ route('admin.academic-years.index') }}" class="text-white text-decoration-none border-bottom border-white">تغيير الإعدادات <i class="fas fa-arrow-left ms-1" style="font-size: 0.8em;"></i></a>
         </p>
     </div>
 </div>
@@ -165,10 +165,10 @@
                 <x-shared.card class="border-0 shadow-sm rounded-4">
                     <div class="bg-light border-bottom p-3 d-flex align-items-center justify-content-between">
                         <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-clipboard-check text-success me-2"></i>حضور اليوم</h6>
-                        <a href="{{ route('admin.attendance.reports.dashboard') }}" class="btn btn-sm btn-link text-decoration-none p-0">التفاصيل <i class="fas fa-arrow-left ms-1"></i></a>
+                        <a href="{{ route('admin.attendance-reports.dashboard') }}" class="btn btn-sm btn-link text-decoration-none p-0">التفاصيل <i class="fas fa-arrow-left ms-1"></i></a>
                     </div>
                     <div class="p-4">
-                        @if($todayStats && $todayStats['total_students'] > 0)
+                        @if($todayStats && $todayStats['total_sessions'] > 0)
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="fw-bold text-dark">نسبة حضور الطلاب</span>
                                 <span class="badge bg-success-subtle text-success fs-6">{{ $todayStats['attendance_percentage'] }}%</span>
