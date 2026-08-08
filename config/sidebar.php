@@ -310,24 +310,19 @@ return [
     // إدارة الاختبارات
     [
         'title'  => 'إدارة الاختبارات',
-        'icon'   => 'question-circle',
+        'icon'   => 'clipboard-list',
         'roles'  => ['teacher'],
         'items'  => [
             [
                 'name'   => 'قائمة الاختبارات',
-                'route'  => 'teacher.dashboard',
+                'route'  => 'teacher.exams.index',
                 'roles'  => ['teacher'],
             ],
             [
                 'name'   => 'إنشاء اختبار',
-                'route'  => 'teacher.dashboard',
+                'route'  => 'teacher.exams.create',
                 'roles'  => ['teacher'],
-            ],
-            [
-                'name'   => 'بنك الأسئلة',
-                'route'  => 'teacher.dashboard',
-                'roles'  => ['teacher'],
-            ],
+            ]
         ],
     ],
 

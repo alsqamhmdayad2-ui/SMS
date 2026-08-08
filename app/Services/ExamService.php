@@ -8,11 +8,28 @@ use Illuminate\Validation\ValidationException;
 
 class ExamService
 {
-    public function getAll()
+    public function getAll($filters = [])
     {
-        return Exam::with(['academicYear', 'semester', 'schoolClass', 'section', 'subject', 'teacher'])
-            ->latest()
-            ->get();
+        $query = Exam::with(['academicYear', 'semester', 'schoolClass', 'section', 'subject', 'teacher'])
+            ->latest();
+
+        if (!empty($filters['academic_year_id'])) {
+            $query->where('academic_year_id', $filters['academic_year_id']);
+        }
+        if (!empty($filters['semester_id'])) {
+            $query->where('semester_id', $filters['semester_id']);
+        }
+        if (!empty($filters['subject_id'])) {
+            $query->where('subject_id', $filters['subject_id']);
+        }
+        if (!empty($filters['section_id'])) {
+            $query->where('section_id', $filters['section_id']);
+        }
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->paginate(15)->withQueryString();
     }
 
     public function create(array $data)

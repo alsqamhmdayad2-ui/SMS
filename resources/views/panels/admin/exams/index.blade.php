@@ -16,6 +16,72 @@
     ['name' => 'الاختبارات']
 ]" />
 
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <x-dashboard.stat-card title="إجمالي الاختبارات" :value="$exams->total()" icon="fas fa-file-alt" color="primary" />
+    </div>
+    <div class="col-6 col-md-3">
+        <x-dashboard.stat-card title="مسودة" :value="$exams->getCollection()->where('status.value', 'draft')->count()" icon="fas fa-pencil-alt" color="warning" />
+    </div>
+    <div class="col-6 col-md-3">
+        <x-dashboard.stat-card title="منشورة" :value="$exams->getCollection()->where('status.value', 'published')->count()" icon="fas fa-check-circle" color="success" />
+    </div>
+    <div class="col-6 col-md-3">
+        <x-dashboard.stat-card title="مغلقة" :value="$exams->getCollection()->where('status.value', 'locked')->count()" icon="fas fa-lock" color="info" />
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{{ route('admin.exams.index') }}" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">العام الدراسي</label>
+                <select name="academic_year_id" class="form-select form-select-sm">
+                    <option value="">-- الجميع --</option>
+                    @foreach($academicYears as $year)
+                        <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>{{ $year->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">المادة</label>
+                <select name="subject_id" class="form-select form-select-sm searchable-select">
+                    <option value="">-- الجميع --</option>
+                    @foreach($subjects as $subject)
+                        <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>{{ $subject->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">الشعبة</label>
+                <select name="section_id" class="form-select form-select-sm searchable-select">
+                    <option value="">-- الجميع --</option>
+                    @foreach($sections as $section)
+                        <option value="{{ $section->id }}" {{ request('section_id') == $section->id ? 'selected' : '' }}>
+                            {{ $section->schoolClass?->name }} - {{ $section->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">الحالة</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">-- الجميع --</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
+                            {{ match($status->value) { 'draft' => 'مسودة', 'published' => 'منشور', 'locked' => 'مغلق', default => $status->value } }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter"></i> تصفية</button>
+                <a href="{{ route('admin.exams.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-redo"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <x-shared.card title="قائمة الاختبارات">
     <x-table.data-table hover="true">
         <x-slot:header>
@@ -78,6 +144,12 @@
             @endforelse
         </x-slot:body>
     </x-table.data-table>
+    
+    @if($exams->hasPages())
+        <div class="p-3 border-top">
+            {{ $exams->links() }}
+        </div>
+    @endif
 </x-shared.card>
 
 @endsection

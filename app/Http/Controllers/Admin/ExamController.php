@@ -25,10 +25,15 @@ class ExamController extends Controller
         protected ExamService $examService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $exams = $this->examService->getAll();
-        return view('panels.admin.exams.index', compact('exams'));
+        $filters = $request->only(['academic_year_id', 'semester_id', 'subject_id', 'section_id', 'status']);
+        $exams = $this->examService->getAll($filters);
+        
+        $data = $this->getFormData();
+        $data['exams'] = $exams;
+        
+        return view('panels.admin.exams.index', $data);
     }
 
     public function create()
