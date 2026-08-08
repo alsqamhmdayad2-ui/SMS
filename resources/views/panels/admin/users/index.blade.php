@@ -42,7 +42,7 @@
                 <label class="form-label small fw-semibold">بحث</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="بحث بالاسم أو البريد..." value="{{ $search }}">
+                    <input type="text" name="search" class="form-control" placeholder="بحث بالاسم أو رقم الهوية..." value="{{ $search }}">
                 </div>
             </div>
             <div class="col-md-4">
@@ -77,7 +77,7 @@
                     <tr>
                         <th class="ps-3">#</th>
                         <th>المستخدم</th>
-                        <th>البريد الإلكتروني</th>
+                        <th>رقم الهوية</th>
                         <th>الدور</th>
                         <th>تاريخ الإنشاء</th>
                         <th class="text-center">الإجراءات</th>
@@ -101,7 +101,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-muted">{{ $user->email }}</td>
+                        <td class="text-muted fw-semibold" style="letter-spacing: 0.5px;">{{ $user->national_id ?? '-' }}</td>
                         <td>
                             @php $role = $user->roles->first() @endphp
                             @if($role)
