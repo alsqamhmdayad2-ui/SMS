@@ -18,21 +18,42 @@
                             <div class="mb-5 pb-3 border-bottom">
                                 <h5 class="fw-bold mb-3">{{ $index + 1 }}. {{ $question->question_text }} <span class="badge bg-secondary ms-2">{{ $question->marks }} درجات</span></h5>
                                 
-                                @if($question->type === 'mcq' || $question->type === 'true_false')
+                                @if($question->type->value === 'mcq' || $question->type->value === 'true_false')
                                     <div class="d-flex flex-column gap-2">
                                         @foreach($question->options as $option)
                                             <div class="form-check custom-radio">
-                                                <input class="form-check-input" type="radio" name="answers[{{ $question->id }}]" id="opt_{{ $option->id }}" value="{{ $option->id }}">
+                                                <input class="form-check-input student-answer" type="radio" name="answers[{{ $question->id }}]" id="opt_{{ $option->id }}" value="{{ $option->id }}" data-qid="{{ $question->id }}">
                                                 <label class="form-check-label w-100 p-2 rounded border" for="opt_{{ $option->id }}">
                                                     {{ $option->option_text }}
                                                 </label>
                                             </div>
                                         @endforeach
                                     </div>
-                                @elseif($question->type === 'short_answer' || $question->type === 'fill_blank')
-                                    <input type="text" name="answers[{{ $question->id }}]" class="form-control" placeholder="اكتب إجابتك هنا...">
-                                @elseif($question->type === 'essay')
-                                    <textarea name="answers[{{ $question->id }}]" class="form-control" rows="4" placeholder="اكتب إجابتك المقالية هنا..."></textarea>
+                                @elseif($question->type->value === 'short_answer' || $question->type->value === 'fill_blank')
+                                    <input type="text" name="answers[{{ $question->id }}]" class="form-control student-answer" placeholder="اكتب إجابتك هنا..." data-qid="{{ $question->id }}">
+                                @elseif($question->type->value === 'essay')
+                                    <textarea name="answers[{{ $question->id }}]" class="form-control student-answer" rows="4" placeholder="اكتب إجابتك المقالية هنا..." data-qid="{{ $question->id }}"></textarea>
+                                @elseif($question->type->value === 'matching')
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0">
+                                            <tbody>
+                                                @php $rightItems = $question->options->pluck('right_item')->shuffle(); @endphp
+                                                @foreach($question->options as $option)
+                                                    <tr>
+                                                        <td class="w-50 align-middle fw-bold bg-light">{{ $option->left_item }}</td>
+                                                        <td class="w-50">
+                                                            <select name="answers[{{ $question->id }}][{{ $option->id }}]" class="form-select student-answer" data-qid="{{ $question->id }}_{{ $option->id }}">
+                                                                <option value="">-- اختر الإجابة --</option>
+                                                                @foreach($rightItems as $rightItem)
+                                                                    <option value="{{ $rightItem }}">{{ $rightItem }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 @endif
                             </div>
                         @endforeach
@@ -48,21 +69,42 @@
                                     <h5 class="fw-bold mb-3">السؤال {{ $index + 1 }} من {{ $exam->questions->count() }}</h5>
                                     <h4 class="mb-4">{{ $question->question_text }} <span class="badge bg-secondary ms-2">{{ $question->marks }} درجات</span></h4>
                                     
-                                    @if($question->type === 'mcq' || $question->type === 'true_false')
+                                    @if($question->type->value === 'mcq' || $question->type->value === 'true_false')
                                         <div class="d-flex flex-column gap-2 mb-4">
                                             @foreach($question->options as $option)
                                                 <div class="form-check custom-radio">
-                                                    <input class="form-check-input" type="radio" name="answers[{{ $question->id }}]" id="opt_{{ $option->id }}" value="{{ $option->id }}">
+                                                    <input class="form-check-input student-answer" type="radio" name="answers[{{ $question->id }}]" id="opt_{{ $option->id }}" value="{{ $option->id }}" data-qid="{{ $question->id }}">
                                                     <label class="form-check-label w-100 p-3 rounded border fs-5" for="opt_{{ $option->id }}">
                                                         {{ $option->option_text }}
                                                     </label>
                                                 </div>
                                             @endforeach
                                         </div>
-                                    @elseif($question->type === 'short_answer' || $question->type === 'fill_blank')
-                                        <input type="text" name="answers[{{ $question->id }}]" class="form-control form-control-lg mb-4" placeholder="اكتب إجابتك هنا...">
-                                    @elseif($question->type === 'essay')
-                                        <textarea name="answers[{{ $question->id }}]" class="form-control mb-4" rows="6" placeholder="اكتب إجابتك المقالية هنا..."></textarea>
+                                    @elseif($question->type->value === 'short_answer' || $question->type->value === 'fill_blank')
+                                        <input type="text" name="answers[{{ $question->id }}]" class="form-control form-control-lg mb-4 student-answer" placeholder="اكتب إجابتك هنا..." data-qid="{{ $question->id }}">
+                                    @elseif($question->type->value === 'essay')
+                                        <textarea name="answers[{{ $question->id }}]" class="form-control mb-4 student-answer" rows="6" placeholder="اكتب إجابتك المقالية هنا..." data-qid="{{ $question->id }}"></textarea>
+                                    @elseif($question->type->value === 'matching')
+                                        <div class="table-responsive mb-4">
+                                            <table class="table table-bordered mb-0">
+                                                <tbody>
+                                                    @php $rightItems = $question->options->pluck('right_item')->shuffle(); @endphp
+                                                    @foreach($question->options as $option)
+                                                        <tr>
+                                                            <td class="w-50 align-middle fw-bold bg-light">{{ $option->left_item }}</td>
+                                                            <td class="w-50">
+                                                                <select name="answers[{{ $question->id }}][{{ $option->id }}]" class="form-select form-select-lg student-answer" data-qid="{{ $question->id }}_{{ $option->id }}">
+                                                                    <option value="">-- اختر الإجابة --</option>
+                                                                    @foreach($rightItems as $rightItem)
+                                                                        <option value="{{ $rightItem }}">{{ $rightItem }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     @endif
                                     
                                     <hr class="my-4">
@@ -137,18 +179,71 @@
 @push('scripts')
 <script>
     // Timer Logic
-    let durationMinutes = {{ $exam->duration_minutes ?? 60 }};
-    let timeRemaining = durationMinutes * 60; // in seconds
+    let timeRemaining = {{ isset($remainingSeconds) ? $remainingSeconds : ($exam->duration_minutes ?? 60) * 60 }};
     const timerDisplay = document.getElementById('timer-display');
     const examForm = document.getElementById('exam-form');
     
+    // Auto Save Logic
+    const examId = {{ $exam->id }};
+    const storageKey = `exam_${examId}_answers`;
+    
+    function saveAnswersLocally() {
+        let answers = {};
+        document.querySelectorAll('.student-answer').forEach(input => {
+            if (input.type === 'radio') {
+                if (input.checked) answers[input.dataset.qid] = input.value;
+            } else {
+                if (input.value) answers[input.dataset.qid] = input.value;
+            }
+        });
+        localStorage.setItem(storageKey, JSON.stringify(answers));
+    }
+    
+    function restoreAnswers() {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            const answers = JSON.parse(saved);
+            document.querySelectorAll('.student-answer').forEach(input => {
+                const qid = input.dataset.qid;
+                if (answers[qid]) {
+                    if (input.type === 'radio' && input.value == answers[qid]) {
+                        input.checked = true;
+                    } else if (input.type !== 'radio') {
+                        input.value = answers[qid];
+                    }
+                }
+            });
+        }
+    }
+    
+    // Restore on load
+    document.addEventListener('DOMContentLoaded', restoreAnswers);
+    
+    // Save on change
+    document.querySelectorAll('.student-answer').forEach(input => {
+        input.addEventListener('change', saveAnswersLocally);
+        if (input.type === 'text' || input.tagName === 'TEXTAREA') {
+            input.addEventListener('keyup', saveAnswersLocally);
+        }
+    });
+
+    // Clear local storage on submit
+    examForm.addEventListener('submit', function() {
+        localStorage.removeItem(storageKey);
+    });
+    
     function updateTimer() {
-        let minutes = Math.floor(timeRemaining / 60);
-        let seconds = timeRemaining % 60;
+        let hours = Math.floor(timeRemaining / 3600);
+        let minutes = Math.floor((timeRemaining % 3600) / 60);
+        let seconds = Math.floor(timeRemaining % 60);
         
-        timerDisplay.innerText = 
-            (minutes < 10 ? '0' : '') + minutes + ':' + 
-            (seconds < 10 ? '0' : '') + seconds;
+        let display = '';
+        if (hours > 0) {
+            display += (hours < 10 ? '0' : '') + hours + ':';
+        }
+        display += (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        
+        timerDisplay.innerText = display;
             
         if (timeRemaining <= 300) { // last 5 minutes
             timerDisplay.classList.remove('text-primary');
@@ -159,6 +254,7 @@
             clearInterval(timerInterval);
             timerDisplay.innerText = "00:00";
             alert('انتهى الوقت! سيتم تسليم إجاباتك تلقائياً.');
+            localStorage.removeItem(storageKey);
             examForm.submit();
         } else {
             timeRemaining--;

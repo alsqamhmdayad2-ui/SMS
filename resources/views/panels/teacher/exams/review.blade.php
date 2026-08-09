@@ -37,7 +37,7 @@
                         <span class="badge bg-secondary">{{ $question->marks }} درجات</span>
                     </div>
                     
-                    @if($question->type === 'mcq' || $question->type === 'true_false')
+                    @if($question->type->value === 'mcq' || $question->type->value === 'true_false')
                         <ul class="list-group mb-3">
                             @foreach($question->options as $option)
                                 @php 
@@ -62,6 +62,41 @@
                                 </li>
                             @endforeach
                         </ul>
+                    @elseif($question->type->value === 'matching')
+                        @php 
+                            $studentMatching = $answer && $answer->text_answer ? json_decode($answer->text_answer, true) : [];
+                        @endphp
+                        <table class="table table-bordered table-sm mb-3">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>الكلمة</th>
+                                    <th>الإجابة الصحيحة</th>
+                                    <th>إجابة الطالب</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($question->options as $option)
+                                    @php
+                                        $studentPicked = $studentMatching[$option->id] ?? null;
+                                        $isCorrectMatch = $studentPicked === $option->right_item;
+                                    @endphp
+                                    <tr>
+                                        <td class="fw-bold bg-light">{{ $option->left_item }}</td>
+                                        <td class="text-success">{{ $option->right_item }}</td>
+                                        <td>
+                                            @if($studentPicked)
+                                                <span class="fw-bold {{ $isCorrectMatch ? 'text-success' : 'text-danger' }}">
+                                                    {{ $studentPicked }}
+                                                    @if($isCorrectMatch) <i class="fas fa-check-circle ms-1"></i> @else <i class="fas fa-times-circle ms-1"></i> @endif
+                                                </span>
+                                            @else
+                                                <span class="text-muted small">لم يُجب</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     @else
                         <div class="mb-3">
                             <strong>إجابة الطالب:</strong>

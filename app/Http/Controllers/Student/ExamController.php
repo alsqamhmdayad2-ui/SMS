@@ -74,7 +74,27 @@ class ExamController extends Controller
         // Load questions and options
         $exam->load('questions.options');
 
-        return view('panels.student.exams.take', compact('exam', 'student'));
+        // Manage exam session
+        $examSession = \App\Models\ExamSession::firstOrCreate(
+            ['exam_id' => $exam->id, 'student_id' => $student->id],
+            ['started_at' => now()]
+        );
+
+        // Check if already submitted in session
+        if ($examSession->submitted_at) {
+            return redirect()->route('student.exams')->with('error', 'لقد قمت بتسليم هذا الاختبار مسبقاً.');
+        }
+
+        // Calculate remaining time
+        $durationSeconds = ($exam->duration_minutes ?? 60) * 60;
+        $elapsedSeconds = $examSession->started_at->diffInSeconds(now());
+        $remainingSeconds = max(0, $durationSeconds - $elapsedSeconds);
+
+        if ($remainingSeconds <= 0 && $exam->duration_minutes > 0) {
+            return redirect()->route('student.exams')->with('error', 'انتهى وقت الاختبار ولم تقم بالتسليم.');
+        }
+
+        return view('panels.student.exams.take', compact('exam', 'student', 'remainingSeconds'));
     }
 
     public function submit(\Illuminate\Http\Request $request, \App\Models\Exam $exam)
@@ -97,7 +117,7 @@ class ExamController extends Controller
         // Prepare data for insertion and auto-grading
         $exam->load('questions.options');
         
-        \Illuminate\Support\Facades\DB::transaction(function () use ($exam, $student, $answers, &$totalMarks) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($exam, $student, $user, $answers, &$totalMarks) {
             $examResult = \App\Models\ExamResult::create([
                 'exam_id'           => $exam->id,
                 'student_id'        => $student->id,
@@ -116,7 +136,7 @@ class ExamController extends Controller
                 $questionOptionId = null;
                 $textAnswer = null;
 
-                if ($question->type === 'mcq' || $question->type === 'true_false') {
+                if ($question->type->value === 'mcq' || $question->type->value === 'true_false') {
                     if ($studentAnswer) {
                         $questionOptionId = $studentAnswer;
                         $correctOption = $question->options->where('is_correct', true)->first();
@@ -125,16 +145,32 @@ class ExamController extends Controller
                             $marksAwarded = $question->marks;
                         }
                     }
-                } elseif ($question->type === 'short_answer' || $question->type === 'fill_blank') {
+                } elseif ($question->type->value === 'short_answer' || $question->type->value === 'fill_blank') {
                     $textAnswer = $studentAnswer;
-                    if (trim(strtolower($textAnswer)) === trim(strtolower($question->correct_answer))) {
+                    if (trim(strtolower($textAnswer)) === trim(strtolower($question->correct_answer ?? ''))) {
                         $isCorrect = true;
                         $marksAwarded = $question->marks;
                     }
-                } elseif ($question->type === 'essay') {
+                } elseif ($question->type->value === 'essay') {
                     $textAnswer = $studentAnswer;
                     $isGraded = false; // Requires manual teacher grading
                     $marksAwarded = 0;
+                } elseif ($question->type->value === 'matching') {
+                    if (is_array($studentAnswer)) {
+                        $textAnswer = json_encode($studentAnswer, JSON_UNESCAPED_UNICODE);
+                        // Auto-grade matching (partial marks for each correct pair)
+                        $correctPairs = 0;
+                        $totalPairs = $question->options->count();
+                        foreach ($question->options as $option) {
+                            if (isset($studentAnswer[$option->id]) && $studentAnswer[$option->id] == $option->right_item) {
+                                $correctPairs++;
+                                $marksAwarded += $option->partial_mark ?? ($question->marks / $totalPairs);
+                            }
+                        }
+                        if ($correctPairs === $totalPairs) {
+                            $isCorrect = true;
+                        }
+                    }
                 }
 
                 $totalMarks += $marksAwarded;
@@ -165,11 +201,17 @@ class ExamController extends Controller
             // Mark attendance
             $session = \App\Models\AttendanceSession::firstOrCreate(
                 [
-                    'session_date' => today(),
+                    'date' => today(),
                     'section_id' => $student->section_id,
                     'subject_id' => $exam->subject_id,
                 ],
-                ['recorded_by' => $exam->teacher_id ?? 1]
+                [
+                    'academic_year_id' => $exam->academic_year_id,
+                    'semester_id' => $exam->semester_id,
+                    'teacher_id' => $exam->teacher_id,
+                    'created_by' => $user->id,
+                    'status' => 'open'
+                ]
             );
             
             \App\Models\AttendanceRecord::updateOrCreate(
@@ -177,8 +219,17 @@ class ExamController extends Controller
                     'attendance_session_id' => $session->id,
                     'student_id' => $student->id,
                 ],
-                ['status' => 'present']
+                [
+                    'status' => 'present',
+                    'marked_by' => $user->id,
+                    'marked_at' => now(),
+                ]
             );
+            
+            // Mark session as submitted
+            \App\Models\ExamSession::where('exam_id', $exam->id)
+                ->where('student_id', $student->id)
+                ->update(['submitted_at' => now()]);
         });
 
         return redirect()->route('student.exams')->with('success', 'تم تسليم الاختبار بنجاح. ' . ($totalMarks > 0 ? 'حصلت على ' . $totalMarks . ' درجة (بانتظار تصحيح المقالي إن وجد).' : ''));
