@@ -9,8 +9,21 @@
             <i class="fas fa-arrow-right me-1"></i> عودة
         </a>
         @if($exam->status->value === 'draft')
+        <a href="{{ route('teacher.exams.questions.index', $exam) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-list-ol me-1"></i> إدارة الأسئلة
+        </a>
         <a href="{{ route('teacher.exams.edit', $exam) }}" class="btn btn-outline-warning btn-sm">
             <i class="fas fa-edit me-1"></i> تعديل الاختبار
+        </a>
+        <form action="{{ route('teacher.exams.publish', $exam) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من نشر الاختبار؟ لا يمكن التراجع عن هذا الإجراء ولن تتمكن من تعديل الأسئلة بعد النشر.')">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-bullhorn me-1"></i> نشر الاختبار
+            </button>
+        </form>
+        @else
+        <a href="{{ route('teacher.exams.questions.index', $exam) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-eye me-1"></i> عرض الأسئلة
         </a>
         @endif
     </x-slot:actions>

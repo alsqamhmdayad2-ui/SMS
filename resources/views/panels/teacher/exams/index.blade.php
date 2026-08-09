@@ -113,20 +113,56 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1">
-                                <a href="{{ route('teacher.exams.show', $exam) }}" class="btn btn-sm btn-primary" title="إدخال الدرجات">
-                                    <i class="fas fa-pen-to-square"></i>
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+
+                                {{-- عرض / إدخال الدرجات --}}
+                                <a href="{{ route('teacher.exams.show', $exam) }}"
+                                   class="btn btn-sm btn-primary"
+                                   title="عرض الاختبار وإدخال الدرجات">
+                                    <i class="fas fa-eye me-1"></i> عرض
                                 </a>
+
                                 @if($exam->status->value === 'draft')
-                                <a href="{{ route('teacher.exams.edit', $exam) }}" class="btn btn-sm btn-outline-warning" title="تعديل">
+
+                                {{-- إدارة الأسئلة --}}
+                                <a href="{{ route('teacher.exams.questions.index', $exam) }}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="إدارة الأسئلة">
+                                    <i class="fas fa-list-ol me-1"></i> الأسئلة
+                                </a>
+
+                                {{-- تعديل بيانات الاختبار --}}
+                                <a href="{{ route('teacher.exams.edit', $exam) }}"
+                                   class="btn btn-sm btn-outline-warning"
+                                   title="تعديل بيانات الاختبار">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('teacher.exams.destroy', $exam) }}" method="POST" onsubmit="return confirm('هل أنت متأكد من حذف هذا الاختبار؟')">
+
+                                {{-- نشر الاختبار --}}
+                                <form action="{{ route('teacher.exams.publish', $exam) }}" method="POST" class="d-inline"
+                                      onsubmit="return confirm('هل أنت متأكد من نشر الاختبار؟ لن تتمكن من تعديل الأسئلة بعد النشر.')">
+                                    @csrf
+                                    <button class="btn btn-sm btn-outline-success" title="نشر الاختبار">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </button>
+                                </form>
+
+                                {{-- حذف الاختبار --}}
+                                <form action="{{ route('teacher.exams.destroy', $exam) }}" method="POST" class="d-inline"
+                                      onsubmit="return confirm('هل أنت متأكد من حذف هذا الاختبار؟')">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" title="حذف">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+
+                                @elseif($exam->status->value === 'published')
+
+                                {{-- إدخال الدرجات فقط --}}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                    <i class="fas fa-check-circle me-1"></i> منشور
+                                </span>
+
                                 @endif
                             </div>
                         </td>

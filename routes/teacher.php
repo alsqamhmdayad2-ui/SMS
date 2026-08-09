@@ -37,6 +37,15 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
         Route::get('/{exam}/edit',     [App\Http\Controllers\Teacher\ExamController::class, 'edit'])    ->name('edit');
         Route::put('/{exam}',          [App\Http\Controllers\Teacher\ExamController::class, 'update'])  ->name('update');
         Route::delete('/{exam}',       [App\Http\Controllers\Teacher\ExamController::class, 'destroy']) ->name('destroy');
+        Route::post('/{exam}/publish', [App\Http\Controllers\Teacher\ExamController::class, 'publish']) ->name('publish');
+        Route::get('/{exam}/questions',                          [App\Http\Controllers\Teacher\ExamQuestionController::class, 'index'])     ->name('questions.index');
+        Route::post('/{exam}/questions',                         [App\Http\Controllers\Teacher\ExamQuestionController::class, 'store'])     ->name('questions.store');
+        Route::post('/{exam}/questions/reorder',                 [App\Http\Controllers\Teacher\ExamQuestionController::class, 'reorder'])   ->name('questions.reorder');
+        Route::get('/{exam}/questions/bank',                     [App\Http\Controllers\Teacher\ExamQuestionController::class, 'getBank'])   ->name('questions.bank');
+        Route::post('/{exam}/questions/import',                  [App\Http\Controllers\Teacher\ExamQuestionController::class, 'import'])    ->name('questions.import');
+        Route::put('/{exam}/questions/{question}',               [App\Http\Controllers\Teacher\ExamQuestionController::class, 'update'])    ->name('questions.update');
+        Route::post('/{exam}/questions/{question}/duplicate',    [App\Http\Controllers\Teacher\ExamQuestionController::class, 'duplicate']) ->name('questions.duplicate');
+        Route::delete('/{exam}/questions/{question}',            [App\Http\Controllers\Teacher\ExamQuestionController::class, 'destroy'])   ->name('questions.destroy');
         Route::post('/marks/save',     [App\Http\Controllers\Teacher\ExamController::class, 'saveMark'])->name('marks.save');
         Route::post('/marks/save-all', [App\Http\Controllers\Teacher\ExamController::class, 'saveAll']) ->name('marks.save-all');
     });

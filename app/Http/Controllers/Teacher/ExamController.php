@@ -205,6 +205,26 @@ class ExamController extends Controller
             ->with('success', 'تم حذف الاختبار.');
     }
 
+    // ─── Publish Exam ─────────────────────────────────────────────────────────
+    public function publish(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+        
+        if ($exam->status !== ExamStatus::DRAFT) {
+            return back()->with('error', 'الاختبار ليس في حالة المسودة.');
+        }
+
+        if ($exam->questions()->count() === 0) {
+            // Uncomment next line if you require questions to publish
+            // return back()->with('error', 'لا يمكن نشر اختبار بدون أسئلة.');
+        }
+
+        $exam->update(['status' => ExamStatus::PUBLISHED->value]);
+
+        return redirect()->route('teacher.exams.show', $exam)
+            ->with('success', 'تم نشر الاختبار بنجاح.');
+    }
+
     // ─── AJAX: Save single mark ───────────────────────────────────────────────
     public function saveMark(Request $request): JsonResponse
     {

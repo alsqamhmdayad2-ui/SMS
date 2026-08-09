@@ -135,7 +135,7 @@ class ExamBuilderService
             // Direct edit (custom or sole user)
             $question->update($data);
 
-            if (isset($data['type']) || isset($data['options']) || isset($data['is_correct_boolean']) || isset($data['pairs'])) {
+            if (isset($data['type']) || isset($data['options']) || isset($data['is_correct_boolean']) || isset($data['pairs']) || isset($data['model_answer'])) {
                 $question->options()->delete();
                 $this->createOptionsForType($question, $data);
             }
@@ -278,6 +278,15 @@ class ExamBuilderService
                     'right_item' => $pair['right'],
                     'partial_mark' => $pair['partial_mark'] ?? null,
                     'order' => $index,
+                ]);
+            }
+        } elseif (in_array($type, ['short_answer', 'essay', 'fill_blank'])) {
+            // Save model answer as a reference option for correction
+            if (!empty($data['model_answer'])) {
+                $question->options()->create([
+                    'option_text' => $data['model_answer'],
+                    'is_correct'  => true,
+                    'order'       => 0,
                 ]);
             }
         }

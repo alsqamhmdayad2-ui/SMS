@@ -1,14 +1,22 @@
 @extends('layouts.app')
-@section('title', 'لوحة التحكم - معلم')
+@section('title', 'لوحة المعلم — ' . ($teacher ? $teacher->full_name : auth()->user()->name))
 
 @section('content')
 
 {{-- Page Header --}}
 <div class="page-header">
-    <h2>
-        <i class="fas fa-chalkboard-teacher" style="margin-inline-start:10px; color:var(--secondary)"></i>
-        مرحباً {{ $teacher?->first_name ?? auth()->user()->name }}
-    </h2>
+    <div>
+        <h2>
+            <i class="fas fa-chalkboard-teacher" style="margin-inline-start:10px; color:var(--secondary)"></i>
+            مرحباً، أ. {{ $teacher ? ($teacher->first_name . ' ' . $teacher->family_name) : auth()->user()->name }}
+        </h2>
+        <p class="text-muted small mb-0" style="padding-inline-start: 10px">
+            <i class="fas fa-id-badge me-1"></i> لوحة تحكم المعلم
+            @if($teacher?->specialization)
+            &nbsp;·&nbsp; <i class="fas fa-graduation-cap me-1"></i>{{ $teacher->specialization }}
+            @endif
+        </p>
+    </div>
     <ul class="breadcrumb">
         <li>لوحة التحكم</li>
     </ul>

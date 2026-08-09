@@ -64,10 +64,11 @@ class StudentRegistrationService
 
             // 4. Create User login account for the student
             $loginUser = User::create([
-                'name'        => $student->first_name . ' ' . $student->family_name,
-                'email'       => $student->email ?? ($studentNumber . '@school.internal'),
-                'national_id' => $student->national_id,
-                'password'    => Hash::make($student->national_id ?? '12345678'), // Default password = national_id
+                'name'              => $student->first_name . ' ' . $student->family_name,
+                'email'             => $student->email ?? ($studentNumber . '@school.internal'),
+                'national_id'       => $student->national_id,
+                'password'          => Hash::make($student->national_id ?? '12345678'), // Default password = national_id
+                'email_verified_at' => now(), // Auto-verify so student can login immediately
             ]);
             
             // Assign student role
