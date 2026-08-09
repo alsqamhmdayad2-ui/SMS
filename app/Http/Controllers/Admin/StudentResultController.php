@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\Section;
+use App\Models\SchoolClass;
 use App\Services\StudentResultService;
 use Illuminate\Http\Request;
 
@@ -17,14 +19,18 @@ class StudentResultController extends Controller
     {
         $students = Student::with(['grade', 'schoolClass', 'section'])
             ->when($request->filled('search'), function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%');
+                $q->where('first_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('family_name', 'like', '%' . $request->search . '%');
             })
             ->when($request->filled('section_id'), fn($q) => $q->where('section_id', $request->section_id))
-            ->when($request->filled('grade_id'), fn($q) => $q->where('grade_id', $request->grade_id))
-            ->orderBy('name')
+            ->when($request->filled('class_id'), fn($q) => $q->whereHas('section', fn($s) => $s->where('class_id', $request->class_id)))
+            ->orderBy('first_name')
             ->paginate(20);
 
-        return view('panels.admin.exams.student-results.index', compact('students'));
+        $sections = Section::with('schoolClass')->orderBy('name')->get();
+        $schoolClasses = SchoolClass::with('grade')->orderBy('name')->get();
+
+        return view('panels.admin.exams.student-results.index', compact('students', 'sections', 'schoolClasses'));
     }
 
     public function show(Request $request, Student $student)

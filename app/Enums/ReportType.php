@@ -9,6 +9,7 @@ enum ReportType: string
     case Subject = 'subject';
     case Teacher = 'teacher';
     case Grade = 'grade';
+    case Annual = 'annual';
     case FailedStudents = 'failed_students';
     case HonorStudents = 'honor_students';
     case GPA = 'gpa';
@@ -18,16 +19,17 @@ enum ReportType: string
     public function label(): string
     {
         return match($this) {
-            self::Student => 'Student Report Card',
-            self::Section => 'Section Results',
-            self::Subject => 'Subject Results',
-            self::Teacher => 'Teacher Results',
-            self::Grade => 'Grade Results',
+            self::Student       => 'Student Report Card',
+            self::Section       => 'Section Results',
+            self::Subject       => 'Subject Results',
+            self::Teacher       => 'Teacher Results',
+            self::Grade         => 'Grade Results',
+            self::Annual        => 'التقرير السنوي',
             self::FailedStudents => 'Failed Students',
-            self::HonorStudents => 'Honor Students',
-            self::GPA => 'GPA Ranking',
-            self::PassRate => 'Pass Rate Statistics',
-            self::Statistics => 'General Statistics',
+            self::HonorStudents  => 'Honor Students',
+            self::GPA           => 'GPA Ranking',
+            self::PassRate      => 'Pass Rate Statistics',
+            self::Statistics    => 'General Statistics',
         };
     }
 }

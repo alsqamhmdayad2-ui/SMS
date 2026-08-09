@@ -18,8 +18,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             AdminUserSeeder::class,
-            GradeScaleSeeder::class,
-            AssessmentComponentSeeder::class,
             AcademicYearSeeder::class,
             SemesterSeeder::class,
             GradeSeeder::class,

@@ -12,7 +12,6 @@ use App\Models\Subject;
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\Student;
-use App\Models\GradeScale;
 use App\Services\ExamResultService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -39,12 +38,15 @@ class MarksEntryController extends Controller
         $grades = Grade::all();
         $subjects = Subject::all();
 
+        $classes = collect();
+        if ($request->filled('grade_id')) {
+            $classes = SchoolClass::where('grade_id', $request->grade_id)->get();
+        }
+
         // Get sections based on selected filters
         $sections = collect();
-        if ($request->filled('grade_id')) {
-            $sections = Section::whereHas('schoolClass', function ($q) use ($request) {
-                $q->where('grade_id', $request->grade_id);
-            })->with('schoolClass')->get();
+        if ($request->filled('class_id')) {
+            $sections = Section::where('class_id', $request->class_id)->with('schoolClass')->get();
         }
 
         // Get exams based on selected filters
@@ -63,13 +65,11 @@ class MarksEntryController extends Controller
         $students = collect();
         $exam = null;
         $results = collect();
-        $gradeScales = GradeScale::where('status', true)->orderByDesc('percentage_from')->get();
-
         if ($request->filled('exam_id')) {
             $exam = Exam::with(['subject', 'section', 'academicYear', 'semester'])->findOrFail($request->exam_id);
 
             $students = Student::where('section_id', $exam->section_id)
-                ->orderBy('name')
+                ->orderBy('first_name')
                 ->get();
 
             $results = ExamResult::where('exam_id', $exam->id)
@@ -78,8 +78,8 @@ class MarksEntryController extends Controller
         }
 
         return view('panels.admin.exams.marks-entry.index', compact(
-            'academicYears', 'semesters', 'grades', 'subjects',
-            'sections', 'exams', 'students', 'exam', 'results', 'gradeScales'
+            'academicYears', 'semesters', 'grades', 'classes', 'subjects',
+            'sections', 'exams', 'students', 'exam', 'results'
         ));
     }
 
@@ -151,13 +151,23 @@ class MarksEntryController extends Controller
     }
 
     /**
-     * AJAX: Get sections for a grade (cascading filter).
+     * AJAX: Get classes for a grade (cascading filter).
+     */
+    public function getClasses(Request $request): JsonResponse
+    {
+        $classes = SchoolClass::where('grade_id', $request->grade_id)->get();
+
+        return $this->successResponse('Classes retrieved', $classes->map(function ($c) {
+            return ['id' => $c->id, 'name' => $c->name];
+        }), 'CLASSES_LOADED');
+    }
+
+    /**
+     * AJAX: Get sections for a class (cascading filter).
      */
     public function getSections(Request $request): JsonResponse
     {
-        $sections = Section::whereHas('schoolClass', function ($q) use ($request) {
-            $q->where('grade_id', $request->grade_id);
-        })->with('schoolClass')->get();
+        $sections = Section::where('class_id', $request->class_id)->with('schoolClass')->get();
 
         return $this->successResponse('Sections retrieved', $sections->map(function ($s) {
             return ['id' => $s->id, 'name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name];

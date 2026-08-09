@@ -24,6 +24,7 @@ class MarksEntry extends SMS.Core.BaseModule {
             sumLow: SMS.Core.DOM.get('#sumLow'),
             sumPass: SMS.Core.DOM.get('#sumPass'),
             filterGrade: SMS.Core.DOM.get('#filterGrade'),
+            filterClass: SMS.Core.DOM.get('#filterClass'),
             filterSection: SMS.Core.DOM.get('#filterSection'),
             btnSaveAll: SMS.Core.DOM.get('#btnSaveAll'),
             btnAllPresent: SMS.Core.DOM.get('#btnAllPresent'),
@@ -39,6 +40,7 @@ class MarksEntry extends SMS.Core.BaseModule {
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onBeforeUnload = this.onBeforeUnload.bind(this);
+        this.loadClasses = this.loadClasses.bind(this);
         this.loadSections = this.loadSections.bind(this);
 
         if (this.elements.table) {
@@ -52,7 +54,10 @@ class MarksEntry extends SMS.Core.BaseModule {
         window.addEventListener('beforeunload', this.onBeforeUnload);
 
         if (this.elements.filterGrade) {
-            this.elements.filterGrade.addEventListener('change', this.loadSections);
+            this.elements.filterGrade.addEventListener('change', this.loadClasses);
+        }
+        if (this.elements.filterClass) {
+            this.elements.filterClass.addEventListener('change', this.loadSections);
         }
 
         if (this.elements.btnSaveAll) {
@@ -77,7 +82,10 @@ class MarksEntry extends SMS.Core.BaseModule {
         window.removeEventListener('beforeunload', this.onBeforeUnload);
 
         if (this.elements.filterGrade) {
-            this.elements.filterGrade.removeEventListener('change', this.loadSections);
+            this.elements.filterGrade.removeEventListener('change', this.loadClasses);
+        }
+        if (this.elements.filterClass) {
+            this.elements.filterClass.removeEventListener('change', this.loadSections);
         }
     }
 
@@ -344,23 +352,49 @@ class MarksEntry extends SMS.Core.BaseModule {
         });
     }
 
-    loadSections(e) {
+    loadClasses(e) {
         const gradeId = e.target.value;
+        const url = e.target.dataset.url;
+        const classSelect = this.elements.filterClass;
+        const sectionSelect = this.elements.filterSection;
+        
+        if (!classSelect) return;
+
+        classSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+        if (sectionSelect) sectionSelect.innerHTML = '<option value="">-- اختر --</option>';
+
+        if (!gradeId || !url) { 
+            classSelect.innerHTML = '<option value="">-- اختر --</option>'; 
+            return; 
+        }
+
+        SMS.Core.Http.get(`${url}?grade_id=${gradeId}`)
+            .then(response => {
+                const data = response.data || response;
+                classSelect.innerHTML = '<option value="">-- اختر --</option>';
+                data.forEach(c => {
+                    classSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            })
+            .catch(() => {
+                classSelect.innerHTML = '<option value="">-- اختر --</option>';
+            });
+    }
+
+    loadSections(e) {
+        const classId = e.target.value;
+        const url = e.target.dataset.url;
         const sectionSelect = this.elements.filterSection;
         if (!sectionSelect) return;
 
         sectionSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-        if (!gradeId) { 
+        if (!classId || !url) { 
             sectionSelect.innerHTML = '<option value="">-- اختر --</option>'; 
             return; 
         }
 
-        const url = sectionSelect.dataset.url;
-        
-        SMS.Core.Http.get(`${url}?grade_id=${gradeId}`)
+        SMS.Core.Http.get(`${url}?class_id=${classId}`)
             .then(response => {
-                // Because we unified ApiResponse, the sections will be in response.data or the response itself
-                // Update to support Standard ApiResponse if we apply it to get-sections route.
                 const data = response.data || response;
                 sectionSelect.innerHTML = '<option value="">-- اختر --</option>';
                 data.forEach(s => {

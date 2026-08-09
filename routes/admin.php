@@ -12,8 +12,6 @@ use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\SemesterController;
 use App\Http\Controllers\Admin\TimetableController;
 use App\Http\Controllers\Admin\ExamController;
-use App\Http\Controllers\Admin\GradeScaleController;
-use App\Http\Controllers\Admin\AssessmentComponentController;
 use App\Http\Controllers\Admin\MarksEntryController;
 use App\Http\Controllers\Admin\GradebookController;
 use App\Http\Controllers\Admin\StudentResultController;
@@ -67,13 +65,7 @@ Route::middleware(['auth', 'role:admin'])
         
         Route::resource('academic-years', AcademicYearController::class);
         Route::resource('semesters', SemesterController::class);
-        Route::resource('grade-scales', GradeScaleController::class)->except(['show', 'create', 'edit']);
-        
-        // Assessment Components Routes
-        Route::post('assessment-components/reorder', [AssessmentComponentController::class, 'reorder'])->name('assessment-components.reorder');
-        Route::post('assessment-components/copy', [AssessmentComponentController::class, 'copyFromSubject'])->name('assessment-components.copy');
-        Route::post('assessment-components/{assessment_component}/duplicate', [AssessmentComponentController::class, 'duplicate'])->name('assessment-components.duplicate');
-        Route::resource('assessment-components', AssessmentComponentController::class)->except(['show', 'create', 'edit']);
+
 
         Route::get('exams/{exam}/print', [ExamController::class, 'print'])->name('exams.print');
         Route::post('exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
@@ -91,6 +83,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('marks-entry', [MarksEntryController::class, 'index'])->name('marks-entry.index');
         Route::post('marks-entry/save-mark', [MarksEntryController::class, 'saveMark'])->name('marks-entry.save-mark');
         Route::post('marks-entry/save-all', [MarksEntryController::class, 'saveAll'])->name('marks-entry.save-all');
+        Route::get('marks-entry/get-classes', [MarksEntryController::class, 'getClasses'])->name('marks-entry.get-classes');
         Route::get('marks-entry/get-sections', [MarksEntryController::class, 'getSections'])->name('marks-entry.get-sections');
         Route::get('marks-entry/get-exams', [MarksEntryController::class, 'getExams'])->name('marks-entry.get-exams');
 

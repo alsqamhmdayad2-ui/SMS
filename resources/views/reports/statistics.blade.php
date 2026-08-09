@@ -1,38 +1,38 @@
 @extends('layouts.reports.pdf')
-@section('title', 'Academic Statistics Report')
+@section('title', 'تقرير الإحصاءات الأكاديمية')
 
 @section('content')
 <div style="text-align: center; margin-bottom: 20px;">
-    <h2>Academic Statistics Report</h2>
+    <h2>تقرير الإحصاءات الأكاديمية</h2>
 </div>
 
-<table style="width: 100%; margin-bottom: 30px;">
+<table style="width: 100%; margin-bottom: 30px;" dir="rtl">
     <tr>
-        <th colspan="4" style="text-align: center; font-size: 16px;">General Overview</th>
+        <th colspan="4" style="text-align: center; font-size: 16px;">نظرة عامة</th>
     </tr>
     <tr>
-        <th>Total Grades Recorded</th>
+        <th>إجمالي الدرجات المسجلة</th>
         <td>{{ $overview['total_grades'] }}</td>
-        <th>Total Students Assessed</th>
+        <th>إجمالي الطلاب المقيّمين</th>
         <td>{{ $overview['total_students'] }}</td>
     </tr>
     <tr>
-        <th>Overall Pass Rate</th>
+        <th>نسبة النجاح العامة</th>
         <td style="font-weight: bold; color: {{ $pass_rate >= 50 ? '#28a745' : '#dc3545' }};">{{ $pass_rate }}%</td>
-        <th>Average GPA</th>
+        <th>متوسط المعدل التراكمي (GPA)</th>
         <td>{{ $average_gpa }}</td>
     </tr>
 </table>
 
 <div style="page-break-inside: avoid; margin-bottom: 30px;">
-    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Grade Distribution</h3>
-    <table style="width: 100%;">
+    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">توزيع التقديرات</h3>
+    <table style="width: 100%;" dir="rtl">
         <thead>
             <tr>
-                <th>Letter Grade</th>
-                <th>Range</th>
-                <th>Count</th>
-                <th>Percentage</th>
+                <th>التقدير</th>
+                <th>النطاق</th>
+                <th>العدد</th>
+                <th>النسبة المئوية</th>
             </tr>
         </thead>
         <tbody>
@@ -49,13 +49,13 @@
 </div>
 
 <div style="page-break-inside: avoid; margin-bottom: 30px;">
-    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Top Performing Subjects</h3>
-    <table style="width: 100%;">
+    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">أفضل المواد أداءً</h3>
+    <table style="width: 100%;" dir="rtl">
         <thead>
             <tr>
-                <th>Subject</th>
-                <th style="text-align: center;">Average %</th>
-                <th style="text-align: center;">Pass Rate</th>
+                <th>المادة</th>
+                <th style="text-align: center;">المتوسط %</th>
+                <th style="text-align: center;">نسبة النجاح</th>
             </tr>
         </thead>
         <tbody>
@@ -66,20 +66,20 @@
                     <td style="text-align: center;">{{ $stat['pass_rate'] }}%</td>
                 </tr>
             @empty
-                <tr><td colspan="3" style="text-align: center;">No data available</td></tr>
+                <tr><td colspan="3" style="text-align: center;">لا توجد بيانات متاحة</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
 <div style="page-break-inside: avoid; margin-bottom: 30px;">
-    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Subjects Requiring Attention</h3>
-    <table style="width: 100%;">
+    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">مواد تحتاج إلى تحسين</h3>
+    <table style="width: 100%;" dir="rtl">
         <thead>
             <tr>
-                <th>Subject</th>
-                <th style="text-align: center;">Average %</th>
-                <th style="text-align: center;">Pass Rate</th>
+                <th>المادة</th>
+                <th style="text-align: center;">المتوسط %</th>
+                <th style="text-align: center;">نسبة النجاح</th>
             </tr>
         </thead>
         <tbody>
@@ -90,21 +90,21 @@
                     <td style="text-align: center;">{{ $stat['pass_rate'] }}%</td>
                 </tr>
             @empty
-                <tr><td colspan="3" style="text-align: center;">No data available</td></tr>
+                <tr><td colspan="3" style="text-align: center;">لا توجد بيانات متاحة</td></tr>
             @endforelse
         </tbody>
     </table>
 </div>
 
 <div style="page-break-inside: avoid; margin-bottom: 30px;">
-    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Honor Roll (Top 10 Students)</h3>
-    <table style="width: 100%;">
+    <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">لوحة الشرف (أفضل 10 طلاب)</h3>
+    <table style="width: 100%;" dir="rtl">
         <thead>
             <tr>
                 <th style="width: 30px;">#</th>
-                <th>Student Name</th>
-                <th style="text-align: center;">GPA</th>
-                <th style="text-align: center;">Average %</th>
+                <th>اسم الطالب</th>
+                <th style="text-align: center;">التقدير (GPA)</th>
+                <th style="text-align: center;">المتوسط %</th>
             </tr>
         </thead>
         <tbody>
@@ -116,7 +116,7 @@
                     <td style="text-align: center;">{{ $honor['average'] }}%</td>
                 </tr>
             @empty
-                <tr><td colspan="4" style="text-align: center;">No data available</td></tr>
+                <tr><td colspan="4" style="text-align: center;">لا توجد بيانات متاحة</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Exam;
 use App\Models\StudentSubjectGrade;
-use App\Models\GradeScale;
 use App\Models\SchoolSetting;
 
 class StatisticsReportService implements ReportInterface
@@ -15,7 +14,14 @@ class StatisticsReportService implements ReportInterface
     public function getData(ReportFilterData $filters): array
     {
         $schoolSettings = SchoolSetting::first();
-        $scales = GradeScale::where('status', true)->orderByDesc('percentage_from')->get();
+        $scales = collect([
+            (object)['letter_grade' => 'ممتاز', 'percentage_from' => 90.00, 'percentage_to' => 100.00],
+            (object)['letter_grade' => 'جيد جداً', 'percentage_from' => 80.00, 'percentage_to' => 89.99],
+            (object)['letter_grade' => 'جيد', 'percentage_from' => 70.00, 'percentage_to' => 79.99],
+            (object)['letter_grade' => 'متوسط', 'percentage_from' => 60.00, 'percentage_to' => 69.99],
+            (object)['letter_grade' => 'مقبول', 'percentage_from' => 50.00, 'percentage_to' => 59.99],
+            (object)['letter_grade' => 'راسب', 'percentage_from' => 0.00, 'percentage_to' => 49.99],
+        ]);
 
         // Build base query for grades
         $gradesQuery = StudentSubjectGrade::where('academic_year_id', $filters->academicYearId)

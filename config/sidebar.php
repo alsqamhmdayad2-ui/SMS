@@ -163,16 +163,6 @@ return [
                 'roles'  => ['admin'],
             ],
             [
-                'name'   => 'مكونات التقييم',
-                'route'  => 'admin.assessment-components.index',
-                'roles'  => ['admin'],
-            ],
-            [
-                'name'   => 'سلم الدرجات',
-                'route'  => 'admin.grade-scales.index',
-                'roles'  => ['admin'],
-            ],
-            [
                 'name'   => 'إدخال الدرجات',
                 'route'  => 'admin.marks-entry.index',
                 'roles'  => ['admin'],

@@ -14,12 +14,16 @@ use App\Models\Teacher;
 use App\Models\Student;
 use App\Models\Subject;
 use Carbon\Carbon;
+use App\Exporters\PdfExporter;
+use App\Exporters\ExcelExporter;
 
 class AttendanceReportController extends Controller
 {
     public function __construct(
         protected AttendanceAnalyticsService $analytics,
-        protected AttendanceReportService    $reportService
+        protected AttendanceReportService    $reportService,
+        protected PdfExporter                $pdfExporter,
+        protected ExcelExporter              $excelExporter
     ) {}
 
     /**
@@ -57,8 +61,17 @@ class AttendanceReportController extends Controller
         $students      = Student::all();
         $academicYears = AcademicYear::all();
         $semesters     = Semester::all();
+        $view = 'panels.admin.attendance.reports.student';
 
-        return view('panels.admin.attendance.reports.student', compact('data', 'filters', 'students', 'academicYears', 'semesters'));
+        $action = $request->input('action', 'view');
+        if ($action === 'pdf' && $data) {
+            return $this->pdfExporter->export(['data' => $data, 'filters' => $filters, 'title' => 'تقرير حضور طالب'], $view, null, $request->all());
+        } elseif ($action === 'excel' && $data) {
+            $export = new \App\Exports\AttendanceStudentExport($data, $filters);
+            return $this->excelExporter->exportXlsx($export, 'student_attendance_' . now()->format('Y-m-d_His'));
+        }
+
+        return view($view, compact('data', 'filters', 'students', 'academicYears', 'semesters'));
     }
 
     /**
@@ -76,8 +89,17 @@ class AttendanceReportController extends Controller
         $sections      = Section::with('grade')->get();
         $academicYears = AcademicYear::all();
         $semesters     = Semester::all();
+        $view = 'panels.admin.attendance.reports.section';
 
-        return view('panels.admin.attendance.reports.section', compact('data', 'filters', 'sections', 'academicYears', 'semesters'));
+        $action = $request->input('action', 'view');
+        if ($action === 'pdf' && $data) {
+            return $this->pdfExporter->export(['data' => $data, 'filters' => $filters, 'title' => 'تقرير حضور شعبة'], $view, null, $request->all());
+        } elseif ($action === 'excel' && $data) {
+            $export = new \App\Exports\AttendanceSectionExport($data, $filters);
+            return $this->excelExporter->exportXlsx($export, 'section_attendance_' . now()->format('Y-m-d_His'));
+        }
+
+        return view($view, compact('data', 'filters', 'sections', 'academicYears', 'semesters'));
     }
 
     /**
@@ -109,8 +131,17 @@ class AttendanceReportController extends Controller
         $data    = $this->reportService->getDailySummary($date, $filters);
 
         $academicYears = AcademicYear::all();
+        $view = 'panels.admin.attendance.reports.daily';
 
-        return view('panels.admin.attendance.reports.daily', compact('data', 'filters', 'academicYears', 'date'));
+        $action = $request->input('action', 'view');
+        if ($action === 'pdf' && $data) {
+            return $this->pdfExporter->export(['data' => $data, 'filters' => $filters, 'date' => $date, 'title' => 'التقرير اليومي للحضور'], $view, null, $request->all());
+        } elseif ($action === 'excel' && $data) {
+            $export = new \App\Exports\AttendanceDailyExport($data, $filters, $date);
+            return $this->excelExporter->exportXlsx($export, 'daily_attendance_' . now()->format('Y-m-d_His'));
+        }
+
+        return view($view, compact('data', 'filters', 'academicYears', 'date'));
     }
 
     /**
@@ -124,7 +155,16 @@ class AttendanceReportController extends Controller
 
         $sections      = Section::with('grade')->get();
         $academicYears = AcademicYear::all();
+        $view = 'panels.admin.attendance.reports.monthly';
 
-        return view('panels.admin.attendance.reports.monthly', compact('data', 'filters', 'sections', 'academicYears', 'month'));
+        $action = $request->input('action', 'view');
+        if ($action === 'pdf' && $data) {
+            return $this->pdfExporter->export(['data' => $data, 'filters' => $filters, 'month' => $month, 'title' => 'التقرير الشهري للحضور'], $view, null, $request->all());
+        } elseif ($action === 'excel' && $data) {
+            $export = new \App\Exports\AttendanceMonthlyExport($data, $filters, $month);
+            return $this->excelExporter->exportXlsx($export, 'monthly_attendance_' . now()->format('Y-m-d_His'));
+        }
+
+        return view($view, compact('data', 'filters', 'sections', 'academicYears', 'month'));
     }
 }

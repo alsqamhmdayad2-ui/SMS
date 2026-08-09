@@ -29,58 +29,65 @@
     <x-shared.card class="mb-4 bg-light" shadow="sm">
         <form action="{{ route('admin.marks-entry.index') }}" method="GET" id="filtersForm">
             <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <x-form.select name="academic_year_id" id="filterYear" label="Academic Year" required="true">
-                        <option value="">Select...</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="academic_year_id" id="filterYear" label="العام الدراسي" required="true">
+                        <option value="">اختر...</option>
                         @foreach($academicYears as $y)
                         <option value="{{ $y->id }}" {{ request('academic_year_id') == $y->id ? 'selected' : '' }}>{{ $y->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-2">
-                    <x-form.select name="semester_id" id="filterSemester" label="Semester">
-                        <option value="">All</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="semester_id" id="filterSemester" label="الفصل الدراسي">
+                        <option value="">الكل</option>
                         @foreach($semesters as $s)
                         <option value="{{ $s->id }}" {{ request('semester_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-2">
-                    <x-form.select name="grade_id" id="filterGrade" label="Grade" required="true">
-                        <option value="">Select...</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="grade_id" id="filterGrade" label="المرحلة" required="true" data-url="{{ route('admin.marks-entry.get-classes') }}">
+                        <option value="">اختر...</option>
                         @foreach($grades as $g)
                         <option value="{{ $g->id }}" {{ request('grade_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-2">
-                    <x-form.select name="section_id" id="filterSection" label="Section" required="true" data-url="{{ route('admin.marks-entry.get-sections') }}">
-                        <option value="">Select...</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="class_id" id="filterClass" label="الصف" required="true" data-url="{{ route('admin.marks-entry.get-sections') }}">
+                        <option value="">اختر...</option>
+                        @foreach($classes as $c)
+                        <option value="{{ $c->id }}" {{ request('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                        @endforeach
+                    </x-form.select>
+                </div>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="section_id" id="filterSection" label="الشعبة" required="true">
+                        <option value="">اختر...</option>
                         @foreach($sections as $sec)
                         <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>{{ ($sec->schoolClass->name ?? '') . ' - ' . $sec->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-2">
-                    <x-form.select name="subject_id" id="filterSubject" label="Subject" required="true">
-                        <option value="">Select...</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="subject_id" id="filterSubject" label="المادة" required="true">
+                        <option value="">اختر...</option>
                         @foreach($subjects as $sub)
                         <option value="{{ $sub->id }}" {{ request('subject_id') == $sub->id ? 'selected' : '' }}>{{ $sub->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-2">
-                    <x-form.select name="exam_id" id="filterExam" label="Exam" required="true">
-                        <option value="">Select...</option>
+                <div class="col-md-auto mb-3 flex-grow-1">
+                    <x-form.select name="exam_id" id="filterExam" label="الاختبار" required="true">
+                        <option value="">اختر...</option>
                         @foreach($exams as $e)
                         <option value="{{ $e->id }}" {{ request('exam_id') == $e->id ? 'selected' : '' }}>{{ $e->title }} ({{ ucfirst($e->type) }})</option>
                         @endforeach
                     </x-form.select>
                 </div>
-            </div>
-            <div class="mt-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Load Students</button>
-            </div>
+                <div class="col-md-auto mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> عرض</button>
+                </div>
         </form>
     </x-shared.card>
 
@@ -90,7 +97,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <strong>{{ $exam->title }}</strong> &mdash; {{ $exam->subject->name ?? '' }} |
-                Total Marks: <x-shared.badge type="primary" class="fs-6">{{ $exam->total_marks }}</x-shared.badge>
+                الدرجة الكلية: <x-shared.badge type="primary" class="fs-6">{{ $exam->total_marks }}</x-shared.badge>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-success" id="btnAllPresent">الكل حاضر</button>
@@ -105,12 +112,12 @@
         <x-table.data-table hover="true" id="marksTable">
             <x-slot:header>
                 <th style="width:40px">#</th>
-                <th>Student Name</th>
-                <th style="width:130px">Status</th>
-                <th style="width:100px">Mark / {{ $exam->total_marks }}</th>
+                <th>اسم الطالب</th>
+                <th style="width:130px">الحالة</th>
+                <th style="width:120px">الدرجة / {{ $exam->total_marks }}</th>
                 <th style="width:80px">%</th>
-                <th style="width:80px">Grade</th>
-                <th style="width:180px">Remarks</th>
+                <th style="width:80px">التقدير</th>
+                <th style="width:180px">ملاحظات</th>
             </x-slot:header>
             <x-slot:body>
                 @forelse($students as $index => $student)
@@ -127,7 +134,9 @@
                     <td>
                         <select class="form-select form-select-sm status-select" data-student="{{ $student->id }}">
                             @foreach(\App\Models\ExamResult::attendanceStatuses() as $val => $label)
-                            <option value="{{ $val }}" {{ $status == $val ? 'selected' : '' }}>{{ $label }}</option>
+                            <option value="{{ $val }}" {{ $status == $val ? 'selected' : '' }}>
+                                {{ match($val) { 'present' => 'حاضر', 'absent' => 'غائب', 'excused' => 'معذور', 'cheating' => 'غش', 'incomplete' => 'غير مكتمل', default => $label } }}
+                            </option>
                             @endforeach
                         </select>
                     </td>
@@ -141,10 +150,17 @@
                     <td class="pct-cell fw-bold">{{ $pct !== null ? $pct . '%' : '-' }}</td>
                     <td class="grade-cell">
                         @if($pct !== null)
-                            @php $gr = $gradeScales->first(fn($s) => $pct >= (float)$s->percentage_from && $pct <= (float)$s->percentage_to); @endphp
-                            @if($gr)
-                            <span class="badge {{ $gr->is_passing ? 'bg-success' : 'bg-danger' }}">{{ $gr->letter_grade }}</span>
-                            @endif
+                            @php
+                            $letterGrade = '';
+                            $isPassing = false;
+                            if ($pct >= 90)      { $letterGrade = 'ممتاز';    $isPassing = true; }
+                            elseif ($pct >= 80)  { $letterGrade = 'جيد جداً'; $isPassing = true; }
+                            elseif ($pct >= 70)  { $letterGrade = 'جيد';      $isPassing = true; }
+                            elseif ($pct >= 60)  { $letterGrade = 'متوسط';    $isPassing = true; }
+                            elseif ($pct >= 50)  { $letterGrade = 'مقبول';    $isPassing = true; }
+                            else                 { $letterGrade = 'راسب';     $isPassing = false; }
+                            @endphp
+                            <span class="badge {{ $isPassing ? 'bg-success' : 'bg-danger' }}">{{ $letterGrade }}</span>
                         @else
                             -
                         @endif
@@ -152,11 +168,11 @@
                     <td>
                         <input type="text" class="form-control form-control-sm remarks-input"
                                data-student="{{ $student->id }}"
-                               value="{{ $remarks }}" placeholder="Optional">
+                               value="{{ $remarks }}" placeholder="اختياري">
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="text-center py-4 text-sms-muted">No students found in this section.</td></tr>
+                <tr><td colspan="7" class="text-center py-4 text-sms-muted">لم يتم العثور على طلاب في هذه الشعبة.</td></tr>
                 @endforelse
             </x-slot:body>
         </x-table.data-table>
@@ -165,15 +181,15 @@
     <!-- Summary -->
     @if($students->isNotEmpty())
     <x-shared.card class="mt-3" shadow="sm">
-        <h6 class="text-sms-muted mb-3"><i class="bi bi-bar-chart-line"></i> Live Summary</h6>
+        <h6 class="text-sms-muted mb-3"><i class="bi bi-bar-chart-line"></i> ملخص مباشر</h6>
         <div class="row text-center" id="summaryRow">
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Students</div><div class="fs-5 fw-bold" id="sumTotal">{{ $students->count() }}</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Entered</div><div class="fs-5 fw-bold text-success" id="sumEntered">0</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Missing</div><div class="fs-5 fw-bold text-warning" id="sumMissing">0</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Average</div><div class="fs-5 fw-bold text-primary" id="sumAvg">-</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Highest</div><div class="fs-5 fw-bold text-success" id="sumHigh">-</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Lowest</div><div class="fs-5 fw-bold text-danger" id="sumLow">-</div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">Pass Rate</div><div class="fs-5 fw-bold" id="sumPass">-</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">الطلاب</div><div class="fs-5 fw-bold" id="sumTotal">{{ $students->count() }}</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">تم إدخالها</div><div class="fs-5 fw-bold text-success" id="sumEntered">0</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">مفقودة</div><div class="fs-5 fw-bold text-warning" id="sumMissing">0</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">المتوسط</div><div class="fs-5 fw-bold text-primary" id="sumAvg">-</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">الأعلى</div><div class="fs-5 fw-bold text-success" id="sumHigh">-</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">الأدنى</div><div class="fs-5 fw-bold text-danger" id="sumLow">-</div></div></div>
+            <div class="col"><div class="border rounded p-2"><div class="small text-sms-muted">نسبة النجاح</div><div class="fs-5 fw-bold" id="sumPass">-</div></div></div>
         </div>
     </x-shared.card>
     @endif
@@ -182,12 +198,12 @@
 
     @if(!$exam && request('exam_id'))
     <div class="text-center py-5">
-        <x-shared.empty-state icon="search" title="Exam not found" message="" />
+        <x-shared.empty-state icon="search" title="لم يتم العثور على الاختبار" message="" />
     </div>
     @endif
     @if(!request('exam_id'))
     <div class="text-center py-5">
-        <x-shared.empty-state icon="funnel" title="Select filters above" message="Load the marks entry grid by selecting filters." />
+        <x-shared.empty-state icon="funnel" title="استخدم الفلاتر أعلاه" message="قم بتحميل جدول إدخال الدرجات من خلال تحديد خيارات الفلترة المتاحة." />
     </div>
     @endif
 </div>
@@ -201,15 +217,20 @@
 <script src="{{ asset('assets/js/modules/assessment/marks-entry.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    @if($exam)
     const marksEntryModule = new SMS.Modules.MarksEntry({
-        examId: {{ $exam->id }},
-        totalMarks: {{ $exam->total_marks }},
+        examId: {{ $exam ? $exam->id : 'null' }},
+        totalMarks: {{ $exam ? $exam->total_marks : 'null' }},
         saveUrl: '{{ route("admin.marks-entry.save-mark") }}',
-        scales: @json($gradeScales)
+        scales: [
+            {percentage_from: 90, percentage_to: 100, letter_grade: 'ممتاز',    is_passing: true},
+            {percentage_from: 80, percentage_to: 89.99, letter_grade: 'جيد جداً', is_passing: true},
+            {percentage_from: 70, percentage_to: 79.99, letter_grade: 'جيد',      is_passing: true},
+            {percentage_from: 60, percentage_to: 69.99, letter_grade: 'متوسط',    is_passing: true},
+            {percentage_from: 50, percentage_to: 59.99, letter_grade: 'مقبول',    is_passing: true},
+            {percentage_from: 0,  percentage_to: 49.99, letter_grade: 'راسب',     is_passing: false}
+        ]
     });
     marksEntryModule.init();
-    @endif
 });
 </script>
 @endpush

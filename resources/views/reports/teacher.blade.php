@@ -1,41 +1,41 @@
 @extends('layouts.reports.pdf')
-@section('title', 'Teacher Report - ' . $teacher->name)
+@section('title', 'تقرير المعلم - ' . $teacher->name)
 
 @section('content')
 <div style="text-align: center; margin-bottom: 20px;">
-    <h2>Teacher Performance Report</h2>
-    <h3>Teacher: {{ $teacher->name }}</h3>
+    <h2>تقرير أداء المعلم</h2>
+    <h3>المعلم: {{ $teacher->name }}</h3>
 </div>
 
 @foreach($sections as $sectionData)
     <div style="margin-top: 30px; page-break-inside: avoid;">
         <h4 style="background-color: #f2f2f2; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd;">
-            Subject: {{ $sectionData['subject']->name }} 
+            المادة: {{ $sectionData['subject']->name }} 
             @if(isset($sectionData['students'][0]))
-                | Grade: {{ $sectionData['students'][0]['student']->section->grade->name ?? '' }} 
-                | Section: {{ $sectionData['students'][0]['student']->section->name ?? '' }}
+                | الصف: {{ $sectionData['students'][0]['student']->section->schoolClass->grade->name ?? '' }} 
+                | الشعبة: {{ $sectionData['students'][0]['student']->section->name ?? '' }}
             @endif
         </h4>
         
-        <table style="width: 100%; margin-bottom: 15px; border: none; font-size: 13px;">
+        <table style="width: 100%; margin-bottom: 15px; border: none; font-size: 13px;" dir="rtl">
             <tr>
-                <td style="border: none; padding: 5px;"><strong>Total Students:</strong> {{ $sectionData['statistics']['total'] }}</td>
-                <td style="border: none; padding: 5px;"><strong>Pass Rate:</strong> {{ $sectionData['statistics']['pass_rate'] }}%</td>
-                <td style="border: none; padding: 5px;"><strong>Average %:</strong> {{ $sectionData['statistics']['average'] }}%</td>
-                <td style="border: none; padding: 5px;"><strong>Highest:</strong> {{ $sectionData['statistics']['highest'] }}%</td>
-                <td style="border: none; padding: 5px;"><strong>Lowest:</strong> {{ $sectionData['statistics']['lowest'] }}%</td>
+                <td style="border: none; padding: 5px;"><strong>إجمالي الطلاب:</strong> {{ $sectionData['statistics']['total'] }}</td>
+                <td style="border: none; padding: 5px;"><strong>نسبة النجاح:</strong> {{ $sectionData['statistics']['pass_rate'] }}%</td>
+                <td style="border: none; padding: 5px;"><strong>المتوسط %:</strong> {{ $sectionData['statistics']['average'] }}%</td>
+                <td style="border: none; padding: 5px;"><strong>أعلى درجة:</strong> {{ $sectionData['statistics']['highest'] }}%</td>
+                <td style="border: none; padding: 5px;"><strong>أدنى درجة:</strong> {{ $sectionData['statistics']['lowest'] }}%</td>
             </tr>
         </table>
 
-        <table style="width: 100%; font-size: 13px;">
+        <table style="width: 100%; font-size: 13px;" dir="rtl">
             <thead>
                 <tr>
                     <th style="width: 30px;">#</th>
-                    <th>Student Name</th>
-                    <th style="text-align: center;">Percentage</th>
-                    <th style="text-align: center;">Grade</th>
+                    <th>اسم الطالب</th>
+                    <th style="text-align: center;">النسبة</th>
+                    <th style="text-align: center;">التقدير</th>
                     <th style="text-align: center;">GPA</th>
-                    <th style="text-align: center;">Status</th>
+                    <th style="text-align: center;">الحالة</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,9 +48,9 @@
                         <td style="text-align: center;">{{ $studentData['gpa'] ?? '-' }}</td>
                         <td style="text-align: center;">
                             @if($studentData['status'] === 'pass')
-                                <span style="color: #28a745;">Pass</span>
+                                <span style="color: #28a745;">ناجح</span>
                             @elseif($studentData['status'] === 'fail')
-                                <span style="color: #dc3545;">Fail</span>
+                                <span style="color: #dc3545;">راسب</span>
                             @else
                                 -
                             @endif

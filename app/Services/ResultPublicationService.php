@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\ResultPublication;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\AssessmentComponent;
 use App\Models\Student;
 use App\Models\StudentSubjectGrade;
 use Carbon\Carbon;
@@ -22,7 +21,6 @@ class ResultPublicationService
 
         // Validation logic
         if ($type === 'subject') {
-            $this->validateWeights($data['academic_year_id'], $data['subject_id']);
             $this->validateMarksComplete(
                 $data['academic_year_id'],
                 $data['semester_id'],
@@ -69,22 +67,7 @@ class ResultPublicationService
         return $publication;
     }
 
-    /**
-     * Check if component weights equal 100%.
-     */
-    protected function validateWeights($academicYearId, $subjectId)
-    {
-        $totalWeight = AssessmentComponent::where('academic_year_id', $academicYearId)
-            ->where('subject_id', $subjectId)
-            ->where('status', true)
-            ->sum('weight_percentage');
 
-        if ($totalWeight != 100) {
-            throw ValidationException::withMessages([
-                'publish' => 'Cannot publish: Assessment components for this subject do not equal 100% (Current: ' . $totalWeight . '%).'
-            ]);
-        }
-    }
 
     /**
      * Check if all students in the section have marks for all exams.

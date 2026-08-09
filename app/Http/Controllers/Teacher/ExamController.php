@@ -10,7 +10,6 @@ use App\Models\Subject;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\ExamResult;
-use App\Models\GradeScale;
 use App\Models\Timetable;
 use App\Enums\ExamStatus;
 use App\Services\ExamResultService;
@@ -142,11 +141,8 @@ class ExamController extends Controller
         $results = ExamResult::where('exam_id', $exam->id)
             ->get()->keyBy('student_id');
 
-        $gradeScales = GradeScale::where('status', true)
-            ->orderByDesc('percentage_from')->get();
-
         return view('panels.teacher.exams.show', compact(
-            'exam', 'students', 'results', 'gradeScales'
+            'exam', 'students', 'results'
         ));
     }
 

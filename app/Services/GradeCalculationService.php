@@ -2,23 +2,30 @@
 
 namespace App\Services;
 
-use App\Models\GradeScale;
 use App\Models\StudentSubjectGrade;
-use App\Models\AssessmentComponent;
 use App\Models\ExamResult;
 use Carbon\Carbon;
 
 class GradeCalculationService
 {
     /**
-     * Determine the Letter Grade and GPA points for a given percentage using the Grade Scale.
+     * Determine the Letter Grade and GPA points for a given percentage using the hardcoded scale.
      */
-    public function calculateGradeScale(float $percentage): ?GradeScale
+    public function calculateGradeScale(float $percentage): array
     {
-        return GradeScale::where('status', true)
-            ->where('percentage_from', '<=', $percentage)
-            ->where('percentage_to', '>=', $percentage)
-            ->first();
+        if ($percentage >= 90) {
+            return ['letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true];
+        } elseif ($percentage >= 80) {
+            return ['letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true];
+        } elseif ($percentage >= 70) {
+            return ['letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true];
+        } elseif ($percentage >= 60) {
+            return ['letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true];
+        } elseif ($percentage >= 50) {
+            return ['letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true];
+        } else {
+            return ['letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false];
+        }
     }
 
     /**
@@ -27,54 +34,33 @@ class GradeCalculationService
      */
     public function calculateSubjectGrade($studentId, $subjectId, $academicYearId, $semesterId, $sectionId)
     {
-        // Get all components for this subject
-        $components = AssessmentComponent::where('subject_id', $subjectId)
-            ->where('academic_year_id', $academicYearId)
-            ->get();
+        $totalMarksObtained = 0.0;
+        $totalMaxMarks = 0.0;
 
-        $totalPercentage = 0.0;
+        $examResults = ExamResult::whereHas('exam', function ($q) use ($subjectId, $academicYearId, $semesterId) {
+            $q->where('subject_id', $subjectId)
+              ->where('academic_year_id', $academicYearId)
+              ->where('semester_id', $semesterId)
+              ->whereIn('type', [
+                  \App\Constants\AssessmentComponents::ACTIVITY,
+                  \App\Constants\AssessmentComponents::ATTENDANCE,
+                  \App\Constants\AssessmentComponents::ASSIGNMENTS,
+                  \App\Constants\AssessmentComponents::MONTHLY_1,
+                  \App\Constants\AssessmentComponents::MIDTERM,
+                  \App\Constants\AssessmentComponents::MONTHLY_2,
+                  \App\Constants\AssessmentComponents::FINAL,
+              ]);
+        })
+        ->where('student_id', $studentId)
+        ->whereNotNull('marks_obtained')
+        ->get();
 
-        foreach ($components as $component) {
-            // Find exam result for this component
-            // We assume exams are linked to assessment components via the exam's type/code.
-            // For now, let's assume we map exam type to component code.
-            
-            // This is a simplified fetch, actual logic may vary based on how exams map to components
-            $examResults = ExamResult::whereHas('exam', function ($q) use ($subjectId, $academicYearId, $semesterId, $component) {
-                $q->where('subject_id', $subjectId)
-                  ->where('academic_year_id', $academicYearId)
-                  ->where('semester_id', $semesterId)
-                  ->where('type', strtolower($component->code));
-            })
-            ->where('student_id', $studentId)
-            ->whereNotNull('marks_obtained')
-            ->get();
-
-            if ($examResults->isNotEmpty()) {
-                // If there are multiple exams of the same type, we might average them or sum them. 
-                // Let's assume average percentage for this component code.
-                $sumPercentage = 0;
-                $validExamsCount = 0;
-
-                foreach ($examResults as $result) {
-                    if (!$result->is_absent || $result->is_excused) {
-                        $percentage = ($result->marks_obtained / $result->total_marks) * 100;
-                        $sumPercentage += $percentage;
-                        $validExamsCount++;
-                    } else {
-                        // Absent without excuse = 0 for this exam
-                        $validExamsCount++;
-                    }
-                }
-
-                if ($validExamsCount > 0) {
-                    $componentAvgPercentage = $sumPercentage / $validExamsCount;
-                    // Apply component weight
-                    $weightedScore = ($componentAvgPercentage * $component->weight_percentage) / 100;
-                    $totalPercentage += $weightedScore;
-                }
-            }
+        foreach ($examResults as $result) {
+            $totalMarksObtained += (float)$result->marks_obtained;
+            $totalMaxMarks += (float)$result->total_marks;
         }
+
+        $totalPercentage = $totalMaxMarks > 0 ? ($totalMarksObtained / $totalMaxMarks) * 100 : 0.0;
 
         // Now map $totalPercentage to GradeScale
         $gradeScale = $this->calculateGradeScale($totalPercentage);
@@ -89,9 +75,9 @@ class GradeCalculationService
             [
                 'section_id' => $sectionId,
                 'total_percentage' => $totalPercentage,
-                'letter_grade' => $gradeScale ? $gradeScale->letter_grade : null,
-                'gpa_points' => $gradeScale ? $gradeScale->gpa_point : null,
-                'is_passing' => $gradeScale ? $gradeScale->is_passing : null,
+                'letter_grade' => $gradeScale['letter_grade'],
+                'gpa_points' => $gradeScale['gpa_point'],
+                'is_passing' => $gradeScale['is_passing'],
                 'calculated_at' => Carbon::now(),
             ]
         );

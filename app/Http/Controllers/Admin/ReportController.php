@@ -33,10 +33,10 @@ class ReportController extends Controller
         $semesters = Semester::all();
         $grades = Grade::all();
         $classes = SchoolClass::all();
-        $sections = Section::all();
+        $sections = Section::with('schoolClass')->get();
         $subjects = Subject::all();
         $teachers = Teacher::all();
-        $students = Student::all();
+        $students = Student::with('section.schoolClass')->orderBy('first_name')->get();
 
         return view('panels.admin.reports.index', compact(
             'academicYears', 'semesters', 'grades', 'classes', 'sections', 'subjects', 'teachers', 'students'
@@ -91,6 +91,7 @@ class ReportController extends Controller
         return match($type) {
             ReportType::Section => new \App\Exports\SectionResultExport($data),
             ReportType::Subject => new \App\Exports\SubjectResultExport($data),
+            ReportType::Annual  => new \App\Exports\AnnualReportExport($data),
             // Add others as needed
             default => null,
         };

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\ExamResult;
 use App\Models\Exam;
-use App\Models\GradeScale;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -84,23 +83,24 @@ class ExamResultService
     }
 
     /**
-     * Resolve letter grade from percentage using active GradeScale.
+     * Resolve letter grade from percentage using hardcoded scale.
      */
     public function resolveGrade($percentage): ?array
     {
         if ($percentage === null) return null;
 
-        $scale = GradeScale::where('status', true)
-            ->where('percentage_from', '<=', $percentage)
-            ->where('percentage_to', '>=', $percentage)
-            ->first();
-
-        if (!$scale) return null;
-
-        return [
-            'letter_grade' => $scale->letter_grade,
-            'gpa_point' => (float)$scale->gpa_point,
-            'is_passing' => $scale->is_passing,
-        ];
+        if ($percentage >= 90) {
+            return ['letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true];
+        } elseif ($percentage >= 80) {
+            return ['letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true];
+        } elseif ($percentage >= 70) {
+            return ['letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true];
+        } elseif ($percentage >= 60) {
+            return ['letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true];
+        } elseif ($percentage >= 50) {
+            return ['letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true];
+        } else {
+            return ['letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false];
+        }
     }
 }

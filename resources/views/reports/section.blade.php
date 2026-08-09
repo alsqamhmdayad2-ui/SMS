@@ -1,37 +1,37 @@
 @extends('layouts.reports.pdf')
-@section('title', 'Section Results')
+@section('title', 'نتائج الشعبة')
 
 @section('content')
 <div style="text-align: center; margin-bottom: 20px;">
-    <h2>Section Results Report</h2>
+    <h2>تقرير نتائج الشعبة</h2>
     @if(isset($students[0]))
-        <h3>Grade: {{ $students[0]['student']->section->grade->name ?? '' }} | Section: {{ $students[0]['student']->section->name ?? '' }}</h3>
+        <h3>الصف: {{ $students[0]['student']->section->schoolClass->grade->name ?? '' }} | الشعبة: {{ $students[0]['student']->section->name ?? '' }}</h3>
     @endif
 </div>
 
 @if(!$can_generate_official)
     <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; margin-bottom: 20px; text-align: center;">
-        <strong>DRAFT REPORT:</strong> Some subjects in this section have not been officially published yet.
+        <strong>تقرير غير رسمي:</strong> بعض المواد في هذه الشعبة لم يتم نشر درجاتها رسمياً بعد.
     </div>
 @endif
 
 <div style="margin-bottom: 20px;">
-    <h4>Class Statistics</h4>
+    <h4>إحصاءات الشعبة</h4>
     <table style="width: 100%;">
         <tr>
-            <th>Total Students</th>
+            <th>إجمالي الطلاب</th>
             <td>{{ $statistics['total_students'] }}</td>
-            <th>Pass Rate</th>
+            <th>نسبة النجاح</th>
             <td>{{ $statistics['pass_rate'] }}%</td>
         </tr>
         <tr>
-            <th>Highest Average</th>
+            <th>أعلى متوسط</th>
             <td>{{ $statistics['highest_average'] }}%</td>
-            <th>Class Average GPA</th>
+            <th>المتوسط التراكمي للشعبة (GPA)</th>
             <td>{{ $statistics['class_average'] }}</td>
         </tr>
         <tr>
-            <th>Lowest Average</th>
+            <th>أدنى متوسط</th>
             <td>{{ $statistics['lowest_average'] }}%</td>
             <th></th>
             <td></td>
@@ -39,12 +39,12 @@
     </table>
 </div>
 
-<h4>Student Results</h4>
-<table style="width: 100%; font-size: 12px;">
+<h4>نتائج الطلاب</h4>
+<table style="width: 100%; font-size: 12px;" dir="rtl">
     <thead>
         <tr>
             <th style="width: 30px;">#</th>
-            <th>Name</th>
+            <th>الاسم</th>
             @foreach($subjects as $subject)
                 <th style="text-align: center;">
                     <div style="width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $subject->name }}">
@@ -52,9 +52,9 @@
                     </div>
                 </th>
             @endforeach
-            <th style="text-align: center;">Avg %</th>
-            <th style="text-align: center;">GPA</th>
-            <th style="text-align: center;">Status</th>
+            <th style="text-align: center;">المتوسط %</th>
+            <th style="text-align: center;">التقدير (GPA)</th>
+            <th style="text-align: center;">الحالة</th>
         </tr>
     </thead>
     <tbody>
@@ -79,11 +79,11 @@
                 <td style="text-align: center;">{{ $studentData['gpa'] ?? '-' }}</td>
                 <td style="text-align: center;">
                     @if($studentData['status'] === 'passed')
-                        <span style="color: #28a745;">Pass</span>
+                        <span style="color: #28a745;">ناجح</span>
                     @elseif($studentData['status'] === 'failed')
-                        <span style="color: #dc3545;">Fail</span>
+                        <span style="color: #dc3545;">راسب</span>
                     @else
-                        Inc.
+                        غير مكتمل
                     @endif
                 </td>
             </tr>

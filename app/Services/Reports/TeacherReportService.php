@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Exam;
 use App\Models\StudentSubjectGrade;
-use App\Models\GradeScale;
 use App\Models\SchoolSetting;
 use App\Models\Teacher;
 
@@ -17,7 +16,6 @@ class TeacherReportService implements ReportInterface
     {
         $teacher = Teacher::findOrFail($filters->teacherId);
         $schoolSettings = SchoolSetting::first();
-        $scales = GradeScale::where('status', true)->orderByDesc('percentage_from')->get();
 
         // Get all exams assigned to this teacher
         $exams = Exam::where('teacher_id', $filters->teacherId)
@@ -35,7 +33,7 @@ class TeacherReportService implements ReportInterface
             [$subjectId, $sectionId] = explode('-', $key);
             $subject = Subject::find($subjectId);
 
-            $students = Student::where('section_id', $sectionId)->orderBy('name')->get();
+            $students = Student::where('section_id', $sectionId)->orderBy('first_name')->get();
             
             $studentResults = [];
             $percentages = [];
@@ -48,7 +46,7 @@ class TeacherReportService implements ReportInterface
                     ->first();
 
                 $pct = $savedGrade ? (float)$savedGrade->total_percentage : null;
-                $gradeInfo = $pct !== null ? $this->resolveGrade($pct, $scales) : [];
+                $gradeInfo = $pct !== null ? $this->resolveGrade($pct) : [];
 
                 if ($pct !== null) $percentages[] = $pct;
 
@@ -101,15 +99,22 @@ class TeacherReportService implements ReportInterface
         return $filters->teacherId !== null && $filters->academicYearId !== null;
     }
 
-    protected function resolveGrade($percentage, $scales): array
+    protected function resolveGrade($percentage): array
     {
         if ($percentage === null || $percentage == 0) return [];
-        $scale = $scales->first(fn($s) => $percentage >= (float)$s->percentage_from && $percentage <= (float)$s->percentage_to);
-        if (!$scale) return [];
-        return [
-            'letter_grade' => $scale->letter_grade,
-            'gpa_point' => (float)$scale->gpa_point,
-            'is_passing' => $scale->is_passing,
-        ];
+        
+        if ($percentage >= 90) {
+            return ['letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true];
+        } elseif ($percentage >= 80) {
+            return ['letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true];
+        } elseif ($percentage >= 70) {
+            return ['letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true];
+        } elseif ($percentage >= 60) {
+            return ['letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true];
+        } elseif ($percentage >= 50) {
+            return ['letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true];
+        } else {
+            return ['letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false];
+        }
     }
 }

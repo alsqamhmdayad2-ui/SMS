@@ -97,7 +97,7 @@
                 <th>Rank</th>
                 <th>Student</th>
                 @foreach($components as $comp)
-                <th class="text-center">{{ $comp->name }}<br><small class="fw-normal">({{ (float)$comp->weight_percentage }}%)</small></th>
+                <th class="text-center">{{ $comp->name }}</th>
                 @endforeach
                 <th class="text-center">Total</th>
                 <th class="text-center">Grade</th>

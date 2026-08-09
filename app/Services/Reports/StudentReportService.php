@@ -7,9 +7,7 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\AssessmentComponent;
 use App\Models\StudentSubjectGrade;
-use App\Models\GradeScale;
 use App\Models\SchoolSetting;
 use App\Services\ResultPublicationService;
 use Illuminate\Support\Str;
@@ -23,7 +21,6 @@ class StudentReportService implements ReportInterface
     public function getData(ReportFilterData $filters): array
     {
         $student = Student::with(['grade', 'schoolClass', 'section'])->findOrFail($filters->studentId);
-        $scales = GradeScale::where('status', true)->orderByDesc('percentage_from')->get();
         $schoolSettings = SchoolSetting::first();
 
         $subjectIds = Exam::where('academic_year_id', $filters->academicYearId)
@@ -40,16 +37,12 @@ class StudentReportService implements ReportInterface
         $passedCount = 0;
         $failedCount = 0;
 
+        $components = collect(\App\Constants\AssessmentComponents::getAll())->map(fn($item) => (object)$item);
+
         foreach ($subjects as $subject) {
             $isPublished = $this->publicationService->canViewResult(
                 $student, $filters->academicYearId, $filters->semesterId, $subject->id
             );
-
-            $components = AssessmentComponent::where('academic_year_id', $filters->academicYearId)
-                ->where('subject_id', $subject->id)
-                ->where('status', true)
-                ->orderBy('order')
-                ->get();
 
             $exams = Exam::where('academic_year_id', $filters->academicYearId)
                 ->where('subject_id', $subject->id)
@@ -63,6 +56,9 @@ class StudentReportService implements ReportInterface
                 ->get();
 
             $componentScores = [];
+            $globalObtained = 0.0;
+            $globalMax = 0.0;
+
             foreach ($components as $comp) {
                 $compExams = $exams->filter(fn($e) => strtoupper($e->type) === strtoupper($comp->code));
                 $obtained = 0;
@@ -79,7 +75,11 @@ class StudentReportService implements ReportInterface
                 }
 
                 $pct = $total > 0 ? round(($obtained / $total) * 100, 2) : null;
-                $contribution = $pct !== null ? round(($pct * (float)$comp->weight_percentage) / 100, 2) : null;
+                
+                if ($total > 0) {
+                    $globalObtained += $obtained;
+                    $globalMax += $total;
+                }
 
                 $componentScores[] = [
                     'name' => $comp->name,
@@ -87,13 +87,13 @@ class StudentReportService implements ReportInterface
                     'obtained' => $obtained,
                     'total' => $total,
                     'percentage' => $pct,
-                    'weight' => (float)$comp->weight_percentage,
-                    'contribution' => $contribution,
+                    'weight' => 0.0,
+                    'contribution' => $pct,
                 ];
             }
 
-            $weightedTotal = round(collect($componentScores)->whereNotNull('contribution')->sum('contribution'), 2);
-            $gradeInfo = $this->resolveGrade($weightedTotal, $scales);
+            $overallPercentage = $globalMax > 0 ? round(($globalObtained / $globalMax) * 100, 2) : 0.0;
+            $gradeInfo = $this->resolveGrade($overallPercentage);
 
             $savedGrade = StudentSubjectGrade::where('student_id', $student->id)
                 ->where('subject_id', $subject->id)
@@ -114,7 +114,7 @@ class StudentReportService implements ReportInterface
             $subjectResults[] = [
                 'subject' => $subject,
                 'components' => $componentScores,
-                'total_percentage' => $weightedTotal,
+                'total_percentage' => $overallPercentage,
                 'letter_grade' => $gradeInfo['letter_grade'] ?? null,
                 'gpa_points' => $gpa,
                 'is_passing' => $isPassing,
@@ -164,15 +164,22 @@ class StudentReportService implements ReportInterface
         return $filters->studentId !== null && $filters->academicYearId !== null;
     }
 
-    protected function resolveGrade($percentage, $scales): array
+    protected function resolveGrade($percentage): array
     {
         if ($percentage === null || $percentage == 0) return [];
-        $scale = $scales->first(fn($s) => $percentage >= (float)$s->percentage_from && $percentage <= (float)$s->percentage_to);
-        if (!$scale) return [];
-        return [
-            'letter_grade' => $scale->letter_grade,
-            'gpa_point' => (float)$scale->gpa_point,
-            'is_passing' => $scale->is_passing,
-        ];
+        
+        if ($percentage >= 90) {
+            return ['letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true];
+        } elseif ($percentage >= 80) {
+            return ['letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true];
+        } elseif ($percentage >= 70) {
+            return ['letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true];
+        } elseif ($percentage >= 60) {
+            return ['letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true];
+        } elseif ($percentage >= 50) {
+            return ['letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true];
+        } else {
+            return ['letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false];
+        }
     }
 }

@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\AssessmentComponent;
 use App\Models\SchoolSetting;
 use App\Services\ResultPublicationService;
 
@@ -20,14 +19,10 @@ class SubjectReportService implements ReportInterface
     public function getData(ReportFilterData $filters): array
     {
         $subject = Subject::findOrFail($filters->subjectId);
-        $students = Student::where('section_id', $filters->sectionId)->orderBy('name')->get();
+        $students = Student::where('section_id', $filters->sectionId)->orderBy('first_name')->get();
         $schoolSettings = SchoolSetting::first();
 
-        $components = AssessmentComponent::where('academic_year_id', $filters->academicYearId)
-            ->where('subject_id', $filters->subjectId)
-            ->where('status', true)
-            ->orderBy('order')
-            ->get();
+        $components = collect(\App\Constants\AssessmentComponents::getAll())->map(fn($item) => (object)$item);
 
         $exams = Exam::where('academic_year_id', $filters->academicYearId)
             ->where('subject_id', $filters->subjectId)
@@ -46,6 +41,9 @@ class SubjectReportService implements ReportInterface
                 ->get();
 
             $componentScores = [];
+            $globalObtained = 0.0;
+            $globalMax = 0.0;
+
             foreach ($components as $comp) {
                 $compExams = $exams->filter(fn($e) => strtoupper($e->type) === strtoupper($comp->code));
                 $obtained = 0;
@@ -62,23 +60,27 @@ class SubjectReportService implements ReportInterface
                 }
 
                 $pct = $total > 0 ? round(($obtained / $total) * 100, 2) : null;
-                $contribution = $pct !== null ? round(($pct * (float)$comp->weight_percentage) / 100, 2) : null;
+                
+                if ($total > 0) {
+                    $globalObtained += $obtained;
+                    $globalMax += $total;
+                }
 
                 $componentScores[$comp->code] = [
                     'obtained' => $obtained,
                     'total' => $total,
                     'percentage' => $pct,
-                    'contribution' => $contribution,
+                    'contribution' => $pct,
                 ];
             }
 
-            $weightedTotal = round(collect($componentScores)->whereNotNull('contribution')->sum('contribution'), 2);
-            $totalPercentages[] = $weightedTotal;
+            $overallPercentage = $globalMax > 0 ? round(($globalObtained / $globalMax) * 100, 2) : 0.0;
+            $totalPercentages[] = $overallPercentage;
 
             $studentsData[] = [
                 'student' => $student,
                 'components' => $componentScores,
-                'total' => $weightedTotal,
+                'total' => $overallPercentage,
             ];
         }
 

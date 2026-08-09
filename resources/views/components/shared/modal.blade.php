@@ -16,7 +16,11 @@
             </div>
             
             <div class="modal-body px-4 py-4">
-                {{ $slot }}
+                @isset($body)
+                    {{ $body }}
+                @else
+                    {{ $slot }}
+                @endisset
             </div>
             
             @isset($footer)

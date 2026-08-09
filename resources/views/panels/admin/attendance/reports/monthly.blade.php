@@ -34,8 +34,12 @@
                     @endforeach
                 </x-form.select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-search me-1"></i> {{ __('attendance_reports.view_month') }}</button>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="view" class="btn btn-primary btn-sm flex-grow-1"><i class="fas fa-search me-1"></i> عرض</button>
+                    <button type="submit" name="action" value="pdf" class="btn btn-danger btn-sm" title="PDF"><i class="fas fa-file-pdf"></i></button>
+                    <button type="submit" name="action" value="excel" class="btn btn-success btn-sm" title="Excel"><i class="fas fa-file-excel"></i></button>
+                </div>
             </div>
         </form>
     </x-shared.card>

@@ -13,10 +13,11 @@ class ReportFactory
     public static function make(ReportType $type): ReportInterface
     {
         return match ($type) {
-            ReportType::Student => app(StudentReportService::class),
-            ReportType::Section => app(SectionReportService::class),
-            ReportType::Subject => app(SubjectReportService::class),
-            ReportType::Teacher => app(TeacherReportService::class),
+            ReportType::Student       => app(StudentReportService::class),
+            ReportType::Section       => app(SectionReportService::class),
+            ReportType::Subject       => app(SubjectReportService::class),
+            ReportType::Teacher       => app(TeacherReportService::class),
+            ReportType::Annual        => app(AnnualReportService::class),
             ReportType::Grade,
             ReportType::FailedStudents,
             ReportType::HonorStudents,

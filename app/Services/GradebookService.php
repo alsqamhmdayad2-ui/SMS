@@ -5,9 +5,7 @@ namespace App\Services;
 use App\Models\Student;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\AssessmentComponent;
 use App\Models\StudentSubjectGrade;
-use App\Models\GradeScale;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -19,16 +17,12 @@ class GradebookService
      */
     public function getGradebook($academicYearId, $semesterId, $subjectId, $sectionId): Collection
     {
-        // 1. Get assessment components for this subject/year
-        $components = AssessmentComponent::where('academic_year_id', $academicYearId)
-            ->where('subject_id', $subjectId)
-            ->where('status', true)
-            ->orderBy('order')
-            ->get();
+        // 1. Get assessment components (hardcoded)
+        $components = collect(\App\Constants\AssessmentComponents::getAll())->map(fn($item) => (object)$item);
 
         // 2. Get students in this section
         $students = Student::where('section_id', $sectionId)
-            ->orderBy('name')
+            ->orderBy('first_name')
             ->get();
 
         // 3. Get all exams for this subject/section/year/semester
@@ -54,13 +48,12 @@ class GradebookService
             ->get()
             ->keyBy('student_id');
 
-        // 6. Grade scales
-        $scales = GradeScale::where('status', true)->orderByDesc('percentage_from')->get();
-
-        // 7. Build gradebook rows
-        $gradebook = $students->map(function ($student) use ($components, $exams, $results, $subjectGrades, $scales) {
+        // 6. Build gradebook rows
+        $gradebook = $students->map(function ($student) use ($components, $exams, $results, $subjectGrades) {
             $studentResults = $results->get($student->id, collect());
             $componentScores = [];
+            $globalObtained = 0.0;
+            $globalMax = 0.0;
 
             foreach ($components as $comp) {
                 // Find exams matching this component code (exam type matches component code)
@@ -94,32 +87,34 @@ class GradebookService
                 }
 
                 $compPercentage = $totalMax > 0 ? round(($totalObtained / $totalMax) * 100, 2) : null;
-                $contribution = $compPercentage !== null ? round(($compPercentage * (float)$comp->weight_percentage) / 100, 2) : null;
+                
+                if ($totalMax > 0) {
+                    $globalObtained += $totalObtained;
+                    $globalMax += $totalMax;
+                }
 
                 $componentScores[] = [
                     'component' => $comp,
                     'obtained' => $totalObtained,
                     'total' => $totalMax,
                     'percentage' => $compPercentage,
-                    'weight' => (float)$comp->weight_percentage,
-                    'contribution' => $contribution,
+                    'weight' => 0.0,
+                    'contribution' => $compPercentage,
                     'exams' => $examDetails,
                 ];
             }
 
-            // Calculate weighted total
-            $weightedTotal = collect($componentScores)
-                ->whereNotNull('contribution')
-                ->sum('contribution');
+            // Calculate overall percentage based on sum of marks obtained vs max marks
+            $overallPercentage = $globalMax > 0 ? round(($globalObtained / $globalMax) * 100, 2) : 0.0;
 
             // Get saved grade or resolve dynamically
             $savedGrade = $subjectGrades->get($student->id);
-            $gradeInfo = $this->resolveFromScales($weightedTotal, $scales);
+            $gradeInfo = $this->resolveFromScales($overallPercentage);
 
             return [
                 'student' => $student,
                 'components' => $componentScores,
-                'total_percentage' => round($weightedTotal, 2),
+                'total_percentage' => $overallPercentage,
                 'letter_grade' => $savedGrade->letter_grade ?? ($gradeInfo['letter_grade'] ?? null),
                 'gpa_points' => $savedGrade ? (float)$savedGrade->gpa_points : ($gradeInfo['gpa_point'] ?? null),
                 'is_passing' => $savedGrade ? $savedGrade->is_passing : ($gradeInfo['is_passing'] ?? null),
@@ -168,15 +163,22 @@ class GradebookService
         ];
     }
 
-    protected function resolveFromScales($percentage, $scales): array
+    protected function resolveFromScales($percentage): array
     {
         if ($percentage === null || $percentage == 0) return [];
-        $scale = $scales->first(fn($s) => $percentage >= (float)$s->percentage_from && $percentage <= (float)$s->percentage_to);
-        if (!$scale) return [];
-        return [
-            'letter_grade' => $scale->letter_grade,
-            'gpa_point' => (float)$scale->gpa_point,
-            'is_passing' => $scale->is_passing,
-        ];
+        
+        if ($percentage >= 90) {
+            return ['letter_grade' => 'ممتاز', 'gpa_point' => 4.00, 'is_passing' => true];
+        } elseif ($percentage >= 80) {
+            return ['letter_grade' => 'جيد جداً', 'gpa_point' => 3.00, 'is_passing' => true];
+        } elseif ($percentage >= 70) {
+            return ['letter_grade' => 'جيد', 'gpa_point' => 2.50, 'is_passing' => true];
+        } elseif ($percentage >= 60) {
+            return ['letter_grade' => 'متوسط', 'gpa_point' => 2.00, 'is_passing' => true];
+        } elseif ($percentage >= 50) {
+            return ['letter_grade' => 'مقبول', 'gpa_point' => 1.00, 'is_passing' => true];
+        } else {
+            return ['letter_grade' => 'راسب', 'gpa_point' => 0.00, 'is_passing' => false];
+        }
     }
 }

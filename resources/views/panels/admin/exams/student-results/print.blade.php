@@ -1,24 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Result: {{ $student->name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>نتائج الطالب: {{ $student->name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <style>
-        body { background-color: #fff; font-family: 'Times New Roman', serif; color: #000; }
-        .print-container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #000; padding-bottom: 20px; }
-        .school-name { font-size: 28px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-        .report-title { font-size: 20px; font-weight: bold; letter-spacing: 2px; }
-        .student-info { margin-bottom: 30px; }
-        .student-info th { width: 150px; text-align: left; }
-        .student-info th, .student-info td { padding: 5px; }
-        .result-table th { background-color: #f8f9fa !important; border-bottom: 2px solid #000; }
-        .result-table td, .result-table th { border: 1px solid #dee2e6; vertical-align: middle; }
-        .summary-box { border: 2px solid #000; padding: 15px; margin-top: 30px; }
-        .signatures { margin-top: 80px; display: flex; justify-content: space-between; }
-        .signature-line { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { background-color: #fff; font-family: 'Cairo', sans-serif; color: #000; direction: rtl; }
+        .print-container { max-width: 820px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px double #000; padding-bottom: 20px; }
+        .school-name { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+        .report-title { font-size: 18px; font-weight: 700; letter-spacing: 1px; margin-top: 10px; }
+        .student-info th { width: 140px; text-align: right; font-weight: 600; }
+        .student-info th, .student-info td { padding: 5px 8px; }
+        .result-table th { background-color: #f0f0f0 !important; border-bottom: 2px solid #000; }
+        .result-table td, .result-table th { border: 1px solid #ccc; vertical-align: middle; text-align: center; }
+        .result-table td:first-child { text-align: right; }
+        .summary-box { border: 2px solid #000; padding: 15px; margin-top: 25px; }
+        .signatures { margin-top: 70px; display: flex; justify-content: space-between; flex-direction: row-reverse; }
+        .signature-line { border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-weight: 600; }
         @media print {
             .no-print { display: none !important; }
             body { -webkit-print-color-adjust: exact; }
@@ -28,107 +29,105 @@
 </head>
 <body>
     <div class="print-container">
-        <!-- Controls -->
-        <div class="text-end mb-4 no-print">
-            <button onclick="window.print()" class="btn btn-primary btn-lg">Print Document</button>
-            <button onclick="window.close()" class="btn btn-secondary btn-lg ms-2">Close</button>
+        {{-- أزرار التحكم --}}
+        <div class="text-start mb-4 no-print d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary btn-lg">
+                <i class="fas fa-print me-2"></i> طباعة
+            </button>
+            <button onclick="window.close()" class="btn btn-secondary btn-lg">إغلاق</button>
         </div>
 
         @if($result)
-        <!-- Header -->
+        {{-- الترويسة --}}
         <div class="header">
-            <div class="school-name">Noor Al-Maaref School</div>
-            <div>Academic Excellence & Character Building</div>
-            <div class="mt-3 report-title">STUDENT ACADEMIC REPORT</div>
-            <div class="mt-1">{{ $academicYear->name ?? '' }} | {{ $semester->name ?? 'Full Academic Year' }}</div>
+            <div class="school-name">كشف نتائج الطالب</div>
+            <div class="report-title">{{ $academicYear->name ?? '' }}
+                @if($semester) &nbsp;|&nbsp; {{ $semester->name }} @endif
+            </div>
         </div>
 
-        <!-- Student Details -->
-        <table class="student-info w-100">
+        {{-- بيانات الطالب --}}
+        <table class="student-info w-100 mb-4">
             <tr>
-                <th>Student Name:</th>
-                <td style="font-size: 18px; font-weight: bold;">{{ $student->name }}</td>
-                <th>Student ID:</th>
-                <td>{{ str_pad($student->id, 6, '0', STR_PAD_LEFT) }}</td>
+                <th>اسم الطالب:</th>
+                <td style="font-size:17px;font-weight:700;">{{ $student->name }}</td>
+                <th>الرقم الأكاديمي:</th>
+                <td>{{ str_pad($student->student_id ?? $student->id, 6, '0', STR_PAD_LEFT) }}</td>
             </tr>
             <tr>
-                <th>Grade Level:</th>
-                <td>{{ $student->grade->name ?? 'N/A' }}</td>
-                <th>Class/Section:</th>
-                <td>{{ $student->schoolClass->name ?? 'N/A' }} / {{ $student->section->name ?? 'N/A' }}</td>
+                <th>الصف الدراسي:</th>
+                <td>{{ $student->section->schoolClass->name ?? ($student->schoolClass->name ?? '—') }}</td>
+                <th>الشعبة:</th>
+                <td>{{ $student->section->name ?? '—' }}</td>
             </tr>
         </table>
 
-        <!-- Results Table -->
-        <table class="table result-table mt-4">
+        {{-- جدول النتائج --}}
+        <table class="table result-table mt-3">
             <thead>
                 <tr>
-                    <th>Subject</th>
-                    <th class="text-center">Percentage</th>
-                    <th class="text-center">Letter Grade</th>
-                    <th class="text-center">GPA</th>
-                    <th class="text-center">Remarks</th>
+                    <th style="text-align:right;">المادة</th>
+                    <th>النسبة المئوية</th>
+                    <th>التقدير</th>
+                    <th>المعدل (GPA)</th>
+                    <th>الحالة</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($result['subjects'] as $sub)
                 <tr>
-                    <td class="fw-bold">{{ $sub['subject']->name }}</td>
-                    <td class="text-center">{{ $sub['total_percentage'] }}%</td>
-                    <td class="text-center fw-bold">{{ $sub['letter_grade'] ?? '-' }}</td>
-                    <td class="text-center">{{ $sub['gpa_points'] ?? '-' }}</td>
-                    <td class="text-center">{{ $sub['is_passing'] ? 'Pass' : 'Fail' }}</td>
+                    <td style="text-align:right;font-weight:600;">{{ $sub['subject']->name }}</td>
+                    <td>{{ $sub['total_percentage'] }}%</td>
+                    <td><strong>{{ $sub['letter_grade'] ?? '—' }}</strong></td>
+                    <td>{{ $sub['gpa_points'] ?? '—' }}</td>
+                    <td style="color:{{ $sub['is_passing'] ? '#1a7a1a' : '#cc0000' }};font-weight:600;">
+                        {{ $sub['is_passing'] ? 'ناجح' : 'راسب' }}
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <!-- Summary -->
+        {{-- ملخص النتيجة --}}
         <div class="summary-box">
             <div class="row text-center">
                 <div class="col-4">
-                    <div class="fw-bold text-uppercase mb-1">Overall GPA</div>
-                    <div style="font-size: 24px; font-weight: bold;">{{ $result['summary']['overall_gpa'] ?? '-' }}</div>
+                    <div class="fw-bold mb-1">المعدل التراكمي (GPA)</div>
+                    <div style="font-size:24px;font-weight:700;">{{ $result['summary']['overall_gpa'] ?? '—' }}</div>
                 </div>
                 <div class="col-4 border-start border-end border-dark">
-                    <div class="fw-bold text-uppercase mb-1">Average</div>
-                    <div style="font-size: 24px; font-weight: bold;">{{ $result['summary']['average_percentage'] }}%</div>
+                    <div class="fw-bold mb-1">المتوسط العام</div>
+                    <div style="font-size:24px;font-weight:700;">{{ $result['summary']['average_percentage'] }}%</div>
                 </div>
                 <div class="col-4">
-                    <div class="fw-bold text-uppercase mb-1">Final Status</div>
-                    <div style="font-size: 24px; font-weight: bold; text-transform: uppercase;">
-                        {{ $result['summary']['status'] }}
+                    <div class="fw-bold mb-1">النتيجة النهائية</div>
+                    <div style="font-size:22px;font-weight:700;
+                         color:{{ $result['summary']['status'] === 'passed' ? '#1a7a1a' : ($result['summary']['status'] === 'failed' ? '#cc0000' : '#cc8800') }}">
+                        @if($result['summary']['status'] === 'passed') ناجح
+                        @elseif($result['summary']['status'] === 'failed') راسب
+                        @else غير مكتمل @endif
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-3 text-muted" style="font-size: 12px;">
-            * This report is generated automatically by the School Management System. 
-            Passed subjects: {{ $result['summary']['passed'] }} / {{ $result['summary']['total_subjects'] }}.
+        <div class="mt-3 text-muted" style="font-size:12px;">
+            * هذا الكشف تم إنشاؤه تلقائياً بواسطة النظام.
+            المواد الناجحة: {{ $result['summary']['passed'] }} / {{ $result['summary']['total_subjects'] }}.
         </div>
 
-        <!-- Signatures -->
+        {{-- توقيعات --}}
         <div class="signatures">
-            <div>
-                <div class="signature-line">Class Teacher</div>
-            </div>
-            <div>
-                <div class="signature-line">School Principal</div>
-            </div>
+            <div><div class="signature-line">مدير المدرسة</div></div>
+            <div><div class="signature-line">المعلم المسؤول</div></div>
         </div>
 
         @else
         <div class="text-center mt-5">
-            <h2>No Result Data Available</h2>
-            <p>Could not generate the report card for this student.</p>
+            <h2>لا توجد بيانات نتيجة</h2>
+            <p>تعذّر إنشاء كشف النتيجة لهذا الطالب.</p>
         </div>
         @endif
     </div>
-
-    <script>
-        // Optional auto-print
-        // window.onload = function() { window.print(); }
-    </script>
 </body>
 </html>

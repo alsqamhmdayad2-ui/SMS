@@ -8,7 +8,6 @@ use App\Models\Semester;
 use App\Models\Grade;
 use App\Models\Subject;
 use App\Models\Section;
-use App\Models\AssessmentComponent;
 use App\Services\GradebookService;
 use Illuminate\Http\Request;
 
@@ -42,11 +41,7 @@ class GradebookController extends Controller
             );
             $stats = $this->gradebookService->getClassStats($gradebook);
 
-            $components = AssessmentComponent::where('academic_year_id', $request->academic_year_id)
-                ->where('subject_id', $request->subject_id)
-                ->where('status', true)
-                ->orderBy('order')
-                ->get();
+            $components = collect(\App\Constants\AssessmentComponents::getAll())->map(fn($item) => (object)$item);
         }
 
         return view('panels.admin.exams.gradebook.index', compact(

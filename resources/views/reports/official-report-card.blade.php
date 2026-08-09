@@ -1,27 +1,27 @@
 @extends('layouts.reports.pdf')
-@section('title', 'Official Report Card - ' . $student->name)
+@section('title', 'الشهادة الرسمية - ' . $student->name)
 
 @section('content')
 <div style="text-align: center; margin-bottom: 20px;">
-    <h2>OFFICIAL REPORT CARD</h2>
-    <h3>Academic Year: {{ $reportCard->academic_year_name_snapshot }}</h3>
+    <h2>الشهادة الرسمية للدرجات</h2>
+    <h3>العام الدراسي: {{ $reportCard->academic_year_name_snapshot }}</h3>
     @if($reportCard->semester_id)
-        <h4>Semester: {{ $reportCard->semester->name ?? '' }}</h4>
+        <h4>الفصل الدراسي: {{ $reportCard->semester->name ?? '' }}</h4>
     @endif
 </div>
 
-<table style="width: 100%; margin-bottom: 20px; border: none;">
+<table style="width: 100%; margin-bottom: 20px; border: none;" dir="rtl">
     <tr>
         <td style="border: none; padding: 0;">
-            <strong>Student Name:</strong> {{ $reportCard->student_name_snapshot }}<br>
-            <strong>Student ID:</strong> {{ $student->student_id }}<br>
-            <strong>Section:</strong> {{ $reportCard->section_name_snapshot }}<br>
-            <strong>Period:</strong> {{ ucfirst($reportCard->report_period) }}
+            <strong>اسم الطالب:</strong> {{ $reportCard->student_name_snapshot }}<br>
+            <strong>الرقم الأكاديمي:</strong> {{ $student->student_id }}<br>
+            <strong>الشعبة:</strong> {{ $reportCard->section_name_snapshot }}<br>
+            <strong>الفترة:</strong> {{ ucfirst($reportCard->report_period) }}
         </td>
-        <td style="border: none; padding: 0; text-align: right;">
+        <td style="border: none; padding: 0; text-align: left;">
             @if($verification_uuid)
                 <div class="qr-code">
-                    <p style="font-size: 10px; color: #777; margin-bottom: 2px;">Scan to Verify Authenticity</p>
+                    <p style="font-size: 10px; color: #777; margin-bottom: 2px;">امسح للتحقق من الموثوقية</p>
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ urlencode(route('verify.report', $verification_uuid)) }}" alt="QR Code">
                     <p style="font-size: 8px; color: #999; margin-top: 2px;">{{ substr($verification_uuid, 0, 8) }}...</p>
                 </div>
@@ -32,17 +32,17 @@
 
 @if($reportCard->status === App\Enums\ReportCardStatus::Revoked)
     <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border: 2px solid #f5c6cb; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 18px;">
-        WARNING: THIS DOCUMENT HAS BEEN REVOKED BY THE ADMINISTRATION AND IS NO LONGER VALID.
+        تنبيه: تم إلغاء هذه الوثيقة من قبل الإدارة وهي لم تعد صالحة للاستخدام.
     </div>
 @endif
 
-<table>
+<table dir="rtl">
     <thead>
         <tr>
-            <th>Subject</th>
-            <th style="text-align: center;">Percentage</th>
-            <th style="text-align: center;">GPA Points</th>
-            <th style="text-align: center;">Status</th>
+            <th>المادة</th>
+            <th style="text-align: center;">النسبة</th>
+            <th style="text-align: center;">نقاط GPA</th>
+            <th style="text-align: center;">الحالة</th>
         </tr>
     </thead>
     <tbody>
@@ -53,9 +53,9 @@
                 <td style="text-align: center;">{{ $grade->gpa_points ?? '-' }}</td>
                 <td style="text-align: center;">
                     @if($grade->is_passing === true)
-                        <span style="color: #28a745;">Pass</span>
+                        <span style="color: #28a745;">ناجح</span>
                     @elseif($grade->is_passing === false)
-                        <span style="color: #dc3545;">Fail</span>
+                        <span style="color: #dc3545;">راسب</span>
                     @else
                         -
                     @endif

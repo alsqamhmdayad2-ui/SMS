@@ -1,49 +1,49 @@
 @extends('layouts.reports.pdf')
-@section('title', 'Subject Results - ' . $subject->name)
+@section('title', 'نتائج المادة - ' . $subject->name)
 
 @section('content')
 <div style="text-align: center; margin-bottom: 20px;">
-    <h2>Subject Results Report</h2>
-    <h3>Subject: {{ $subject->name }}</h3>
+    <h2>تقرير نتائج المادة</h2>
+    <h3>المادة: {{ $subject->name }}</h3>
     @if(isset($students[0]))
-        <h4>Grade: {{ $students[0]['student']->section->grade->name ?? '' }} | Section: {{ $students[0]['student']->section->name ?? '' }}</h4>
+        <h4>الصف: {{ $students[0]['student']->section->schoolClass->grade->name ?? '' }} | الشعبة: {{ $students[0]['student']->section->name ?? '' }}</h4>
     @endif
 </div>
 
 @if(!$is_published)
     <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; margin-bottom: 20px; text-align: center;">
-        <strong>DRAFT REPORT:</strong> This subject has not been officially published for this section yet.
+        <strong>تقرير غير رسمي:</strong> لم يتم نشر درجات هذه المادة رسمياً لهذه الشعبة بعد.
     </div>
 @endif
 
 <div style="margin-bottom: 20px;">
-    <h4>Statistics</h4>
+    <h4>الإحصاءات</h4>
     <table style="width: 100%;">
         <tr>
-            <th>Total Students</th>
+            <th>إجمالي الطلاب</th>
             <td>{{ $statistics['total_students'] }}</td>
-            <th>Average Percentage</th>
+            <th>متوسط النسبة</th>
             <td>{{ $statistics['average'] }}%</td>
         </tr>
         <tr>
-            <th>Highest Score</th>
+            <th>أعلى درجة</th>
             <td>{{ $statistics['highest'] }}%</td>
-            <th>Lowest Score</th>
+            <th>أدنى درجة</th>
             <td>{{ $statistics['lowest'] }}%</td>
         </tr>
     </table>
 </div>
 
-<h4>Detailed Scores</h4>
-<table style="width: 100%; font-size: 13px;">
+<h4>الدرجات المفصلة</h4>
+<table style="width: 100%; font-size: 13px;" dir="rtl">
     <thead>
         <tr>
             <th style="width: 30px;">#</th>
-            <th>Name</th>
+            <th>الاسم</th>
             @foreach($components as $comp)
-                <th style="text-align: center;">{{ $comp->name }}<br><small>({{ $comp->weight_percentage }}%)</small></th>
+                <th style="text-align: center;">{{ $comp->name }}</th>
             @endforeach
-            <th style="text-align: center;">Total %</th>
+            <th style="text-align: center;">الإجمالي %</th>
         </tr>
     </thead>
     <tbody>
