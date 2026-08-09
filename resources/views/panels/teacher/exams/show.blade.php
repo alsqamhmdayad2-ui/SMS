@@ -98,6 +98,7 @@
                         <th>النسبة</th>
                         <th>التقدير</th>
                         <th>ملاحظات</th>
+                        <th>مراجعة</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,6 +155,15 @@
                                    value="{{ $result?->remarks }}"
                                    placeholder="ملاحظة..."
                                    onblur="autoSave({{ $student->id }})">
+                        </td>
+                        <td>
+                            @if($result)
+                                <a href="{{ route('teacher.exams.results.review', [$exam, $student]) }}" class="btn btn-sm btn-outline-primary" title="مراجعة الإجابات والتصحيح">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                            @else
+                                <span class="text-muted small">لم يُمتحن</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

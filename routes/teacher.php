@@ -38,6 +38,8 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
         Route::put('/{exam}',          [App\Http\Controllers\Teacher\ExamController::class, 'update'])  ->name('update');
         Route::delete('/{exam}',       [App\Http\Controllers\Teacher\ExamController::class, 'destroy']) ->name('destroy');
         Route::post('/{exam}/publish', [App\Http\Controllers\Teacher\ExamController::class, 'publish']) ->name('publish');
+        Route::get('/{exam}/student/{student}/review', [App\Http\Controllers\Teacher\ExamController::class, 'reviewAnswers'])->name('results.review');
+        Route::post('/{exam}/student/{student}/grade', [App\Http\Controllers\Teacher\ExamController::class, 'saveGrades'])->name('results.grade');
         Route::get('/{exam}/questions',                          [App\Http\Controllers\Teacher\ExamQuestionController::class, 'index'])     ->name('questions.index');
         Route::post('/{exam}/questions',                         [App\Http\Controllers\Teacher\ExamQuestionController::class, 'store'])     ->name('questions.store');
         Route::post('/{exam}/questions/reorder',                 [App\Http\Controllers\Teacher\ExamQuestionController::class, 'reorder'])   ->name('questions.reorder');

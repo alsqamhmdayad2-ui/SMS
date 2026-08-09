@@ -112,6 +112,7 @@ class ExamController extends Controller
             'start_time'       => 'nullable|date_format:H:i',
             'end_time'         => 'nullable|date_format:H:i',
             'duration_minutes' => 'nullable|integer|min:5',
+            'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
         ]);
 
@@ -184,6 +185,7 @@ class ExamController extends Controller
             'start_time'       => 'nullable|date_format:H:i',
             'end_time'         => 'nullable|date_format:H:i',
             'duration_minutes' => 'nullable|integer|min:5',
+            'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
         ]);
 
@@ -292,5 +294,56 @@ class ExamController extends Controller
         if (!in_array($exam->section_id, $sectionIds) || !in_array($exam->subject_id, $subjectIds)) {
             abort(403, 'غير مصرح لك بالوصول لهذا الاختبار.');
         }
+    }
+
+    // ─── Review and Grade Student Answers ──────────────────────────────────────
+    public function reviewAnswers(Exam $exam, Student $student)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        $examResult = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $answers = \Illuminate\Support\Facades\DB::table('exam_student_answers')
+            ->where('exam_result_id', $examResult->id)
+            ->get()
+            ->keyBy('question_id');
+
+        $exam->load('questions.options');
+
+        return view('panels.teacher.exams.review', compact('exam', 'student', 'examResult', 'answers'));
+    }
+
+    public function saveGrades(\Illuminate\Http\Request $request, Exam $exam, Student $student)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        $examResult = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $grades = $request->input('grades', []);
+        
+        \Illuminate\Support\Facades\DB::transaction(function () use ($examResult, $grades) {
+            foreach ($grades as $questionId => $mark) {
+                \Illuminate\Support\Facades\DB::table('exam_student_answers')
+                    ->where('exam_result_id', $examResult->id)
+                    ->where('question_id', $questionId)
+                    ->update([
+                        'marks_awarded' => $mark,
+                        'is_graded' => true,
+                    ]);
+            }
+            
+            // Recalculate total marks
+            $totalMarks = \Illuminate\Support\Facades\DB::table('exam_student_answers')
+                ->where('exam_result_id', $examResult->id)
+                ->sum('marks_awarded');
+                
+            $examResult->update(['marks_obtained' => $totalMarks]);
+        });
+
+        return redirect()->route('teacher.exams.show', $exam)->with('success', 'تم حفظ الدرجات وتحديث المجموع بنجاح.');
     }
 }

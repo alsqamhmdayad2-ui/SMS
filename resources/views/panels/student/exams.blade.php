@@ -38,8 +38,10 @@
                             @endif
                         </div>
                         <div class="exam-status-bar mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info text-white">متاح الآن</span>
-                            <button class="btn btn-sm btn-primary px-3" onclick="alert('واجهة أداء الاختبار قيد التطوير.')"><i class="fas fa-play me-1"></i> بدء</button>
+                            <span class="badge bg-success text-white">متاح الآن</span>
+                            <a href="{{ route('student.exams.take', $exam) }}" class="btn btn-sm btn-primary px-3">
+                                <i class="fas fa-play me-1"></i> بدء الاختبار
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -26,6 +26,7 @@ class Exam extends Model
         'end_time',
         'duration_minutes',
         'status',
+        'display_mode',
         'instructions',
     ];
 

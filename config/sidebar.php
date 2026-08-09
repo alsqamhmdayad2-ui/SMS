@@ -332,7 +332,39 @@ return [
     [
         'title'  => 'لوحة التحكم',
         'icon'   => 'tachometer-alt',
-        'route'  => 'dashboard',
+        'route'  => 'student.dashboard',
+        'roles'  => ['student'],
+    ],
+
+    // الاختبارات
+    [
+        'title'  => 'الاختبارات',
+        'icon'   => 'file-alt',
+        'route'  => 'student.exams',
+        'roles'  => ['student'],
+    ],
+
+    // الدرجات والنتائج
+    [
+        'title'  => 'الدرجات والنتائج',
+        'icon'   => 'chart-line',
+        'route'  => 'student.results',
+        'roles'  => ['student'],
+    ],
+
+    // الحضور والغياب
+    [
+        'title'  => 'الحضور والغياب',
+        'icon'   => 'calendar-check',
+        'route'  => 'student.reports', // We map this to reports page since reports page handles attendance details for students
+        'roles'  => ['student'],
+    ],
+
+    // الملف الشخصي
+    [
+        'title'  => 'الملف الشخصي',
+        'icon'   => 'user-circle',
+        'route'  => 'student.profile',
         'roles'  => ['student'],
     ],
 

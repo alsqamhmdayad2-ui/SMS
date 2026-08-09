@@ -123,9 +123,17 @@
                             <input type="time" name="end_time" class="form-control" value="{{ old('end_time') }}">
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">المدة (بالدقائق)</label>
                             <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes') }}" min="5" placeholder="60">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">طريقة عرض الاختبار للطالب</label>
+                            <select name="display_mode" class="form-select">
+                                <option value="single_page" {{ old('display_mode') === 'single_page' ? 'selected' : '' }}>عرض جميع الأسئلة في صفحة واحدة</option>
+                                <option value="per_question" {{ old('display_mode') === 'per_question' ? 'selected' : '' }}>عرض سؤال واحد في كل مرة (التالي/السابق)</option>
+                            </select>
                         </div>
 
                         <div class="col-12">
