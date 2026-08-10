@@ -18,14 +18,27 @@ class TeacherReportService implements ReportInterface
         $schoolSettings = SchoolSetting::first();
 
         // Get all exams assigned to this teacher
-        $exams = Exam::where('teacher_id', $filters->teacherId)
+        $exams = Exam::with('sections')->where('teacher_id', $filters->teacherId)
             ->where('academic_year_id', $filters->academicYearId)
             ->when($filters->semesterId, fn($q) => $q->where('semester_id', $filters->semesterId))
-            ->when($filters->sectionId, fn($q) => $q->where('section_id', $filters->sectionId))
+            ->when($filters->sectionId, fn($q) => $q->whereHas('sections', fn($sq) => $sq->where('sections.id', $filters->sectionId)))
             ->get();
 
+        // Create flattened collection of (exam, section_id)
+        $flattenedExams = collect();
+        foreach ($exams as $exam) {
+            foreach ($exam->sections as $section) {
+                if ($filters->sectionId && $section->id != $filters->sectionId) continue;
+                $flattenedExams->push((object)[
+                    'subject_id' => $exam->subject_id,
+                    'section_id' => $section->id,
+                    'exam' => $exam
+                ]);
+            }
+        }
+
         // Group by subject+section
-        $grouped = $exams->groupBy(fn($e) => $e->subject_id . '-' . $e->section_id);
+        $grouped = $flattenedExams->groupBy(fn($e) => $e->subject_id . '-' . $e->section_id);
 
         $sectionSubjects = [];
 

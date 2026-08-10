@@ -116,6 +116,7 @@
 @include('panels.admin.exams.components.forms.matching-form')
 @include('panels.admin.exams.components.forms.essay-form')
 @include('panels.admin.exams.components.forms.fillblank-form')
+@include('panels.admin.exams.components.forms.shortanswer-form')
 
 <!-- Question Bank Import Modal -->
 @include('panels.admin.exams.components.question-bank-modal', ['exam' => $exam])
@@ -198,8 +199,51 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (type === 'fill_blank') {
             const template = document.getElementById('fillblank-form-template').innerHTML;
             dynamicFields.innerHTML = template;
+            setupModelAnswersForm('fillblank', optionsData);
+        } else if (type === 'short_answer') {
+            const template = document.getElementById('shortanswer-form-template').innerHTML;
+            dynamicFields.innerHTML = template;
+            setupModelAnswersForm('shortanswer', optionsData);
         } else {
             dynamicFields.classList.add('d-none');
+        }
+    }
+
+    // Model Answers setup helper (for short_answer and fill_blank)
+    function setupModelAnswersForm(prefix, optionsData = null) {
+        const container = document.getElementById(prefix + 'AnswersContainer');
+        const addBtn = document.getElementById('add' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'AnswerBtn');
+
+        if (optionsData && optionsData.length > 0) {
+            optionsData.forEach((opt) => {
+                if (opt.is_correct) addModelAnswerRow(container);
+            });
+            // Fill values after creation
+            const rows = container.querySelectorAll('input[name="model_answers[]"]');
+            optionsData.filter(o => o.is_correct).forEach((opt, i) => {
+                if (rows[i]) rows[i].value = opt.option_text;
+            });
+        } else {
+            addModelAnswerRow(container);
+        }
+
+        addBtn.addEventListener('click', function() {
+            addModelAnswerRow(container);
+        });
+    }
+
+    function addModelAnswerRow(container) {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 model-answer-row';
+        const isFirst = container.children.length === 0;
+        div.innerHTML = `
+            <input type="text" class="form-control form-control-sm" name="model_answers[]" placeholder="اكتب الإجابة الصحيحة هنا..." required>
+            ${!isFirst ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
+        `;
+        container.appendChild(div);
+        const removeBtn = div.querySelector('.remove-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => div.remove());
         }
     }
 

@@ -57,7 +57,9 @@ class DashboardController extends Controller
         if ($academicYear && $student->section_id) {
             $upcomingExams = Exam::with(['subject', 'teacher.user'])
                 ->where('academic_year_id', $academicYear->id)
-                ->where('section_id', $student->section_id)
+                ->whereHas('sections', function($q) use ($student) {
+                    $q->where('sections.id', $student->section_id);
+                })
                 ->where('status', 'published')
                 ->where('exam_date', '>=', now()->toDateString())
                 ->orderBy('exam_date', 'asc')

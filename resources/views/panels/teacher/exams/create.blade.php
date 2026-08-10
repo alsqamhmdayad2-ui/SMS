@@ -147,6 +147,18 @@
                             <textarea name="instructions" class="form-control" rows="3"
                                       placeholder="أي تعليمات للطلاب...">{{ old('instructions') }}</textarea>
                         </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_marks_to_student" id="showMarksCreate" value="1"
+                                    {{ old('show_marks_to_student') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="showMarksCreate">
+                                    <i class="fas fa-eye text-success me-1"></i>
+                                    <strong>السماح للطلاب برؤية درجاتهم فور انتهاء الاختبار</strong>
+                                    <small class="d-block text-muted">إن لم تُفعّل هذا الخيار، ستُخفى الدرجة حتى تعتمدها.</small>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <hr class="my-4">

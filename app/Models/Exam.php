@@ -28,11 +28,15 @@ class Exam extends Model
         'display_mode',
         'instructions',
         'total_marks',
+        'show_marks_to_student',
+        'show_answers_to_student',
     ];
 
     protected $casts = [
         'exam_date' => 'date',
         'status' => ExamStatus::class,
+        'show_marks_to_student'   => 'boolean',
+        'show_answers_to_student' => 'boolean',
     ];
 
     // ── Academic Relations ──

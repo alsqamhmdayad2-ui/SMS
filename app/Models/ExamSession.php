@@ -10,11 +10,13 @@ class ExamSession extends Model
         'exam_id',
         'student_id',
         'started_at',
+        'draft_answers',
         'submitted_at',
     ];
 
     protected $casts = [
-        'started_at' => 'datetime',
-        'submitted_at' => 'datetime',
+        'started_at'    => 'datetime',
+        'submitted_at'  => 'datetime',
+        'draft_answers' => 'array',
     ];
 }

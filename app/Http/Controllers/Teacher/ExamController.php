@@ -183,6 +183,7 @@ class ExamController extends Controller
             'duration_minutes' => 'nullable|integer|min:5',
             'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
+            'show_marks_to_student' => 'nullable|boolean',
         ]);
 
         // Resolve grade_id from the first section
@@ -191,6 +192,7 @@ class ExamController extends Controller
         $validated['class_id'] = $section->class_id;
         $validated['teacher_id'] = $teacher?->id;
         $validated['status'] = ExamStatus::DRAFT->value;
+        $validated['show_marks_to_student'] = $request->boolean('show_marks_to_student');
 
         $exam = Exam::create($validated);
         $exam->sections()->sync($validated['section_ids']);
@@ -257,8 +259,10 @@ class ExamController extends Controller
             'duration_minutes' => 'nullable|integer|min:5',
             'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
+            'show_marks_to_student' => 'nullable|boolean',
         ]);
 
+        $validated['show_marks_to_student'] = $request->boolean('show_marks_to_student');
         $exam->update($validated);
 
         return redirect()->route('teacher.exams.index')
@@ -295,6 +299,38 @@ class ExamController extends Controller
 
         return redirect()->route('teacher.exams.show', $exam)
             ->with('success', 'تم نشر الاختبار بنجاح.');
+    }
+
+    // ─── Toggle: show/hide marks to student ──────────────────────────────────
+    public function toggleMarks(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+        $exam->update(['show_marks_to_student' => !$exam->show_marks_to_student]);
+
+        $msg = $exam->show_marks_to_student
+            ? 'تم إظهار الدرجات للطلاب.'
+            : 'تم إخفاء الدرجات عن الطلاب.';
+
+        return back()->with('success', $msg);
+    }
+
+    // ─── Toggle: show/hide correct answers to student ────────────────────────
+    public function toggleAnswers(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        // Cannot show answers without showing marks first
+        if (!$exam->show_marks_to_student && !$exam->show_answers_to_student) {
+            return back()->with('error', 'يجب إظهار الدرجات أولاً قبل السماح بمراجعة الإجابات.');
+        }
+
+        $exam->update(['show_answers_to_student' => !$exam->show_answers_to_student]);
+
+        $msg = $exam->show_answers_to_student
+            ? 'تم السماح للطلاب بمراجعة إجاباتهم الصحيحة والخاطئة.'
+            : 'تم إخفاء مراجعة الإجابات عن الطلاب.';
+
+        return back()->with('success', $msg);
     }
 
     // ─── AJAX: Save single mark ───────────────────────────────────────────────

@@ -20,12 +20,13 @@ class RecalculateStudentGradesService
         // Get all students who have results in this subject for this year/semester
         $query = DB::table('exam_results')
             ->join('exams', 'exam_results.exam_id', '=', 'exams.id')
+            ->join('exam_section', 'exams.id', '=', 'exam_section.exam_id')
             ->select(
                 'exam_results.student_id', 
                 'exams.subject_id', 
                 'exams.academic_year_id', 
                 'exams.semester_id', 
-                'exams.section_id'
+                'exam_section.section_id'
             )
             ->distinct();
 
@@ -33,7 +34,7 @@ class RecalculateStudentGradesService
             $query->where('exam_results.student_id', $filters['student_id']);
         }
         if (!empty($filters['section_id'])) {
-            $query->where('exams.section_id', $filters['section_id']);
+            $query->where('exam_section.section_id', $filters['section_id']);
         }
         if (!empty($filters['subject_id'])) {
             $query->where('exams.subject_id', $filters['subject_id']);

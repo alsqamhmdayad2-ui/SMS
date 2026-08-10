@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'نتائج الطلاب')
 
 @section('content')
@@ -54,40 +54,59 @@
             <span class="badge bg-secondary ms-2">{{ $students->total() }}</span>
         </h6>
     </x-slot:header>
-    <x-table.data-table hover="true">
-        <x-slot:header>
-            <th>الرقم</th>
-            <th>الاسم الكامل</th>
-            <th>الصف</th>
-            <th>الشعبة</th>
-            <th class="text-center">الإجراءات</th>
-        </x-slot:header>
-        <x-slot:body>
-            @forelse($students as $student)
-                <tr>
-                    <td class="text-sms-muted font-monospace small">{{ $student->student_id ?? $student->id }}</td>
-                    <td><strong>{{ $student->name }}</strong></td>
-                    <td>{{ $student->section->schoolClass->name ?? ($student->schoolClass->name ?? '—') }}</td>
-                    <td>{{ $student->section->name ?? '—' }}</td>
-                    <td class="text-center">
-                        <a href="{{ route('admin.students.result.show', $student->id) }}" class="btn btn-sm btn-primary">
+    <div class="row g-4 mt-3">
+        @forelse($students as $student)
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="avatar avatar-xl rounded-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem;">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h5 class="fw-bold mb-1">{{ $student->name }}</h5>
+                        <p class="text-muted small font-monospace mb-3">{{ $student->student_id ?? $student->id }}</p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-4 text-secondary small">
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-school me-1"></i> {{ $student->section->schoolClass->name ?? ($student->schoolClass->name ?? '—') }}
+                            </span>
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-layer-group me-1"></i> {{ $student->section->name ?? '—' }}
+                            </span>
+                        </div>
+                        
+                        <a href="{{ route('admin.students.result.show', $student->id) }}" class="btn btn-primary w-100 rounded-pill">
                             <i class="fas fa-file-alt me-1"></i> عرض النتائج
                         </a>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="text-center py-5">
-                        <x-shared.empty-state title="لا يوجد طلاب" message="لم يتم العثور على أي طلاب بهذه المعايير." icon="person-badge" />
-                    </td>
-                </tr>
-            @endforelse
-        </x-slot:body>
-    </x-table.data-table>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <x-shared.empty-state title="لا يوجد طلاب" message="لم يتم العثور على أي طلاب بهذه المعايير." icon="person-badge" />
+                </div>
+            </div>
+        @endforelse
+    </div>
+
     @if($students->hasPages())
-        <div class="mt-3">{{ $students->links() }}</div>
+        <div class="mt-4 d-flex justify-content-center">
+            {{ $students->links() }}
+        </div>
     @endif
 </x-shared.card>
+
+@push('styles')
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+</style>
+@endpush
 
 @endsection
 

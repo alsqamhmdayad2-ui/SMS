@@ -19,7 +19,9 @@ class ExamController extends Controller
 
         // All exams for student's section
         $allExams = \App\Models\Exam::with('subject')
-            ->where('section_id', $student->section_id)
+            ->whereHas('sections', function ($q) use ($student) {
+                $q->where('sections.id', $student->section_id);
+            })
             ->whereIn('status', ['published', 'locked'])
             ->orderBy('exam_date', 'desc')
             ->get();
@@ -54,7 +56,7 @@ class ExamController extends Controller
         $student = Student::where('user_id', $user->id)->firstOrFail();
 
         // Validate if student is in the exam's section
-        if ($exam->section_id !== $student->section_id) {
+        if (!$exam->sections->contains($student->section_id)) {
             return redirect()->route('student.exams')->with('error', 'ليس لديك صلاحية لهذا الاختبار.');
         }
 
@@ -90,20 +92,163 @@ class ExamController extends Controller
         $elapsedSeconds = $examSession->started_at->diffInSeconds(now());
         $remainingSeconds = max(0, $durationSeconds - $elapsedSeconds);
 
+        // ── Time expired → auto-submit from draft_answers ──
         if ($remainingSeconds <= 0 && $exam->duration_minutes > 0) {
-            return redirect()->route('student.exams')->with('error', 'انتهى وقت الاختبار ولم تقم بالتسليم.');
+            $draftAnswers = $examSession->draft_answers ?? [];
+
+            if (empty($draftAnswers)) {
+                // No saved answers → show expired page (no result to submit)
+                return view('panels.student.exams.expired', compact('exam', 'student'));
+            }
+
+            // Auto-submit using the saved draft
+            $this->processSubmit($exam, $student, $user, $draftAnswers);
+            $examSession->update(['submitted_at' => now()]);
+
+            return redirect()->route('student.exams')
+                ->with('warning', 'انتهى وقت الاختبار! تم تسليم إجاباتك المحفوظة تلقائياً.');
         }
 
         return view('panels.student.exams.take', compact('exam', 'student', 'remainingSeconds'));
     }
 
+    /**
+     * AJAX endpoint: save draft answers silently in background.
+     */
+    public function autoSave(\Illuminate\Http\Request $request, \App\Models\Exam $exam)
+    {
+        $user    = auth()->user();
+        $student = Student::where('user_id', $user->id)->firstOrFail();
+
+        // Security: must be in exam section and exam must be published
+        if (!$exam->sections->contains($student->section_id) || $exam->status->value !== 'published') {
+            return response()->json(['status' => 'error', 'message' => 'غير مصرح'], 403);
+        }
+
+        // Must not be already submitted
+        $alreadyTaken = \App\Models\ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)->exists();
+        if ($alreadyTaken) {
+            return response()->json(['status' => 'already_submitted'], 200);
+        }
+
+        $answers = $request->input('answers', []);
+
+        \App\Models\ExamSession::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->update(['draft_answers' => json_encode($answers)]);
+
+        return response()->json(['status' => 'saved', 'saved_at' => now()->toTimeString()]);
+    }
+
+    /**
+     * Shared grading logic used by both submit() and auto-submit-on-expiry.
+     */
+    private function processSubmit(\App\Models\Exam $exam, $student, $user, array $answers): void
+    {
+        if (\App\Models\ExamResult::where('exam_id', $exam->id)->where('student_id', $student->id)->exists()) {
+            return; // Already submitted, do nothing
+        }
+
+        $exam->load('questions.options');
+        $totalMarks = 0;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($exam, $student, $user, $answers, &$totalMarks) {
+            $examResult = \App\Models\ExamResult::create([
+                'exam_id'           => $exam->id,
+                'student_id'        => $student->id,
+                'marks_obtained'    => 0,
+                'total_marks'       => $exam->total_marks,
+                'attendance_status' => 'present',
+                'submitted_at'      => now(),
+                'remarks'           => null,
+            ]);
+
+            foreach ($exam->questions as $question) {
+                $studentAnswer  = $answers[$question->id] ?? null;
+                $marksAwarded   = 0;
+                $isCorrect      = false;
+                $isGraded       = true;
+                $questionOptionId = null;
+                $textAnswer     = null;
+
+                if ($question->type->value === 'mcq' || $question->type->value === 'true_false') {
+                    if ($studentAnswer) {
+                        $questionOptionId = $studentAnswer;
+                        $correctOption = $question->options->where('is_correct', true)->first();
+                        if ($correctOption && (string)$correctOption->id === (string)$studentAnswer) {
+                            $isCorrect    = true;
+                            $marksAwarded = $question->marks;
+                        }
+                    }
+                } elseif (in_array($question->type->value, ['short_answer', 'fill_blank'])) {
+                    $textAnswer = $studentAnswer;
+                    $studentTextLower = trim(mb_strtolower($textAnswer, 'UTF-8'));
+                    foreach ($question->options->where('is_correct', true) as $option) {
+                        if (trim(mb_strtolower($option->option_text, 'UTF-8')) === $studentTextLower) {
+                            $isCorrect    = true;
+                            $marksAwarded = $question->marks;
+                            break;
+                        }
+                    }
+                } elseif ($question->type->value === 'essay') {
+                    $textAnswer = $studentAnswer;
+                    $isGraded   = false;
+                } elseif ($question->type->value === 'matching') {
+                    if (is_array($studentAnswer)) {
+                        $textAnswer  = json_encode($studentAnswer, JSON_UNESCAPED_UNICODE);
+                        $totalPairs  = $question->options->count();
+                        $correctPairs = 0;
+                        foreach ($question->options as $option) {
+                            if (isset($studentAnswer[$option->id]) && $studentAnswer[$option->id] == $option->right_item) {
+                                $correctPairs++;
+                                $marksAwarded += $option->partial_mark ?? ($question->marks / $totalPairs);
+                            }
+                        }
+                        if ($correctPairs === $totalPairs) $isCorrect = true;
+                    }
+                }
+
+                $totalMarks += $marksAwarded;
+
+                \Illuminate\Support\Facades\DB::table('exam_student_answers')->insert([
+                    'exam_result_id'     => $examResult->id,
+                    'student_id'         => $student->id,
+                    'exam_id'            => $exam->id,
+                    'question_id'        => $question->id,
+                    'question_option_id' => $questionOptionId,
+                    'text_answer'        => $textAnswer,
+                    'marks_awarded'      => $marksAwarded,
+                    'is_correct'         => $isCorrect,
+                    'is_graded'          => $isGraded,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+            }
+
+            $percentage = $exam->total_marks > 0
+                ? round(($totalMarks / $exam->total_marks) * 100, 2)
+                : 0;
+
+            $examResult->update([
+                'marks_obtained' => $totalMarks,
+                'percentage'     => $percentage,
+            ]);
+
+            // Mark session as submitted
+            \App\Models\ExamSession::where('exam_id', $exam->id)
+                ->where('student_id', $student->id)
+                ->update(['submitted_at' => now()]);
+        });
+    }
+
     public function submit(\Illuminate\Http\Request $request, \App\Models\Exam $exam)
     {
-        $user = auth()->user();
+        $user    = auth()->user();
         $student = Student::where('user_id', $user->id)->firstOrFail();
 
         // Security checks
-        if ($exam->section_id !== $student->section_id || $exam->status->value !== 'published') {
+        if (!$exam->sections->contains($student->section_id) || $exam->status->value !== 'published') {
             return redirect()->route('student.exams')->with('error', 'لا يمكنك تسليم هذا الاختبار.');
         }
 
@@ -112,126 +257,50 @@ class ExamController extends Controller
         }
 
         $answers = $request->input('answers', []);
-        $totalMarks = 0;
-        
-        // Prepare data for insertion and auto-grading
+
+        $this->processSubmit($exam, $student, $user, $answers);
+
+        $exam->load('questions');
+        $totalMarks = \App\Models\ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->value('marks_obtained') ?? 0;
+
+        $successMessage = $exam->show_marks_to_student
+            ? 'تم تسليم الاختبار بنجاح. حصلت على ' . $totalMarks . ' من ' . $exam->total_marks . ' درجة' . ($exam->questions->where('type.value', 'essay')->count() > 0 ? ' (بانتظار تصحيح المقالي).' : '.')
+            : 'تم تسليم الاختبار بنجاح. ستظهر نتيجتك عند اعتمادها من المعلم.';
+
+        return redirect()->route('student.exams')->with('success', $successMessage);
+    }
+
+    // ─── Review Exam Answers ──────────────────────────────────────────────────
+    public function review(\App\Models\Exam $exam)
+    {
+        $user = auth()->user();
+        $student = \App\Models\Student::where('user_id', $user->id)->first();
+        if (!$student) {
+            return redirect()->back()->with('error', 'غير مصرح لك.');
+        }
+
+        // Check if exam is completed
+        $examResult = \App\Models\ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if (!$examResult) {
+            return redirect()->route('student.exams')->with('error', 'لم تكمل هذا الاختبار.');
+        }
+
+        // Check teacher's permission
+        if (!$exam->show_answers_to_student || !$exam->show_marks_to_student) {
+            return redirect()->route('student.exams')->with('error', 'مراجعة الإجابات غير متاحة حالياً.');
+        }
+
         $exam->load('questions.options');
-        
-        \Illuminate\Support\Facades\DB::transaction(function () use ($exam, $student, $user, $answers, &$totalMarks) {
-            $examResult = \App\Models\ExamResult::create([
-                'exam_id'           => $exam->id,
-                'student_id'        => $student->id,
-                'marks_obtained'    => 0, // Will update after loop
-                'total_marks'       => $exam->total_marks,
-                'attendance_status' => 'present',
-                'submitted_at'      => now(),
-                'remarks'           => null,
-            ]);
+        $answers = \Illuminate\Support\Facades\DB::table('exam_student_answers')
+            ->where('exam_result_id', $examResult->id)
+            ->get()
+            ->keyBy('question_id');
 
-            foreach ($exam->questions as $question) {
-                $studentAnswer = $answers[$question->id] ?? null;
-                $marksAwarded = 0;
-                $isCorrect = false;
-                $isGraded = true; // Default true except for essays
-                $questionOptionId = null;
-                $textAnswer = null;
-
-                if ($question->type->value === 'mcq' || $question->type->value === 'true_false') {
-                    if ($studentAnswer) {
-                        $questionOptionId = $studentAnswer;
-                        $correctOption = $question->options->where('is_correct', true)->first();
-                        if ($correctOption && (string)$correctOption->id === (string)$studentAnswer) {
-                            $isCorrect = true;
-                            $marksAwarded = $question->marks;
-                        }
-                    }
-                } elseif ($question->type->value === 'short_answer' || $question->type->value === 'fill_blank') {
-                    $textAnswer = $studentAnswer;
-                    if (trim(strtolower($textAnswer)) === trim(strtolower($question->correct_answer ?? ''))) {
-                        $isCorrect = true;
-                        $marksAwarded = $question->marks;
-                    }
-                } elseif ($question->type->value === 'essay') {
-                    $textAnswer = $studentAnswer;
-                    $isGraded = false; // Requires manual teacher grading
-                    $marksAwarded = 0;
-                } elseif ($question->type->value === 'matching') {
-                    if (is_array($studentAnswer)) {
-                        $textAnswer = json_encode($studentAnswer, JSON_UNESCAPED_UNICODE);
-                        // Auto-grade matching (partial marks for each correct pair)
-                        $correctPairs = 0;
-                        $totalPairs = $question->options->count();
-                        foreach ($question->options as $option) {
-                            if (isset($studentAnswer[$option->id]) && $studentAnswer[$option->id] == $option->right_item) {
-                                $correctPairs++;
-                                $marksAwarded += $option->partial_mark ?? ($question->marks / $totalPairs);
-                            }
-                        }
-                        if ($correctPairs === $totalPairs) {
-                            $isCorrect = true;
-                        }
-                    }
-                }
-
-                $totalMarks += $marksAwarded;
-
-                \Illuminate\Support\Facades\DB::table('exam_student_answers')->insert([
-                    'exam_result_id' => $examResult->id,
-                    'student_id' => $student->id,
-                    'exam_id' => $exam->id,
-                    'question_id' => $question->id,
-                    'question_option_id' => $questionOptionId,
-                    'text_answer' => $textAnswer,
-                    'marks_awarded' => $marksAwarded,
-                    'is_correct' => $isCorrect,
-                    'is_graded' => $isGraded,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-
-            $percentage = $exam->total_marks > 0
-                ? round(($totalMarks / $exam->total_marks) * 100, 2)
-                : 0;
-            $examResult->update([
-                'marks_obtained' => $totalMarks,
-                'percentage'     => $percentage,
-            ]);
-            
-            // Mark attendance
-            $session = \App\Models\AttendanceSession::firstOrCreate(
-                [
-                    'date' => today(),
-                    'section_id' => $student->section_id,
-                    'subject_id' => $exam->subject_id,
-                ],
-                [
-                    'academic_year_id' => $exam->academic_year_id,
-                    'semester_id' => $exam->semester_id,
-                    'teacher_id' => $exam->teacher_id,
-                    'created_by' => $user->id,
-                    'status' => 'open'
-                ]
-            );
-            
-            \App\Models\AttendanceRecord::updateOrCreate(
-                [
-                    'attendance_session_id' => $session->id,
-                    'student_id' => $student->id,
-                ],
-                [
-                    'status' => 'present',
-                    'marked_by' => $user->id,
-                    'marked_at' => now(),
-                ]
-            );
-            
-            // Mark session as submitted
-            \App\Models\ExamSession::where('exam_id', $exam->id)
-                ->where('student_id', $student->id)
-                ->update(['submitted_at' => now()]);
-        });
-
-        return redirect()->route('student.exams')->with('success', 'تم تسليم الاختبار بنجاح. ' . ($totalMarks > 0 ? 'حصلت على ' . $totalMarks . ' درجة (بانتظار تصحيح المقالي إن وجد).' : ''));
+        return view('panels.student.exams.review', compact('exam', 'student', 'examResult', 'answers'));
     }
 }

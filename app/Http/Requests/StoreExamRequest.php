@@ -40,6 +40,7 @@ class StoreExamRequest extends FormRequest
             'status' => 'required|in:scheduled,ongoing,completed,cancelled',
             'instructions' => 'nullable|string',
             'total_marks' => 'required|numeric|min:1',
+            'show_marks_to_student' => 'nullable|boolean',
         ];
     }
 }

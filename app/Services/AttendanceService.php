@@ -46,24 +46,30 @@ class AttendanceService
         $date = Carbon::parse($data['date'])->toDateString();
 
         // 1. Conflict check: same section + day + academic year/semester (ignores period)
+        $trashedSession = AttendanceSession::onlyTrashed()
+            ->where('academic_year_id', $data['academic_year_id'])
+            ->where('semester_id', $data['semester_id'])
+            ->where('section_id', $data['section_id'])
+            ->where('date', $date)
+            ->first();
+
+        if ($trashedSession) {
+            $trashedSession->forceDelete();
+        }
+
         $exists = AttendanceSession::where('academic_year_id', $data['academic_year_id'])
             ->where('semester_id', $data['semester_id'])
             ->where('section_id', $data['section_id'])
             ->where('date', $date)
             ->exists();
 
-        if ($exists) {
-            throw ValidationException::withMessages([
-                'session' => 'An attendance session already exists for this section on this date.',
-            ]);
-        }
-
-        // 2. Create the session
-        $session = AttendanceSession::create([
+        // 2. Create the session or get existing (handles race conditions automatically)
+        $session = AttendanceSession::firstOrCreate([
             'academic_year_id' => $data['academic_year_id'],
             'semester_id'      => $data['semester_id'],
             'section_id'       => $data['section_id'],
             'date'             => $date,
+        ], [
             'period_number'    => $data['period_number'],
             'subject_id'       => $data['subject_id'],
             'teacher_id'       => $data['teacher_id'],
@@ -72,22 +78,24 @@ class AttendanceService
             'created_by'       => $userId,
         ]);
 
-        // 3. Pre-populate all active students in the section as "present" by default
-        $students = Student::where('section_id', $data['section_id'])
-            ->where('status', 'active')
-            ->get();
+        // 3. Pre-populate all active students only if it was just created
+        if ($session->wasRecentlyCreated) {
+            $students = Student::where('section_id', $data['section_id'])
+                ->where('status', 'active')
+                ->get();
 
-        $records = $students->map(fn($student) => [
-            'attendance_session_id' => $session->id,
-            'student_id'            => $student->id,
-            'status'                => AttendanceStatus::Present->value, // Default: Present (teacher changes absences only)
-            'marked_by'             => $userId,
-            'marked_at'             => now(),
-            'created_at'            => now(),
-            'updated_at'            => now(),
-        ]);
+            $records = $students->map(fn($student) => [
+                'attendance_session_id' => $session->id,
+                'student_id'            => $student->id,
+                'status'                => AttendanceStatus::Present->value,
+                'marked_by'             => $userId,
+                'marked_at'             => now(),
+                'created_at'            => now(),
+                'updated_at'            => now(),
+            ]);
 
-        AttendanceRecord::insert($records->toArray());
+            AttendanceRecord::insert($records->toArray());
+        }
 
         return $session->load('records.student');
     }

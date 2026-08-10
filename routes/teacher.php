@@ -37,7 +37,9 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
         Route::get('/{exam}/edit',     [App\Http\Controllers\Teacher\ExamController::class, 'edit'])    ->name('edit');
         Route::put('/{exam}',          [App\Http\Controllers\Teacher\ExamController::class, 'update'])  ->name('update');
         Route::delete('/{exam}',       [App\Http\Controllers\Teacher\ExamController::class, 'destroy']) ->name('destroy');
-        Route::post('/{exam}/publish', [App\Http\Controllers\Teacher\ExamController::class, 'publish']) ->name('publish');
+        Route::post('/{exam}/publish',        [App\Http\Controllers\Teacher\ExamController::class, 'publish'])       ->name('publish');
+        Route::patch('/{exam}/toggle-marks',   [App\Http\Controllers\Teacher\ExamController::class, 'toggleMarks'])   ->name('toggle-marks');
+        Route::patch('/{exam}/toggle-answers', [App\Http\Controllers\Teacher\ExamController::class, 'toggleAnswers']) ->name('toggle-answers');
         Route::get('/{exam}/student/{student}/review', [App\Http\Controllers\Teacher\ExamController::class, 'reviewAnswers'])->name('results.review');
         Route::post('/{exam}/student/{student}/grade', [App\Http\Controllers\Teacher\ExamController::class, 'saveGrades'])->name('results.grade');
         Route::get('/{exam}/questions',                          [App\Http\Controllers\Teacher\ExamQuestionController::class, 'index'])     ->name('questions.index');

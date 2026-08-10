@@ -267,9 +267,17 @@ class ExamBuilderService
                 ]);
             }
         } elseif ($type === 'true_false') {
+            $isCorrect = (bool) ($data['is_correct_boolean'] ?? false);
+            
             $question->options()->create([
-                'option_text' => 'True/False',
-                'is_correct' => (bool) ($data['is_correct_boolean'] ?? false),
+                'option_text' => 'صح',
+                'is_correct' => $isCorrect,
+                'order' => 0,
+            ]);
+            $question->options()->create([
+                'option_text' => 'خطأ',
+                'is_correct' => !$isCorrect,
+                'order' => 1,
             ]);
         } elseif ($type === 'matching') {
             foreach (($data['pairs'] ?? []) as $index => $pair) {
@@ -281,13 +289,23 @@ class ExamBuilderService
                 ]);
             }
         } elseif (in_array($type, ['short_answer', 'essay', 'fill_blank'])) {
-            // Save model answer as a reference option for correction
-            if (!empty($data['model_answer'])) {
-                $question->options()->create([
-                    'option_text' => $data['model_answer'],
-                    'is_correct'  => true,
-                    'order'       => 0,
-                ]);
+            // Save model answers as reference options for correction
+            $answers = [];
+            if (!empty($data['model_answers']) && is_array($data['model_answers'])) {
+                $answers = $data['model_answers'];
+            } elseif (!empty($data['model_answer'])) {
+                // Fallback for older format
+                $answers = [$data['model_answer']];
+            }
+            
+            foreach ($answers as $index => $answer) {
+                if (!empty(trim($answer))) {
+                    $question->options()->create([
+                        'option_text' => trim($answer),
+                        'is_correct'  => true,
+                        'order'       => $index,
+                    ]);
+                }
             }
         }
     }

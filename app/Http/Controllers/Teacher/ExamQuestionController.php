@@ -43,7 +43,10 @@ class ExamQuestionController extends Controller
         $sectionIds = $this->getTeacherSectionIds($teacher);
         $subjectIds = $this->getTeacherSubjectIds($teacher);
 
-        if (!in_array($exam->section_id, $sectionIds) || !in_array($exam->subject_id, $subjectIds)) {
+        $examSectionIds = $exam->sections()->pluck('sections.id')->toArray();
+        $hasCommonSection = count(array_intersect($examSectionIds, $sectionIds)) > 0;
+
+        if (!$hasCommonSection || !in_array($exam->subject_id, $subjectIds)) {
             abort(403, 'غير مصرح لك بالوصول لهذا الاختبار.');
         }
     }

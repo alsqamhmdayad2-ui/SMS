@@ -69,9 +69,9 @@ class MarksEntryController extends Controller
         $exam = null;
         $results = collect();
         if ($request->filled('exam_id')) {
-            $exam = Exam::with(['subject', 'section', 'academicYear', 'semester'])->findOrFail($request->exam_id);
+            $exam = Exam::with(['subject', 'sections', 'academicYear', 'semester'])->findOrFail($request->exam_id);
 
-            $students = Student::where('section_id', $exam->section_id)
+            $students = Student::whereIn('section_id', $exam->sections->pluck('id'))
                 ->orderBy('first_name')
                 ->get();
 

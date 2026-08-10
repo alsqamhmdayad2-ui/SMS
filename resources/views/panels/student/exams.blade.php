@@ -70,6 +70,7 @@
                             <th>درجتي</th>
                             <th>النسبة</th>
                             <th>التاريخ</th>
+                            <th>الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,19 +85,38 @@
                                 </span>
                             </td>
                             <td>{{ $item['exam']->total_marks }}</td>
+                            {{-- درجتي --}}
                             <td class="fw-bold {{ $item['result']->percentage >= 50 ? 'text-success' : 'text-danger' }}">
-                                {{ (float)$item['result']->marks_obtained }}
+                                @if($item['exam']->show_marks_to_student)
+                                    {{ (float)$item['result']->marks_obtained }}
+                                @else
+                                    <span class="badge bg-secondary text-white" title="لم يتم الإفصاح عن الدرجة بعد">
+                                        <i class="fas fa-lock me-1"></i> مخفية
+                                    </span>
+                                @endif
                             </td>
+                            {{-- النسبة --}}
                             <td>
-                                <span class="badge {{ $item['result']->percentage >= 50 ? 'bg-success' : 'bg-danger' }}">
-                                    {{ (float)$item['result']->percentage }}%
-                                </span>
+                                @if($item['exam']->show_marks_to_student)
+                                    <span class="badge {{ $item['result']->percentage >= 50 ? 'bg-success' : 'bg-danger' }}">
+                                        {{ (float)$item['result']->percentage }}%
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary">—</span>
+                                @endif
                             </td>
                             <td class="small text-muted">{{ $item['result']->submitted_at ? $item['result']->submitted_at->format('Y-m-d') : ($item['exam']->exam_date ? $item['exam']->exam_date->format('Y-m-d') : '-') }}</td>
+                            <td>
+                                @if($item['exam']->show_answers_to_student && $item['exam']->show_marks_to_student)
+                                    <a href="{{ route('student.exams.review', $item['exam']) }}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                        <i class="fas fa-eye me-1"></i> راجع إجاباتك
+                                    </a>
+                                @endif
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
+                            <td colspan="9" class="text-center py-4 text-muted">
                                 لا توجد اختبارات مكتملة.
                             </td>
                         </tr>

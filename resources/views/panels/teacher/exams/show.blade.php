@@ -67,6 +67,63 @@
 
 
 
+{{-- ── Visibility Controls ── --}}
+@if($exam->status->value !== 'draft')
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <h6 class="fw-bold mb-3"><i class="fas fa-eye text-primary me-1"></i> التحكم في ظهور النتائج للطلاب</h6>
+        <div class="row g-3">
+            {{-- Toggle: Show Marks --}}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border {{ $exam->show_marks_to_student ? 'border-success bg-success bg-opacity-10' : 'border-secondary bg-light' }}">
+                    <div>
+                        <div class="fw-bold mb-1">
+                            <i class="fas fa-star me-1 {{ $exam->show_marks_to_student ? 'text-success' : 'text-secondary' }}"></i>
+                            إظهار الدرجات
+                        </div>
+                        <div class="small text-muted">يرى الطالب درجته ونسبته المئوية</div>
+                    </div>
+                    <form action="{{ route('teacher.exams.toggle-marks', $exam) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="btn btn-sm {{ $exam->show_marks_to_student ? 'btn-success' : 'btn-outline-secondary' }} rounded-pill px-3">
+                            @if($exam->show_marks_to_student)
+                                <i class="fas fa-toggle-on me-1"></i> مُفعّل
+                            @else
+                                <i class="fas fa-toggle-off me-1"></i> مُخفي
+                            @endif
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Toggle: Show Answers Review --}}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border {{ $exam->show_answers_to_student ? 'border-info bg-info bg-opacity-10' : 'border-secondary bg-light' }}">
+                    <div>
+                        <div class="fw-bold mb-1">
+                            <i class="fas fa-list-check me-1 {{ $exam->show_answers_to_student ? 'text-info' : 'text-secondary' }}"></i>
+                            مراجعة الإجابات
+                        </div>
+                        <div class="small text-muted">يرى الطالب الصح والخطأ لكل سؤال</div>
+                    </div>
+                    <form action="{{ route('teacher.exams.toggle-answers', $exam) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="btn btn-sm {{ $exam->show_answers_to_student ? 'btn-info text-white' : 'btn-outline-secondary' }} rounded-pill px-3"
+                            {{ !$exam->show_marks_to_student ? 'title=يجب إظهار الدرجات أولاً' : '' }}>
+                            @if($exam->show_answers_to_student)
+                                <i class="fas fa-toggle-on me-1"></i> مُفعّلة
+                            @else
+                                <i class="fas fa-toggle-off me-1"></i> مُخفية
+                            @endif
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- Save All Button --}}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h6 class="mb-0 fw-bold"><i class="fas fa-users me-2 text-primary"></i>قائمة الطلاب ({{ $students->count() }} طالب)</h6>

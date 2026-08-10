@@ -18,6 +18,8 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/exams', [ExamController::class, 'index'])->name('exams');
         Route::get('/exams/{exam}/take', [ExamController::class, 'take'])->name('exams.take');
         Route::post('/exams/{exam}/submit', [ExamController::class, 'submit'])->name('exams.submit');
+        Route::post('/exams/{exam}/auto-save', [ExamController::class, 'autoSave'])->name('exams.auto-save');
+        Route::get('/exams/{exam}/review',     [ExamController::class, 'review'])->name('exams.review');
         Route::get('/results', [ResultController::class, 'index'])->name('results');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
