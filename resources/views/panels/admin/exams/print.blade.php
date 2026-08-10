@@ -182,7 +182,7 @@
             <tr>
                 <td style="width: 35%;">
                     <div style="font-weight: bold; font-size: 16px;">وزارة التربية والتعليم</div>
-                    <div style="font-weight: 600;">مدرسة التميز النموذجية</div>
+                    <div style="font-weight: 600;">{{ $sysSettings->school_name ?? 'إدارة المدرسة' }}</div>
                 </td>
                 <td style="width: 30%; text-align: center;">
                     <div class="school-logo" style="margin: 0 auto;">شعار المدرسة</div>
