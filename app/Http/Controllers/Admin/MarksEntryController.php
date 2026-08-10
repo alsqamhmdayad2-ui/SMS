@@ -38,6 +38,10 @@ class MarksEntryController extends Controller
         $grades = Grade::all();
         $subjects = Subject::all();
 
+        // Detect current academic year & semester
+        $currentAcademicYear = AcademicYear::where('status', true)->first();
+        $currentSemester = Semester::where('status', true)->first();
+
         $classes = SchoolClass::all();
 
         // Get sections based on selected filters
@@ -76,7 +80,8 @@ class MarksEntryController extends Controller
 
         return view('panels.admin.exams.marks-entry.index', compact(
             'academicYears', 'semesters', 'grades', 'classes', 'subjects',
-            'sections', 'exams', 'students', 'exam', 'results'
+            'sections', 'exams', 'students', 'exam', 'results',
+            'currentAcademicYear', 'currentSemester'
         ));
     }
 
@@ -167,7 +172,11 @@ class MarksEntryController extends Controller
         $sections = Section::where('class_id', $request->class_id)->with('schoolClass')->get();
 
         return $this->successResponse('Sections retrieved', $sections->map(function ($s) {
-            return ['id' => $s->id, 'name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name];
+            return [
+                'id'        => $s->id,
+                'name'      => $s->name,           // just the section letter e.g. "أ"
+                'full_name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name,
+            ];
         }), 'SECTIONS_LOADED');
     }
 

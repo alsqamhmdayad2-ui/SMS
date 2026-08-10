@@ -34,7 +34,10 @@
                 <div class="col-md-6">
                     <x-form.select name="academic_year_id" id="filterYear" label="العام الدراسي">
                         @foreach($academicYears as $y)
-                        <option value="{{ $y->id }}" {{ (request('academic_year_id') == $y->id || $y->is_current) ? 'selected' : '' }}>{{ $y->name }}</option>
+                        <option value="{{ $y->id }}"
+                            {{ (request('academic_year_id') == $y->id || (!request('academic_year_id') && $currentAcademicYear && $currentAcademicYear->id == $y->id)) ? 'selected' : '' }}>
+                            {{ $y->name }}
+                        </option>
                         @endforeach
                     </x-form.select>
                 </div>
@@ -42,7 +45,10 @@
                     <x-form.select name="semester_id" id="filterSemester" label="الفصل الدراسي">
                         <option value="">الكل</option>
                         @foreach($semesters as $s)
-                        <option value="{{ $s->id }}" {{ (request('semester_id') == $s->id || $s->is_current) ? 'selected' : '' }}>{{ $s->name }}</option>
+                        <option value="{{ $s->id }}"
+                            {{ (request('semester_id') == $s->id || (!request('semester_id') && $currentSemester && $currentSemester->id == $s->id)) ? 'selected' : '' }}>
+                            {{ $s->name }}
+                        </option>
                         @endforeach
                     </x-form.select>
                 </div>
@@ -338,12 +344,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.data.forEach(sec => {
                         stepSections.innerHTML += `
                             <div class="col-md-3 col-sm-6">
-                                <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm" data-id="${sec.id}" data-name="${sec.name.split(' - ').pop()}">
+                                <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm" data-id="${sec.id}" data-name="${sec.name}">
                                     <div class="card-body text-center p-4">
                                         <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-block mb-3 transition-all icon-container">
                                             <i class="fas fa-users fs-3"></i>
                                         </div>
-                                        <h5 class="fw-bold mb-0 text-dark">شعبة ${sec.name.split(' - ').pop()}</h5>
+                                        <h5 class="fw-bold mb-0 text-dark">شعبة ${sec.name}</h5>
                                     </div>
                                 </div>
                             </div>

@@ -56,7 +56,10 @@
     <div id="step-sections" class="row g-3 fade-in">
         @foreach($sections as $sec)
         <div class="col-md-3 col-sm-6">
-            <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm" data-id="{{ $sec->id }}" data-name="{{ $sec->name }}">
+            <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm"
+                 data-id="{{ $sec->id }}"
+                 data-name="{{ $sec->name }}"
+                 data-class="{{ $sec->schoolClass?->name ?? '' }}">
                 <div class="card-body text-center p-4">
                     <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-inline-block mb-3 transition-all icon-container">
                         <i class="fas fa-users fs-3"></i>
@@ -96,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let state = {
         sectionId: null,
         sectionName: null,
+        className: null,
         subjectId: null,
         subjectName: null,
     };
@@ -149,6 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('click', function() {
             state.sectionId = this.dataset.id;
             state.sectionName = this.dataset.name;
+            state.className = this.dataset.class || '';
             loadSubjects();
         });
     });
@@ -157,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideAllSteps();
         showLoader(true);
         breadcrumb.classList.remove('d-none');
-        bdSection.textContent = 'شعبة ' + state.sectionName;
+        bdSection.textContent = (state.className ? state.className + ' - ' : '') + 'شعبة ' + state.sectionName;
         bdSectionItem.classList.remove('d-none');
 
         fetch(`${routes.subjects}?section_id=${state.sectionId}`)
