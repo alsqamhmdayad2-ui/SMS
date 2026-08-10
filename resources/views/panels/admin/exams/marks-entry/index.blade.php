@@ -6,7 +6,8 @@
 <x-page-header title="إدخال الدرجات">
     @if($exam ?? false)
     <x-slot name="actions">
-        <div id="saveIndicator" class="d-flex align-items-center gap-2" style="display:none!important;">
+        <a href="{{ route('admin.marks-entry.index') }}" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-right"></i> عودة للاختبارات</a>
+        <div id="saveIndicator" class="d-inline-flex align-items-center gap-2" style="display:none!important;">
             <span class="badge bg-success" id="statusSaved" style="display:none;"><i class="fas fa-check-circle"></i> تم الحفظ</span>
             <span class="badge bg-warning text-dark" id="statusSaving" style="display:none;"><i class="fas fa-sync fa-spin"></i> جاري الحفظ...</span>
             <span class="badge bg-danger" id="statusError" style="display:none;"><i class="fas fa-times-circle"></i> خطأ</span>
@@ -22,74 +23,76 @@
 ]" />
 
 <div class="">
-
     <x-alerts />
 
-    <!-- Filters Card -->
-    <x-shared.card class="mb-4 bg-light" shadow="sm">
-        <form action="{{ route('admin.marks-entry.index') }}" method="GET" id="filtersForm">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="academic_year_id" id="filterYear" label="العام الدراسي" required="true">
-                        <option value="">اختر...</option>
+    @if(!request('exam_id'))
+    <!-- Drill-down Flow Container -->
+    <div id="drillDownContainer">
+        <!-- Top Filters -->
+        <x-shared.card class="mb-4 bg-light" shadow="sm">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <x-form.select name="academic_year_id" id="filterYear" label="العام الدراسي">
                         @foreach($academicYears as $y)
-                        <option value="{{ $y->id }}" {{ request('academic_year_id') == $y->id ? 'selected' : '' }}>{{ $y->name }}</option>
+                        <option value="{{ $y->id }}" {{ (request('academic_year_id') == $y->id || $y->is_current) ? 'selected' : '' }}>{{ $y->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
+                <div class="col-md-6">
                     <x-form.select name="semester_id" id="filterSemester" label="الفصل الدراسي">
                         <option value="">الكل</option>
                         @foreach($semesters as $s)
-                        <option value="{{ $s->id }}" {{ request('semester_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                        <option value="{{ $s->id }}" {{ (request('semester_id') == $s->id || $s->is_current) ? 'selected' : '' }}>{{ $s->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="grade_id" id="filterGrade" label="المرحلة" required="true" data-url="{{ route('admin.marks-entry.get-classes') }}">
-                        <option value="">اختر...</option>
-                        @foreach($grades as $g)
-                        <option value="{{ $g->id }}" {{ request('grade_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
-                        @endforeach
-                    </x-form.select>
+            </div>
+        </x-shared.card>
+
+        <!-- Breadcrumbs for drill down -->
+        <nav aria-label="breadcrumb" id="drillDownBreadcrumb" class="d-none mb-4">
+            <ol class="breadcrumb p-3 bg-white rounded shadow-sm border">
+                <li class="breadcrumb-item"><a href="#" id="bd-home" class="text-decoration-none fw-bold"><i class="fas fa-home"></i> الصفوف</a></li>
+                <li class="breadcrumb-item d-none" id="bd-class-item"><a href="#" id="bd-class" class="text-decoration-none fw-bold"></a></li>
+                <li class="breadcrumb-item d-none" id="bd-section-item"><a href="#" id="bd-section" class="text-decoration-none fw-bold"></a></li>
+                <li class="breadcrumb-item d-none active" id="bd-subject-item" aria-current="page"><span id="bd-subject" class="text-muted"></span></li>
+            </ol>
+        </nav>
+
+        <!-- Loading Spinner -->
+        <div id="drillDownLoader" class="text-center py-5 d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+            <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+        </div>
+
+        <!-- Step 1: Classes -->
+        <div id="step-classes" class="row g-3 fade-in">
+            @foreach($classes as $c)
+            <div class="col-md-3 col-sm-6">
+                <div class="card h-100 hover-lift cursor-pointer class-card border-0 shadow-sm" data-id="{{ $c->id }}" data-name="{{ $c->name }}">
+                    <div class="card-body text-center p-4">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-inline-block mb-3 transition-all icon-container">
+                            <i class="fas fa-chalkboard fs-3"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0 text-dark">{{ $c->name }}</h5>
+                    </div>
                 </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="class_id" id="filterClass" label="الصف" required="true" data-url="{{ route('admin.marks-entry.get-sections') }}">
-                        <option value="">اختر...</option>
-                        @foreach($classes as $c)
-                        <option value="{{ $c->id }}" {{ request('class_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                        @endforeach
-                    </x-form.select>
-                </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="section_id" id="filterSection" label="الشعبة" required="true">
-                        <option value="">اختر...</option>
-                        @foreach($sections as $sec)
-                        <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>{{ ($sec->schoolClass->name ?? '') . ' - ' . $sec->name }}</option>
-                        @endforeach
-                    </x-form.select>
-                </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="subject_id" id="filterSubject" label="المادة" required="true">
-                        <option value="">اختر...</option>
-                        @foreach($subjects as $sub)
-                        <option value="{{ $sub->id }}" {{ request('subject_id') == $sub->id ? 'selected' : '' }}>{{ $sub->name }}</option>
-                        @endforeach
-                    </x-form.select>
-                </div>
-                <div class="col-md-auto mb-3 flex-grow-1">
-                    <x-form.select name="exam_id" id="filterExam" label="الاختبار" required="true">
-                        <option value="">اختر...</option>
-                        @foreach($exams as $e)
-                        <option value="{{ $e->id }}" {{ request('exam_id') == $e->id ? 'selected' : '' }}>{{ $e->title }} ({{ ucfirst($e->type) }})</option>
-                        @endforeach
-                    </x-form.select>
-                </div>
-                <div class="col-md-auto mb-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel"></i> عرض</button>
-                </div>
-        </form>
-    </x-shared.card>
+            </div>
+            @endforeach
+        </div>
+
+        <!-- Step 2: Sections -->
+        <div id="step-sections" class="row g-3 d-none fade-in"></div>
+
+        <!-- Step 3: Subjects -->
+        <div id="step-subjects" class="row g-3 d-none fade-in"></div>
+
+        <!-- Step 4: Exams -->
+        <div id="step-exams" class="row g-3 d-none fade-in"></div>
+    </div>
+    @endif
 
     @if($exam)
     <!-- Exam Info Bar -->
@@ -102,7 +105,7 @@
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-success" id="btnAllPresent">الكل حاضر</button>
                 <button class="btn btn-sm btn-outline-danger" id="btnAllAbsent">الكل غائب</button>
-                <button class="btn btn-sm btn-outline-warning" id="btnSaveAll"><i class="fas fa-save"></i> حفظ الكل</button>
+                <button class="btn btn-sm btn-warning fw-bold shadow-sm" id="btnSaveAll"><i class="fas fa-save"></i> حفظ الكل</button>
             </div>
         </div>
     </x-shared.card>
@@ -195,25 +198,23 @@
     @endif
 
     @endif {{-- end if exam --}}
-
-    @if(!$exam && request('exam_id'))
-    <div class="text-center py-5">
-        <x-shared.empty-state icon="search" title="لم يتم العثور على الاختبار" message="" />
-    </div>
-    @endif
-    @if(!request('exam_id'))
-    <div class="text-center py-5">
-        <x-shared.empty-state icon="funnel" title="استخدم الفلاتر أعلاه" message="قم بتحميل جدول إدخال الدرجات من خلال تحديد خيارات الفلترة المتاحة." />
-    </div>
-    @endif
 </div>
 @endsection
 
 @push('styles')
 <link href="{{ asset('assets/css/modules/assessment.css') }}" rel="stylesheet">
+<style>
+    .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    .hover-lift:hover .icon-container { background-color: var(--bs-primary)!important; color: white!important; }
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .cursor-pointer { cursor: pointer; }
+</style>
 @endpush
 
 @push('scripts')
+@if($exam)
 <script src="{{ asset('assets/js/modules/assessment/marks-entry.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -233,4 +234,245 @@ document.addEventListener('DOMContentLoaded', function() {
     marksEntryModule.init();
 });
 </script>
+@else
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let state = {
+        classId: null,
+        className: null,
+        sectionId: null,
+        sectionName: null,
+        subjectId: null,
+        subjectName: null,
+        examId: null
+    };
+
+    const routes = {
+        sections: '{{ route("admin.marks-entry.get-sections") }}',
+        subjects: '{{ route("admin.marks-entry.get-subjects") }}',
+        exams: '{{ route("admin.marks-entry.get-exams") }}',
+        marks: '{{ route("admin.marks-entry.index") }}'
+    };
+
+    // Elements
+    const stepClasses = document.getElementById('step-classes');
+    const stepSections = document.getElementById('step-sections');
+    const stepSubjects = document.getElementById('step-subjects');
+    const stepExams = document.getElementById('step-exams');
+    const loader = document.getElementById('drillDownLoader');
+    const breadcrumb = document.getElementById('drillDownBreadcrumb');
+    
+    // Breadcrumb Items
+    const bdHome = document.getElementById('bd-home');
+    const bdClassItem = document.getElementById('bd-class-item');
+    const bdClass = document.getElementById('bd-class');
+    const bdSectionItem = document.getElementById('bd-section-item');
+    const bdSection = document.getElementById('bd-section');
+    const bdSubjectItem = document.getElementById('bd-subject-item');
+    const bdSubject = document.getElementById('bd-subject');
+
+    // Filters
+    const filterYear = document.getElementById('filterYear');
+    const filterSemester = document.getElementById('filterSemester');
+
+    function showLoader(show) {
+        if(show) {
+            loader.classList.remove('d-none');
+        } else {
+            loader.classList.add('d-none');
+        }
+    }
+
+    function hideAllSteps() {
+        stepClasses.classList.add('d-none');
+        stepSections.classList.add('d-none');
+        stepSubjects.classList.add('d-none');
+        stepExams.classList.add('d-none');
+    }
+
+    // Step 1: Classes
+    bdHome.addEventListener('click', (e) => {
+        e.preventDefault();
+        state = { classId: null, className: null, sectionId: null, sectionName: null, subjectId: null, subjectName: null, examId: null };
+        hideAllSteps();
+        breadcrumb.classList.add('d-none');
+        bdClassItem.classList.add('d-none');
+        bdSectionItem.classList.add('d-none');
+        bdSubjectItem.classList.add('d-none');
+        stepClasses.classList.remove('d-none');
+    });
+
+    document.querySelectorAll('.class-card').forEach(card => {
+        card.addEventListener('click', function() {
+            state.classId = this.dataset.id;
+            state.className = this.dataset.name;
+            loadSections();
+        });
+    });
+
+    // Step 2: Sections
+    bdClass.addEventListener('click', (e) => {
+        e.preventDefault();
+        state.sectionId = null; state.sectionName = null; state.subjectId = null; state.subjectName = null;
+        hideAllSteps();
+        bdSectionItem.classList.add('d-none');
+        bdSubjectItem.classList.add('d-none');
+        stepSections.classList.remove('d-none');
+    });
+
+    function loadSections() {
+        hideAllSteps();
+        showLoader(true);
+        breadcrumb.classList.remove('d-none');
+        bdClass.textContent = state.className;
+        bdClassItem.classList.remove('d-none');
+
+        fetch(`${routes.sections}?class_id=${state.classId}`)
+            .then(res => res.json())
+            .then(data => {
+                showLoader(false);
+                stepSections.innerHTML = '';
+                if(data.data.length === 0) {
+                    stepSections.innerHTML = '<div class="col-12"><div class="alert alert-warning text-center">لا توجد شعب لهذا الصف.</div></div>';
+                } else {
+                    data.data.forEach(sec => {
+                        stepSections.innerHTML += `
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm" data-id="${sec.id}" data-name="${sec.name.split(' - ').pop()}">
+                                    <div class="card-body text-center p-4">
+                                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-block mb-3 transition-all icon-container">
+                                            <i class="fas fa-users fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-0 text-dark">شعبة ${sec.name.split(' - ').pop()}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.querySelectorAll('.section-card').forEach(card => {
+                        card.addEventListener('click', function() {
+                            state.sectionId = this.dataset.id;
+                            state.sectionName = this.dataset.name;
+                            loadSubjects();
+                        });
+                    });
+                }
+                stepSections.classList.remove('d-none');
+            })
+            .catch(err => {
+                showLoader(false);
+                alert('حدث خطأ أثناء جلب الشعب.');
+            });
+    }
+
+    // Step 3: Subjects
+    bdSection.addEventListener('click', (e) => {
+        e.preventDefault();
+        state.subjectId = null; state.subjectName = null;
+        hideAllSteps();
+        bdSubjectItem.classList.add('d-none');
+        stepSubjects.classList.remove('d-none');
+    });
+
+    function loadSubjects() {
+        hideAllSteps();
+        showLoader(true);
+        bdSection.textContent = 'شعبة ' + state.sectionName;
+        bdSectionItem.classList.remove('d-none');
+
+        const year = filterYear.value;
+        const sem = filterSemester.value;
+
+        fetch(`${routes.subjects}?section_id=${state.sectionId}&academic_year_id=${year}&semester_id=${sem}`)
+            .then(res => res.json())
+            .then(data => {
+                showLoader(false);
+                stepSubjects.innerHTML = '';
+                if(data.data.length === 0) {
+                    stepSubjects.innerHTML = '<div class="col-12"><div class="alert alert-warning text-center">لا توجد مواد دراسية مرتبطة باختبارات لهذه الشعبة في هذا الفصل.</div></div>';
+                } else {
+                    data.data.forEach(sub => {
+                        stepSubjects.innerHTML += `
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card h-100 hover-lift cursor-pointer subject-card border-0 shadow-sm" data-id="${sub.id}" data-name="${sub.name}">
+                                    <div class="card-body text-center p-4">
+                                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-3 d-inline-block mb-3 transition-all icon-container">
+                                            <i class="fas fa-book fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-0 text-dark">${sub.name}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.querySelectorAll('.subject-card').forEach(card => {
+                        card.addEventListener('click', function() {
+                            state.subjectId = this.dataset.id;
+                            state.subjectName = this.dataset.name;
+                            loadExams();
+                        });
+                    });
+                }
+                stepSubjects.classList.remove('d-none');
+            })
+            .catch(err => {
+                showLoader(false);
+                alert('حدث خطأ أثناء جلب المواد.');
+            });
+    }
+
+    // Step 4: Exams
+    function loadExams() {
+        hideAllSteps();
+        showLoader(true);
+        bdSubject.textContent = state.subjectName;
+        bdSubjectItem.classList.remove('d-none');
+
+        const year = filterYear.value;
+        const sem = filterSemester.value;
+
+        fetch(`${routes.exams}?section_id=${state.sectionId}&subject_id=${state.subjectId}&academic_year_id=${year}&semester_id=${sem}`)
+            .then(res => res.json())
+            .then(data => {
+                showLoader(false);
+                stepExams.innerHTML = '';
+                if(data.data.length === 0) {
+                    stepExams.innerHTML = '<div class="col-12"><div class="alert alert-warning text-center">لا توجد اختبارات لهذه المادة.</div></div>';
+                } else {
+                    data.data.forEach(exam => {
+                        stepExams.innerHTML += `
+                            <div class="col-md-4 col-sm-6">
+                                <div class="card h-100 hover-lift cursor-pointer exam-card border-0 shadow-sm border-start border-primary border-4" data-id="${exam.id}">
+                                    <div class="card-body p-4">
+                                        <h5 class="fw-bold text-dark mb-2"><i class="fas fa-file-alt text-primary me-2"></i> ${exam.name}</h5>
+                                        <p class="text-muted small mb-0"><i class="fas fa-calculator me-1"></i> الدرجة الكلية: ${exam.total_marks}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.querySelectorAll('.exam-card').forEach(card => {
+                        card.addEventListener('click', function() {
+                            const examId = this.dataset.id;
+                            window.location.href = `${routes.marks}?academic_year_id=${year}&semester_id=${sem}&exam_id=${examId}`;
+                        });
+                    });
+                }
+                stepExams.classList.remove('d-none');
+            })
+            .catch(err => {
+                showLoader(false);
+                alert('حدث خطأ أثناء جلب الاختبارات.');
+            });
+    }
+    
+    // Reload subjects if Year or Semester changes mid-flow
+    filterYear.addEventListener('change', () => { if(state.sectionId) loadSubjects(); });
+    filterSemester.addEventListener('change', () => { if(state.sectionId) loadSubjects(); });
+});
+</script>
+@endif
 @endpush

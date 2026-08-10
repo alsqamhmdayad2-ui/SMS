@@ -38,10 +38,7 @@ class MarksEntryController extends Controller
         $grades = Grade::all();
         $subjects = Subject::all();
 
-        $classes = collect();
-        if ($request->filled('grade_id')) {
-            $classes = SchoolClass::where('grade_id', $request->grade_id)->get();
-        }
+        $classes = SchoolClass::all();
 
         // Get sections based on selected filters
         $sections = collect();
@@ -172,6 +169,24 @@ class MarksEntryController extends Controller
         return $this->successResponse('Sections retrieved', $sections->map(function ($s) {
             return ['id' => $s->id, 'name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name];
         }), 'SECTIONS_LOADED');
+    }
+
+    /**
+     * AJAX: Get subjects for a section based on exams (cascading filter).
+     */
+    public function getSubjects(Request $request): JsonResponse
+    {
+        $subjects = Subject::whereHas('exams', function ($q) use ($request) {
+            $q->where('section_id', $request->section_id)
+              ->where('academic_year_id', $request->academic_year_id);
+            if ($request->filled('semester_id')) {
+                $q->where('semester_id', $request->semester_id);
+            }
+        })->get();
+
+        return $this->successResponse('Subjects retrieved', $subjects->map(function ($s) {
+            return ['id' => $s->id, 'name' => $s->name];
+        }), 'SUBJECTS_LOADED');
     }
 
     /**
