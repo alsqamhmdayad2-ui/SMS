@@ -65,13 +65,7 @@
     </div>
 </div>
 
-{{-- Marks Notice if no questions --}}
-@if($exam->total_marks == 0)
-<div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    لم يتم تحديد الدرجة الكلية لهذا الاختبار. يرجى التواصل مع الإدارة لتعيين الدرجة الكلية.
-</div>
-@endif
+
 
 {{-- Save All Button --}}
 <div class="d-flex justify-content-between align-items-center mb-3">

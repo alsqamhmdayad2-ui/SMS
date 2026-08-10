@@ -111,7 +111,10 @@
                 <x-form.input type="time" name="end_time" label="وقت الانتهاء" required="true" :error="$errors->first('end_time')" />
             </div>
             <div class="col-md-2">
-                <x-form.input type="number" name="duration_minutes" label="المدة (دقيقة)" placeholder="90" :error="$errors->first('duration_minutes')" />
+                <x-form.input type="number" name="duration_minutes" label="المدة (دقائق)" min="1" :error="$errors->first('duration_minutes')" />
+            </div>
+            <div class="col-md-3">
+                <x-form.input type="number" name="total_marks" label="الدرجة الكلية" min="1" required="true" :error="$errors->first('total_marks')" />
             </div>
             <div class="col-md-3">
                 <x-form.select name="status" label="الحالة" required="true" :error="$errors->first('status')">

@@ -28,6 +28,7 @@ class Exam extends Model
         'status',
         'display_mode',
         'instructions',
+        'total_marks',
     ];
 
     protected $casts = [
@@ -84,11 +85,17 @@ class Exam extends Model
 
     // ── Computed ──
 
-    public function getTotalMarksAttribute()
+    public function getTotalMarksAttribute($value)
     {
-        return $this->questions->sum(function ($q) {
-            return $q->pivot->mark_override ?? $q->mark;
-        });
+        // If there are specific questions built for this exam, the sum overrides the column
+        if ($this->questions()->exists()) {
+            return $this->questions->sum(function ($q) {
+                return $q->pivot->mark_override ?? $q->mark;
+            });
+        }
+        
+        // Otherwise, use the manually entered total_marks column
+        return $value ?? 0;
     }
 
     public function getQuestionCountAttribute()

@@ -72,8 +72,15 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">المدة (دقائق)</label>
-                            <input type="number" name="duration_minutes" class="form-control" min="5"
+                            <input type="number" name="duration_minutes" class="form-control" min="1"
                                    value="{{ old('duration_minutes', $exam->duration_minutes) }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">الدرجة الكلية <span class="text-danger">*</span></label>
+                            <input type="number" name="total_marks" class="form-control @error('total_marks') is-invalid @enderror" min="1" required
+                                   value="{{ old('total_marks', $exam->getRawOriginal('total_marks')) }}">
+                            @error('total_marks')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="col-md-6">

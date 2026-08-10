@@ -125,7 +125,13 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">المدة (بالدقائق)</label>
-                            <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes') }}" min="5" placeholder="60">
+                            <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes') }}" min="1" placeholder="60">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">الدرجة الكلية <span class="text-danger">*</span></label>
+                            <input type="number" name="total_marks" class="form-control @error('total_marks') is-invalid @enderror" value="{{ old('total_marks') }}" min="1" required>
+                            @error('total_marks')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         
                         <div class="col-md-6">

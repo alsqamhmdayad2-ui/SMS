@@ -113,7 +113,10 @@
                 <x-form.input type="time" name="end_time" label="وقت الانتهاء" value="{{ \Carbon\Carbon::parse($exam->end_time)->format('H:i') }}" required="true" :error="$errors->first('end_time')" />
             </div>
             <div class="col-md-2">
-                <x-form.input type="number" name="duration_minutes" label="المدة (دقيقة)" value="{{ $exam->duration_minutes }}" placeholder="90" :error="$errors->first('duration_minutes')" />
+                <x-form.input type="number" name="duration_minutes" label="المدة (دقائق)" value="{{ old('duration_minutes', $exam->duration_minutes) }}" min="1" :error="$errors->first('duration_minutes')" />
+            </div>
+            <div class="col-md-3">
+                <x-form.input type="number" name="total_marks" label="الدرجة الكلية" value="{{ old('total_marks', $exam->getRawOriginal('total_marks')) }}" min="1" required="true" :error="$errors->first('total_marks')" />
             </div>
             <div class="col-md-3">
                 <x-form.select name="status" label="الحالة" required="true" :error="$errors->first('status')">

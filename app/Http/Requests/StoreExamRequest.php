@@ -38,6 +38,7 @@ class StoreExamRequest extends FormRequest
             'duration_minutes' => 'nullable|integer|min:1',
             'status' => 'required|in:scheduled,ongoing,completed,cancelled',
             'instructions' => 'nullable|string',
+            'total_marks' => 'required|numeric|min:1',
         ];
     }
 }
