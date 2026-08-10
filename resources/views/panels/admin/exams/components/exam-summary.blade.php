@@ -36,14 +36,14 @@
     <div class="card-body">
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-start mb-3">
-            <h5 class="card-title fw-bold text-primary mb-0"><i class="bi bg-light p-1 rounded text-primary bi-info-circle"></i> تفاصيل الامتحان</h5>
+            <h5 class="card-title fw-bold text-primary mb-0"><i class="fas bg-light p-1 rounded text-primary fa-info-circle"></i> تفاصيل الامتحان</h5>
             <span class="badge bg-{{ $exam->status->badgeColor() }}">{{ $exam->status->label() }}</span>
         </div>
 
         {{-- Lock/Unlock Alert --}}
         @if($isLocked)
             <div class="alert alert-warning py-2 px-3 mb-3 small d-flex align-items-center gap-2">
-                <i class="bi bi-lock-fill fs-5"></i>
+                <i class="fas fa-lock fs-5"></i>
                 <div>
                     <strong>هذا الامتحان مقفل.</strong><br>
                     لا يمكن تعديل الأسئلة أو إضافتها أو حذفها.
@@ -78,7 +78,7 @@
             @if($exam->duration_minutes)
                 <li class="list-group-item px-0 d-flex justify-content-between">
                     <span class="text-muted">المدة</span>
-                    <span class="fw-bold text-primary"><i class="bi bi-hourglass-split"></i> {{ $exam->duration_formatted }}</span>
+                    <span class="fw-bold text-primary"><i class="fas fa-hourglass-half"></i> {{ $exam->duration_formatted }}</span>
                 </li>
             @endif
         </ul>
@@ -100,7 +100,7 @@
             @if($estimatedMinutes)
             <div class="col-6">
                 <div class="border rounded p-2 text-center bg-light">
-                    <div class="fs-5 fw-bold text-info"><i class="bi bi-clock"></i> {{ $estimatedMinutes }} دقيقة</div>
+                    <div class="fs-5 fw-bold text-info"><i class="fas fa-clock"></i> {{ $estimatedMinutes }} دقيقة</div>
                     <div class="small text-muted">الزمن المقدر</div>
                 </div>
             </div>
@@ -110,7 +110,7 @@
         {{-- Type Distribution --}}
         @if($totalQuestions > 0)
         <div class="mb-3">
-            <h6 class="fw-bold small text-muted mb-2"><i class="bi bi-pie-chart"></i> توزيع الأسئلة حسب النوع</h6>
+            <h6 class="fw-bold small text-muted mb-2"><i class="fas fa-chart-pie"></i> توزيع الأسئلة حسب النوع</h6>
             <div class="d-flex flex-wrap gap-1">
                 @foreach($typeCounts as $type => $count)
                     <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">
@@ -122,7 +122,7 @@
 
         {{-- Difficulty Distribution --}}
         <div class="mb-3">
-            <h6 class="fw-bold small text-muted mb-2"><i class="bi bi-bar-chart"></i> توزيع الصعوبة</h6>
+            <h6 class="fw-bold small text-muted mb-2"><i class="fas fa-chart-bar"></i> توزيع الصعوبة</h6>
             @foreach($difficultyCounts as $diff => $count)
                 @php
                     $meta = $difficultyLabels[$diff] ?? ['label' => ucfirst($diff), 'color' => 'secondary'];
@@ -141,7 +141,7 @@
 
         @if($exam->instructions)
             <div class="mb-3 p-2 bg-light border rounded">
-                <div class="fw-bold small text-muted mb-1"><i class="bi bi-card-text"></i> التعليمات:</div>
+                <div class="fw-bold small text-muted mb-1"><i class="fas fa-sticky-note"></i> التعليمات:</div>
                 <div class="small text-dark" style="white-space: pre-line;">{{ $exam->instructions }}</div>
             </div>
         @endif
@@ -153,7 +153,7 @@
                       onsubmit="return confirm('هل أنت متأكد من نشر وقفل الامتحان؟ لن تتمكن من التعديل بعد ذلك.');">
                     @csrf
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-lock-fill"></i> نشر وقفل الامتحان (Publish & Lock)
+                        <i class="fas fa-lock"></i> نشر وقفل الامتحان (Publish & Lock)
                     </button>
                 </form>
             @else
@@ -161,16 +161,16 @@
                       onsubmit="return confirm('هل تريد فتح الامتحان للتعديل؟ سيتم إعادة حالته إلى مسودة.');">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning w-100">
-                        <i class="bi bi-unlock-fill"></i> فتح القفل (Unlock to Draft)
+                        <i class="fas fa-unlock"></i> فتح القفل (Unlock to Draft)
                     </button>
                 </form>
             @endif
 
             <a href="{{ route('admin.exams.print', $exam->id) }}" target="_blank" class="btn btn-outline-dark">
-                <i class="bi bi-printer"></i> طباعة الامتحان (Print)
+                <i class="fas fa-print"></i> طباعة الامتحان (Print)
             </a>
             <a href="{{ route('admin.exams.index') }}" class="btn btn-light text-muted">
-                <i class="bi bi-arrow-left"></i> العودة للملفات
+                <i class="fas fa-arrow-left"></i> العودة للملفات
             </a>
         </div>
     </div>
