@@ -79,44 +79,61 @@ class ExamController extends Controller
     // ─── AJAX for Drill-down ──────────────────────────────────────────────────
     public function getSubjects(Request $request): JsonResponse
     {
-        $teacher = $this->getTeacher();
-        $subjectIds = $this->getTeacherSubjectIds($teacher);
+        try {
+            $teacher = $this->getTeacher();
+            $subjectIds = $this->getTeacherSubjectIds($teacher);
 
-        $subjects = Subject::whereIn('id', $subjectIds)
-            ->whereHas('exams', function ($q) use ($request, $teacher) {
-                $q->where('section_id', $request->section_id)
-                  ->where('teacher_id', $teacher->id);
-            })->get();
+            if (empty($subjectIds)) {
+                return $this->successResponse('Subjects', []);
+            }
 
-        return $this->successResponse('Subjects', $subjects);
+            // Get subjects that have exams in this section taught by this teacher
+            $subjects = Subject::whereIn('id', $subjectIds)
+                ->whereHas('exams', function ($q) use ($request) {
+                    $q->where('section_id', $request->section_id);
+                })->get(['id', 'name']);
+
+            return $this->successResponse('Subjects', $subjects->values());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
     }
 
     public function getExams(Request $request): JsonResponse
     {
-        $teacher = $this->getTeacher();
+        try {
+            $teacher = $this->getTeacher();
 
-        $exams = Exam::where('section_id', $request->section_id)
-            ->where('subject_id', $request->subject_id)
-            ->where('teacher_id', $teacher->id)
-            ->get();
+            $query = Exam::where('section_id', $request->section_id)
+                ->where('subject_id', $request->subject_id);
 
-        return $this->successResponse('Exams', $exams->map(function ($e) {
-            return [
-                'id' => $e->id,
-                'name' => $e->title,
-                'type' => match($e->type) { 'quiz' => 'اختبار قصير', 'midterm' => 'نصف فصلي', 'final' => 'نهائي', 'assignment' => 'واجب', default => $e->type },
-                'status' => $e->status->value,
-                'total_marks' => $e->total_marks,
-                'date' => $e->exam_date ? $e->exam_date->format('Y-m-d') : '-',
-                'urls' => [
-                    'show' => route('teacher.exams.show', $e->id),
-                    'edit' => route('teacher.exams.edit', $e->id),
-                    'questions' => route('teacher.exams.questions.index', $e->id),
-                    'publish' => route('teacher.exams.publish', $e->id),
-                    'destroy' => route('teacher.exams.destroy', $e->id),
-                ]
-            ];
-        }));
+            // Filter by teacher if teacher_id column exists and teacher is found
+            if ($teacher) {
+                $query->where('teacher_id', $teacher->id);
+            }
+
+            $exams = $query->get();
+
+            return $this->successResponse('Exams', $exams->map(function ($e) {
+                return [
+                    'id'          => $e->id,
+                    'name'        => $e->title,
+                    'type'        => match($e->type) { 'quiz' => 'اختبار قصير', 'midterm' => 'نصف فصلي', 'final' => 'نهائي', 'assignment' => 'واجب', default => $e->type },
+                    'status'      => $e->status->value,
+                    'total_marks' => $e->total_marks,
+                    'date'        => $e->exam_date ? $e->exam_date->format('Y-m-d') : '-',
+                    'urls'        => [
+                        'show'      => route('teacher.exams.show', $e->id),
+                        'edit'      => route('teacher.exams.edit', $e->id),
+                        'questions' => route('teacher.exams.questions.index', $e->id),
+                        'publish'   => route('teacher.exams.publish', $e->id),
+                        'destroy'   => route('teacher.exams.destroy', $e->id),
+                    ]
+                ];
+            }));
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
     }
 
     // ─── Create Exam ─────────────────────────────────────────────────────────
