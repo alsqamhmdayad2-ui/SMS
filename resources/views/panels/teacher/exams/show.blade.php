@@ -41,7 +41,7 @@
         <div class="row g-3 align-items-center">
             <div class="col-md-4">
                 <div class="fw-bold fs-5">{{ $exam->title }}</div>
-                <div class="text-muted small">{{ $exam->subject?->name }} — {{ $exam->section?->schoolClass?->name }} / {{ $exam->section?->name }}</div>
+                <div class="text-muted small">{{ $exam->subject?->name }} — {{ $exam->sections->first()?->schoolClass?->name }} / {{ $exam->sections->pluck('name')->join('، ') }}</div>
             </div>
             <div class="col-md-2 text-center">
                 <div class="text-muted small">النوع</div>

@@ -51,12 +51,16 @@ class ExamController extends Controller
         $sectionIds = $this->getTeacherSectionIds($teacher);
         $subjectIds = $this->getTeacherSubjectIds($teacher);
 
-        $query = Exam::with(['section.schoolClass', 'subject', 'academicYear', 'semester'])
-            ->whereIn('section_id', $sectionIds)
+        $query = Exam::with(['sections.schoolClass', 'subject', 'academicYear', 'semester'])
+            ->whereHas('sections', function ($q) use ($sectionIds) {
+                $q->whereIn('sections.id', $sectionIds);
+            })
             ->whereIn('subject_id', $subjectIds);
 
         if ($request->filled('section_id')) {
-            $query->where('section_id', $request->section_id);
+            $query->whereHas('sections', function ($q) use ($request) {
+                $q->where('sections.id', $request->section_id);
+            });
         }
         if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->subject_id);
@@ -90,7 +94,9 @@ class ExamController extends Controller
             // Get subjects that have exams in this section taught by this teacher
             $subjects = Subject::whereIn('id', $subjectIds)
                 ->whereHas('exams', function ($q) use ($request) {
-                    $q->where('section_id', $request->section_id);
+                    $q->whereHas('sections', function ($q2) use ($request) {
+                        $q2->where('sections.id', $request->section_id);
+                    });
                 })->get(['id', 'name']);
 
             return $this->successResponse('Subjects', $subjects->values());
@@ -104,7 +110,9 @@ class ExamController extends Controller
         try {
             $teacher = $this->getTeacher();
 
-            $query = Exam::where('section_id', $request->section_id)
+            $query = Exam::whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
                 ->where('subject_id', $request->subject_id);
 
             // Filter by teacher if teacher_id column exists and teacher is found
@@ -166,7 +174,8 @@ class ExamController extends Controller
             'type'             => 'required|in:quiz,midterm,final,assignment',
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester_id'      => 'required|exists:semesters,id',
-            'section_id'       => 'required|in:' . implode(',', $sectionIds),
+            'section_ids'      => 'required|array|min:1',
+            'section_ids.*'    => 'required|in:' . implode(',', $sectionIds),
             'subject_id'       => 'required|in:' . implode(',', $subjectIds),
             'exam_date'        => 'nullable|date',
             'start_time'       => 'nullable|date_format:H:i',
@@ -176,14 +185,15 @@ class ExamController extends Controller
             'instructions'     => 'nullable|string',
         ]);
 
-        // Resolve grade_id from section
-        $section = Section::with('schoolClass')->findOrFail($validated['section_id']);
+        // Resolve grade_id from the first section
+        $section = Section::with('schoolClass')->findOrFail($validated['section_ids'][0]);
         $validated['grade_id'] = $section->schoolClass?->grade_id;
         $validated['class_id'] = $section->class_id;
         $validated['teacher_id'] = $teacher?->id;
         $validated['status'] = ExamStatus::DRAFT->value;
 
         $exam = Exam::create($validated);
+        $exam->sections()->sync($validated['section_ids']);
 
         return redirect()->route('teacher.exams.show', $exam->id)
             ->with('success', 'تم إنشاء الاختبار بنجاح. يمكنك الآن إدخال درجات الطلاب.');
@@ -194,9 +204,9 @@ class ExamController extends Controller
     {
         $this->authorizeTeacherExam($exam);
 
-        $exam->load(['section.schoolClass.grade', 'subject', 'academicYear', 'semester']);
+        $exam->load(['sections.schoolClass.grade', 'subject', 'academicYear', 'semester']);
 
-        $students = Student::where('section_id', $exam->section_id)
+        $students = Student::whereIn('section_id', $exam->sections->pluck('id'))
             ->orderBy('first_name')->get();
 
         $results = ExamResult::where('exam_id', $exam->id)
@@ -348,11 +358,12 @@ class ExamController extends Controller
     protected function authorizeTeacherExam(Exam $exam): void
     {
         $teacher    = $this->getTeacher();
-        $sectionIds = $this->getTeacherSectionIds($teacher);
-        $subjectIds = $this->getTeacherSubjectIds($teacher);
+        $exam->load(['sections', 'subject', 'academicYear', 'semester', 'teacher', 'questions.options']);
 
-        if (!in_array($exam->section_id, $sectionIds) || !in_array($exam->subject_id, $subjectIds)) {
-            abort(403, 'غير مصرح لك بالوصول لهذا الاختبار.');
+        // Check if teacher has access to at least one section of the exam
+        $teacherSectionIds = $this->getTeacherSectionIds($teacher);
+        if (!$exam->sections->pluck('id')->intersect($teacherSectionIds)->count()) {
+            abort(403, 'غير مصرح لك بعرض هذا الاختبار.');
         }
     }
 

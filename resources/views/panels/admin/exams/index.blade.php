@@ -101,7 +101,7 @@
                     </td>
                     <td>
                         <div class="small fw-bold">{{ $exam->subject->name }}</div>
-                        <div class="small text-sms-muted">{{ $exam->schoolClass->name }} ({{ $exam->section->name }})</div>
+                        <div class="small text-sms-muted">{{ $exam->schoolClass->name }} ({{ $exam->sections->pluck('name')->join('، ') }})</div>
                         <div class="small text-sms-muted"><i class="fas fa-user me-1"></i>{{ $exam->teacher->name }}</div>
                     </td>
                     <td>

@@ -101,7 +101,7 @@
                             <div class="alert alert-light border mb-0">
                                 <small class="text-muted">
                                     <strong>المادة:</strong> {{ $exam->subject?->name }} &nbsp;|&nbsp;
-                                    <strong>الشعبة:</strong> {{ $exam->section?->schoolClass?->name }} - {{ $exam->section?->name }}
+                                    <strong>الشعبة:</strong> {{ $exam->sections->first()?->schoolClass?->name }} - {{ $exam->sections->pluck('name')->join('، ') }}
                                     <br><em>لتغيير المادة أو الشعبة، احذف الاختبار وأنشئ اختباراً جديداً.</em>
                                 </small>
                             </div>

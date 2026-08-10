@@ -59,7 +59,7 @@
             </li>
             <li class="list-group-item px-0 d-flex justify-content-between">
                 <span class="text-muted">الصف والشعبة</span>
-                <span class="fw-bold text-dark">{{ $exam->schoolClass->name }} ({{ $exam->section->name }})</span>
+                <span class="fw-bold text-dark">{{ $exam->schoolClass->name }} ({{ $exam->sections->pluck('name')->join('، ') }})</span>
             </li>
             <li class="list-group-item px-0 d-flex justify-content-between">
                 <span class="text-muted">نوع الامتحان</span>

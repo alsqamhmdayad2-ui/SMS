@@ -203,7 +203,7 @@
         <table class="exam-meta-table">
             <tr>
                 <td class="label">الصف والفرع</td>
-                <td>{{ $exam->schoolClass->name }} ({{ $exam->section->name }})</td>
+                <td>{{ $exam->schoolClass->name }} ({{ $exam->sections->pluck('name')->join('، ') }})</td>
                 <td class="label">العام الدراسي</td>
                 <td>{{ $exam->academicYear->name }}</td>
             </tr>

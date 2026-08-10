@@ -75,12 +75,15 @@
                 </x-form.select>
             </div>
             <div class="col-md-4">
-                <x-form.select name="section_id" label="الشعبة" required="true" :error="$errors->first('section_id')">
-                    <option value="">-- اختر --</option>
+                <label for="section_ids" class="form-label">الشعب <span class="text-danger">*</span></label>
+                <select name="section_ids[]" id="section_ids" class="form-select select2" multiple required>
                     @foreach($sections as $section)
-                        <option value="{{ $section->id }}" {{ old('section_id', $exam->section_id) == $section->id ? 'selected' : '' }}>{{ $section->name }}</option>
+                        <option value="{{ $section->id }}" {{ in_array($section->id, old('section_ids', $exam->sections->pluck('id')->toArray())) ? 'selected' : '' }}>{{ $section->name }}</option>
                     @endforeach
-                </x-form.select>
+                </select>
+                @error('section_ids')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-4">
                 <x-form.select name="subject_id" label="المادة" required="true" :error="$errors->first('subject_id')">

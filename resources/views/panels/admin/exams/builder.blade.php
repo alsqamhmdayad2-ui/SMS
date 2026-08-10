@@ -5,7 +5,7 @@
 @section('content')
 @include('components.page-header', [
     'title' => 'تصميم الأسئلة: ' . $exam->title,
-    'subtitle' => $exam->subject->name . ' | ' . $exam->schoolClass->name . ' (' . $exam->section->name . ')'
+    'subtitle' => $exam->subject->name . ' | ' . $exam->schoolClass->name . ' (' . $exam->sections->pluck('name')->join('، ') . ')'
 ])
 
 <div class="row">

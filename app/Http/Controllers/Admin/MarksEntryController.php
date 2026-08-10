@@ -54,7 +54,9 @@ class MarksEntryController extends Controller
         $exams = collect();
         if ($request->filled(['academic_year_id', 'section_id', 'subject_id'])) {
             $exams = Exam::where('academic_year_id', $request->academic_year_id)
-                ->where('section_id', $request->section_id)
+                ->whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
                 ->where('subject_id', $request->subject_id)
                 ->when($request->filled('semester_id'), function ($q) use ($request) {
                     $q->where('semester_id', $request->semester_id);
@@ -185,17 +187,20 @@ class MarksEntryController extends Controller
      */
     public function getSubjects(Request $request): JsonResponse
     {
-        $subjects = Subject::whereHas('exams', function ($q) use ($request) {
-            $q->where('section_id', $request->section_id)
-              ->where('academic_year_id', $request->academic_year_id);
-            if ($request->filled('semester_id')) {
-                $q->where('semester_id', $request->semester_id);
-            }
-        })->get();
-
-        return $this->successResponse('Subjects retrieved', $subjects->map(function ($s) {
-            return ['id' => $s->id, 'name' => $s->name];
-        }), 'SUBJECTS_LOADED');
+        try {
+            $subjects = Subject::whereHas('exams', function ($q) use ($request) {
+                $q->where('academic_year_id', $request->academic_year_id)
+                  ->whereHas('sections', function ($q2) use ($request) {
+                      $q2->where('sections.id', $request->section_id);
+                  });
+                if ($request->filled('semester_id')) {
+                    $q->where('semester_id', $request->semester_id);
+                }
+            })->get(['id', 'name']);
+            return $this->successResponse('Subjects retrieved', $subjects, 'SUBJECTS_LOADED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
     }
 
     /**
@@ -203,18 +208,24 @@ class MarksEntryController extends Controller
      */
     public function getExams(Request $request): JsonResponse
     {
-        $exams = Exam::where('academic_year_id', $request->academic_year_id)
-            ->where('section_id', $request->section_id)
-            ->where('subject_id', $request->subject_id)
-            ->when($request->filled('semester_id'), fn($q) => $q->where('semester_id', $request->semester_id))
-            ->get();
+        try {
+            $exams = Exam::where('academic_year_id', $request->academic_year_id)
+                ->whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
+                ->where('subject_id', $request->subject_id)
+                ->when($request->filled('semester_id'), fn($q) => $q->where('semester_id', $request->semester_id))
+                ->get();
 
-        return $this->successResponse('Exams retrieved', $exams->map(function ($e) {
-            return [
-                'id' => $e->id,
-                'name' => $e->title . ' (' . ($e->exam_date ? $e->exam_date->format('Y-m-d') : 'No Date') . ') - ' . ucfirst($e->type),
-                'total_marks' => $e->total_marks,
-            ];
-        }), 'EXAMS_LOADED');
+            return $this->successResponse('Exams retrieved', $exams->map(function ($e) {
+                return [
+                    'id' => $e->id,
+                    'name' => $e->title . ' (' . ($e->exam_date ? $e->exam_date->format('Y-m-d') : 'No Date') . ') - ' . ucfirst($e->type),
+                    'total_marks' => $e->total_marks,
+                ];
+            }), 'EXAMS_LOADED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error fetching exams', 'ERROR', [], 500);
+        }
     }
 }

@@ -18,7 +18,6 @@ class Exam extends Model
         'semester_id',
         'grade_id',
         'class_id',
-        'section_id',
         'subject_id',
         'teacher_id',
         'exam_date',
@@ -58,9 +57,9 @@ class Exam extends Model
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    public function section()
+    public function sections()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsToMany(Section::class, 'exam_section');
     }
 
     public function subject()

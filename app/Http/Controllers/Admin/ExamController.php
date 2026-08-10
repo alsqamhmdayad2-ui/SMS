@@ -57,13 +57,13 @@ class ExamController extends Controller
 
     public function show(Exam $exam)
     {
-        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'section', 'subject', 'teacher', 'questions.options']);
+        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'sections', 'subject', 'teacher', 'questions.options']);
         return view('panels.admin.exams.builder', compact('exam'));
     }
 
     public function print(Exam $exam)
     {
-        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'section', 'subject', 'teacher', 'questions.options']);
+        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'sections', 'subject', 'teacher', 'questions.options']);
         return view('panels.admin.exams.print', compact('exam'));
     }
 
