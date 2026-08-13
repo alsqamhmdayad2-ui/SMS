@@ -38,6 +38,7 @@ class MarksEntry extends SMS.Core.BaseModule {
         this.onInput = this.onInput.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onClick = this.onClick.bind(this);
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onBeforeUnload = this.onBeforeUnload.bind(this);
         this.loadClasses = this.loadClasses.bind(this);
@@ -48,6 +49,7 @@ class MarksEntry extends SMS.Core.BaseModule {
             this.elements.table.addEventListener('input', this.onInput);
             this.elements.table.addEventListener('change', this.onChange);
             this.elements.table.addEventListener('keydown', this.onKeyDown);
+            this.elements.table.addEventListener('click', this.onClick);
         }
 
         document.addEventListener('keydown', this.onGlobalKeyDown);
@@ -77,6 +79,7 @@ class MarksEntry extends SMS.Core.BaseModule {
             this.elements.table.removeEventListener('input', this.onInput);
             this.elements.table.removeEventListener('change', this.onChange);
             this.elements.table.removeEventListener('keydown', this.onKeyDown);
+            this.elements.table.removeEventListener('click', this.onClick);
         }
         document.removeEventListener('keydown', this.onGlobalKeyDown);
         window.removeEventListener('beforeunload', this.onBeforeUnload);
@@ -115,6 +118,13 @@ class MarksEntry extends SMS.Core.BaseModule {
         }
     }
 
+    onClick(e) {
+        if (e.target.closest('.btn-reset-mark')) {
+            const btn = e.target.closest('.btn-reset-mark');
+            this.handleResetMark(btn);
+        }
+    }
+
     onKeyDown(e) {
         if (e.target.matches('.mark-input')) {
             this.handleKeyboardNavigation(e, e.target);
@@ -133,6 +143,34 @@ class MarksEntry extends SMS.Core.BaseModule {
             e.preventDefault();
             e.returnValue = '';
         }
+    }
+
+    afterMount() {
+        // Wire up the Bootstrap modal confirm button
+        const confirmBtn = document.getElementById('btnConfirmResetMark');
+        const modalEl   = document.getElementById('resetMarkModal');
+
+        if (confirmBtn && modalEl) {
+            confirmBtn.addEventListener('click', () => {
+                // Hide modal first
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                // Execute the actual delete
+                if (this._pendingResetStudentId && this._pendingResetRow) {
+                    this._executeResetMark(this._pendingResetStudentId, this._pendingResetRow);
+                    this._pendingResetStudentId = null;
+                    this._pendingResetRow = null;
+                }
+            });
+
+            // Clear pending state if modal is dismissed without confirming
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                this._pendingResetStudentId = null;
+                this._pendingResetRow = null;
+            });
+        }
+
+        // Run initial stats
+        this.refresh();
     }
 
     // ─── Core Logic ────────────────────────────────────────────────────────────
@@ -166,6 +204,73 @@ class MarksEntry extends SMS.Core.BaseModule {
         this.updateRowUI(row);
         this.refresh();
         this.saveRow(studentId);
+    }
+
+    handleResetMark(btn) {
+        const row = btn.closest('tr');
+        const studentId = row.dataset.studentId;
+
+        if (!this.config.deleteUrl) {
+            alert('Delete URL is not configured.');
+            return;
+        }
+
+        // Store pending action data and show modal
+        this._pendingResetStudentId = studentId;
+        this._pendingResetRow = row;
+
+        const modal = document.getElementById('resetMarkModal');
+        if (modal) {
+            bootstrap.Modal.getOrCreateInstance(modal).show();
+        } else {
+            // Fallback if modal not present
+            if (!confirm('هل أنت متأكد من حذف درجة هذا الطالب وإعادة تعيين اختباره لكي يتمكن من تقديمه مرة أخرى؟')) return;
+            this._executeResetMark(studentId, row);
+        }
+    }
+
+    _executeResetMark(studentId, row) {
+        this.showStatus('saving');
+
+        fetch(this.config.deleteUrl, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || this.config.csrf
+            },
+            body: JSON.stringify({ exam_id: this.config.examId, student_id: studentId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success === true) {
+                this.showStatus('saved');
+
+                // Reset Row UI
+                const markInput = row.querySelector('.mark-input');
+                if (markInput) { markInput.value = ''; markInput.disabled = false; }
+                const statusSelect = row.querySelector('.status-select');
+                if (statusSelect) statusSelect.value = 'present';
+                const remarksInput = row.querySelector('.remarks-input');
+                if (remarksInput) remarksInput.value = '';
+                const pctCell = row.querySelector('.pct-cell');
+                if (pctCell) pctCell.textContent = '-';
+                const gradeCell = row.querySelector('.grade-cell');
+                if (gradeCell) gradeCell.textContent = '-';
+
+                this.colorRow(row, null);
+                this.refresh();
+
+                row.classList.add('row-saved');
+                setTimeout(() => row.classList.remove('row-saved'), 1500);
+            } else {
+                this.showStatus('error');
+                alert(data.message || 'حدث خطأ أثناء الحذف.');
+            }
+        })
+        .catch(err => {
+            this.showStatus('error');
+            console.error('Delete error:', err);
+        });
     }
 
     validateInput(input) {

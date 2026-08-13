@@ -390,6 +390,25 @@ class ExamController extends Controller
         }
     }
 
+    // ─── AJAX: Delete a single student's mark (Reset attempt) ─────────────────
+    public function deleteMark(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'exam_id'    => 'required|exists:exams,id',
+            'student_id' => 'required|exists:students,id',
+        ]);
+
+        $exam = Exam::findOrFail($validated['exam_id']);
+        $this->authorizeTeacherExam($exam);
+
+        try {
+            $this->examResultService->deleteMark($exam, $validated['student_id']);
+            return $this->successResponse('تم حذف الدرجة بنجاح. يمكن للطالب الآن إعادة الاختبار.', null, 'MARK_DELETED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('حدث خطأ أثناء الحذف: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
+    }
+
     // ─── Authorization Helper ─────────────────────────────────────────────────
     protected function authorizeTeacherExam(Exam $exam): void
     {

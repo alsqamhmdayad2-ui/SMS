@@ -79,8 +79,40 @@ class ExamService
             throw ValidationException::withMessages(['status' => 'Cannot publish an exam with no questions.']);
         }
 
-        $exam->update(['status' => ExamStatus::PUBLISHED->value]);
+        $title = str_replace(' (نسخة)', '', $exam->title);
+        $exam->update([
+            'status' => ExamStatus::PUBLISHED->value,
+            'title' => trim($title)
+        ]);
         return $exam;
+    }
+
+    public function duplicate(Exam $exam)
+    {
+        // 1. Copy the main Exam record
+        $newExam = $exam->replicate();
+        
+        // Modify title to indicate it's a copy
+        $newExam->title = $exam->title . ' (نسخة)';
+        $newExam->status = ExamStatus::DRAFT->value;
+        $newExam->save();
+
+        // 2. Sync sections (keep original sections temporarily or empty them?)
+        // Let's copy them so the user knows what they were, they can remove/change them in edit page
+        $newExam->sections()->sync($exam->sections->pluck('id'));
+
+        // 3. Copy Questions with Pivot Data
+        $questionsData = [];
+        foreach ($exam->questions as $question) {
+            $questionsData[$question->id] = [
+                'display_order' => $question->pivot->display_order,
+                'mark_override' => $question->pivot->mark_override,
+                'source_type'   => $question->pivot->source_type,
+            ];
+        }
+        $newExam->questions()->sync($questionsData);
+
+        return $newExam;
     }
 
     /**

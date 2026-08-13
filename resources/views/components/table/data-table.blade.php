@@ -1,12 +1,11 @@
 @props([
-    'class' => '',
     'hover' => true,
     'striped' => false,
     'bordered' => false
 ])
 
 <div class="sms-table-wrapper table-responsive w-100">
-    <table class="table mb-0 align-middle {{ $hover ? 'table-hover' : '' }} {{ $striped ? 'table-striped' : '' }} {{ $bordered ? 'table-bordered' : '' }} {{ $class }}">
+    <table {{ $attributes->merge(['class' => 'table mb-0 align-middle ' . ($hover ? 'table-hover' : '') . ' ' . ($striped ? 'table-striped' : '') . ' ' . ($bordered ? 'table-bordered' : '')]) }}>
         @isset($header)
             <thead class="table-light">
                 <tr>

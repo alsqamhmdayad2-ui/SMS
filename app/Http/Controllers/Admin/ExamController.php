@@ -83,6 +83,17 @@ class ExamController extends Controller
         return back()->with('success', 'تم إلغاء قفل الاختبار. يمكنك الآن تعديل الأسئلة.');
     }
 
+    public function duplicate(Exam $exam)
+    {
+        try {
+            $newExam = $this->examService->duplicate($exam);
+            return redirect()->route('admin.exams.edit', $newExam->id)
+                ->with('success', 'تم نسخ الاختبار بنجاح. يمكنك الآن تعديل الشعب والتاريخ للإختبار الجديد.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء نسخ الاختبار: ' . $e->getMessage());
+        }
+    }
+
     public function edit(Exam $exam)
     {
         $data = $this->getFormData();

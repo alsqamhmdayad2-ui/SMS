@@ -116,75 +116,118 @@
         </div>
     </x-shared.card>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="resetMarkModal" tabindex="-1" aria-labelledby="resetMarkModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-danger text-white border-0 py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width:38px;height:38px">
+                            <i class="fas fa-exclamation-triangle text-white fs-6"></i>
+                        </div>
+                        <h5 class="modal-title mb-0 fw-bold" id="resetMarkModalLabel">تأكيد حذف الدرجة</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <p class="mb-2 fw-semibold text-dark fs-6">هل أنت متأكد من حذف درجة هذا الطالب؟</p>
+                    <p class="text-muted small mb-3">سيتم إعادة تعيين اختباره لكي يتمكن من تقديمه <strong class="text-danger">مرة أخرى</strong>.</p>
+                    <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-0 rounded-3" role="alert">
+                        <i class="fas fa-info-circle text-warning flex-shrink-0"></i>
+                        <small>لا يمكن التراجع عن هذا الإجراء بعد التأكيد.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> إلغاء
+                    </button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnConfirmResetMark">
+                        <i class="fas fa-trash-alt me-1"></i> حذف وإعادة تعيين
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Grid -->
     <x-shared.card shadow="sm">
-        <x-table.data-table hover="true" id="marksTable">
-            <x-slot:header>
-                <th style="width:40px">#</th>
-                <th>اسم الطالب</th>
-                <th style="width:130px">الحالة</th>
-                <th style="width:120px">الدرجة / {{ $exam->total_marks }}</th>
-                <th style="width:80px">%</th>
-                <th style="width:80px">التقدير</th>
-                <th style="width:180px">ملاحظات</th>
-            </x-slot:header>
-            <x-slot:body>
-                @forelse($students as $index => $student)
-                @php
-                    $result = $results->get($student->id);
-                    $mark = $result ? (float)$result->marks_obtained : '';
-                    $status = $result ? $result->attendance_status : 'present';
-                    $remarks = $result ? $result->remarks : '';
-                    $pct = $result ? $result->percentage : null;
-                @endphp
-                <tr data-student-id="{{ $student->id }}" class="mark-row" id="row-{{ $student->id }}">
-                    <td class="text-sms-muted">{{ $index + 1 }}</td>
-                    <td><strong>{{ $student->name }}</strong></td>
-                    <td>
-                        <select class="form-select form-select-sm status-select" data-student="{{ $student->id }}">
-                            @foreach(\App\Models\ExamResult::attendanceStatuses() as $val => $label)
-                            <option value="{{ $val }}" {{ $status == $val ? 'selected' : '' }}>
-                                {{ match($val) { 'present' => 'حاضر', 'absent' => 'غائب', 'excused' => 'معذور', 'cheating' => 'غش', 'incomplete' => 'غير مكتمل', default => $label } }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control form-control-sm mark-input"
-                               data-student="{{ $student->id }}"
-                               value="{{ $mark }}"
-                               min="0" max="{{ $exam->total_marks }}" step="0.5"
-                               {{ $status !== 'present' ? 'disabled' : '' }}>
-                    </td>
-                    <td class="pct-cell fw-bold">{{ $pct !== null ? $pct . '%' : '-' }}</td>
-                    <td class="grade-cell">
-                        @if($pct !== null)
-                            @php
-                            $letterGrade = '';
-                            $isPassing = false;
-                            if ($pct >= 90)      { $letterGrade = 'ممتاز';    $isPassing = true; }
-                            elseif ($pct >= 80)  { $letterGrade = 'جيد جداً'; $isPassing = true; }
-                            elseif ($pct >= 70)  { $letterGrade = 'جيد';      $isPassing = true; }
-                            elseif ($pct >= 60)  { $letterGrade = 'متوسط';    $isPassing = true; }
-                            elseif ($pct >= 50)  { $letterGrade = 'مقبول';    $isPassing = true; }
-                            else                 { $letterGrade = 'راسب';     $isPassing = false; }
-                            @endphp
-                            <span class="badge {{ $isPassing ? 'bg-success' : 'bg-danger' }}">{{ $letterGrade }}</span>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm remarks-input"
-                               data-student="{{ $student->id }}"
-                               value="{{ $remarks }}" placeholder="اختياري">
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="7" class="text-center py-4 text-sms-muted">لم يتم العثور على طلاب في هذه الشعبة.</td></tr>
-                @endforelse
-            </x-slot:body>
-        </x-table.data-table>
+        <div class="sms-table-wrapper table-responsive w-100">
+            <table class="table mb-0 align-middle table-hover" id="marksTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:40px">#</th>
+                        <th>اسم الطالب</th>
+                        <th style="width:130px">الحالة</th>
+                        <th style="width:120px">الدرجة / {{ $exam->total_marks }}</th>
+                        <th style="width:80px">%</th>
+                        <th style="width:80px">التقدير</th>
+                        <th style="width:180px">ملاحظات</th>
+                        <th style="width:60px">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($students as $index => $student)
+                    @php
+                        $result = $results->get($student->id);
+                        $mark = $result ? (float)$result->marks_obtained : '';
+                        $status = $result ? $result->attendance_status : 'present';
+                        $remarks = $result ? $result->remarks : '';
+                        $pct = $result ? $result->percentage : null;
+                    @endphp
+                    <tr data-student-id="{{ $student->id }}" class="mark-row" id="row-{{ $student->id }}">
+                        <td class="text-sms-muted">{{ $index + 1 }}</td>
+                        <td><strong>{{ $student->name }}</strong></td>
+                        <td>
+                            <select class="form-select form-select-sm status-select" data-student="{{ $student->id }}">
+                                @foreach(\App\Models\ExamResult::attendanceStatuses() as $val => $label)
+                                <option value="{{ $val }}" {{ $status == $val ? 'selected' : '' }}>
+                                    {{ match($val) { 'present' => 'حاضر', 'absent' => 'غائب', 'excused' => 'معذور', 'cheating' => 'غش', 'incomplete' => 'غير مكتمل', default => $label } }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm mark-input"
+                                   data-student="{{ $student->id }}"
+                                   value="{{ $mark }}"
+                                   min="0" max="{{ $exam->total_marks }}" step="0.5"
+                                   {{ $status !== 'present' ? 'disabled' : '' }}>
+                        </td>
+                        <td class="pct-cell fw-bold">{{ $pct !== null ? $pct . '%' : '-' }}</td>
+                        <td class="grade-cell">
+                            @if($pct !== null)
+                                @php
+                                $letterGrade = '';
+                                $isPassing = false;
+                                if ($pct >= 90)      { $letterGrade = 'ممتاز';    $isPassing = true; }
+                                elseif ($pct >= 80)  { $letterGrade = 'جيد جداً'; $isPassing = true; }
+                                elseif ($pct >= 70)  { $letterGrade = 'جيد';      $isPassing = true; }
+                                elseif ($pct >= 60)  { $letterGrade = 'متوسط';    $isPassing = true; }
+                                elseif ($pct >= 50)  { $letterGrade = 'مقبول';    $isPassing = true; }
+                                else                 { $letterGrade = 'راسب';     $isPassing = false; }
+                                @endphp
+                                <span class="badge {{ $isPassing ? 'bg-success' : 'bg-danger' }}">{{ $letterGrade }}</span>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm remarks-input"
+                                   data-student="{{ $student->id }}"
+                                   value="{{ $remarks }}" placeholder="اختياري">
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger btn-reset-mark" data-student="{{ $student->id }}" title="حذف وإعادة تعيين">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="8" class="text-center py-4 text-sms-muted">لم يتم العثور على طلاب في هذه الشعبة.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </x-shared.card>
 
     <!-- Summary -->
@@ -221,13 +264,15 @@
 
 @push('scripts')
 @if($exam)
-<script src="{{ asset('assets/js/modules/assessment/marks-entry.js') }}"></script>
+<script src="{{ asset('assets/js/modules/assessment/marks-entry.js') }}?v={{ time() }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const marksEntryModule = new SMS.Modules.MarksEntry({
         examId: {{ $exam ? $exam->id : 'null' }},
         totalMarks: {{ $exam ? $exam->total_marks : 'null' }},
         saveUrl: '{{ route("admin.marks-entry.save-mark") }}',
+        deleteUrl: '{{ route("admin.marks-entry.delete-mark") }}',
+        csrf: '{{ csrf_token() }}',
         scales: [
             {percentage_from: 90, percentage_to: 100, letter_grade: 'ممتاز',    is_passing: true},
             {percentage_from: 80, percentage_to: 89.99, letter_grade: 'جيد جداً', is_passing: true},
@@ -349,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-block mb-3 transition-all icon-container">
                                             <i class="fas fa-users fs-3"></i>
                                         </div>
-                                        <h5 class="fw-bold mb-0 text-dark">شعبة ${sec.name}</h5>
+                                        <h5 class="fw-bold mb-0 text-dark">${sec.name}</h5>
                                     </div>
                                 </div>
                             </div>
@@ -384,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadSubjects() {
         hideAllSteps();
         showLoader(true);
-        bdSection.textContent = 'شعبة ' + state.sectionName;
+        bdSection.textContent = state.sectionName;
         bdSectionItem.classList.remove('d-none');
 
         const year = filterYear.value;

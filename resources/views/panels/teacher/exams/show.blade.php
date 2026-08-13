@@ -150,6 +150,7 @@
                         <th>التقدير</th>
                         <th>ملاحظات</th>
                         <th>مراجعة</th>
+                        <th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -216,6 +217,11 @@
                                 <span class="text-muted small">لم يُمتحن</span>
                             @endif
                         </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger btn-reset-mark" data-student="{{ $student->id }}" title="حذف وإعادة تعيين">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
                     </tr>
                     @empty
                     <tr>
@@ -231,11 +237,45 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="resetMarkModal" tabindex="-1" aria-labelledby="resetMarkModalLabelTeacher" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger text-white border-0 py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white bg-opacity-25 p-2 d-flex align-items-center justify-content-center" style="width:38px;height:38px">
+                        <i class="fas fa-exclamation-triangle text-white fs-6"></i>
+                    </div>
+                    <h5 class="modal-title mb-0 fw-bold" id="resetMarkModalLabelTeacher">تأكيد حذف الدرجة</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body px-4 py-4">
+                <p class="mb-2 fw-semibold text-dark fs-6">هل أنت متأكد من حذف درجة هذا الطالب؟</p>
+                <p class="text-muted small mb-3">سيتم إعادة تعيين اختباره لكي يتمكن من تقديمه <strong class="text-danger">مرة أخرى</strong>.</p>
+                <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-0 rounded-3" role="alert">
+                    <i class="fas fa-info-circle text-warning flex-shrink-0"></i>
+                    <small>لا يمكن التراجع عن هذا الإجراء بعد التأكيد.</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> إلغاء
+                </button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnConfirmResetMark">
+                    <i class="fas fa-trash-alt me-1"></i> حذف وإعادة تعيين
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 const EXAM_ID  = {{ $exam->id }};
 const SAVE_URL = "{{ route('teacher.exams.marks.save') }}";
 const SAVE_ALL_URL = "{{ route('teacher.exams.marks.save-all') }}";
+const DELETE_MARK_URL = "{{ route('teacher.exams.marks.delete') }}";
 const CSRF     = "{{ csrf_token() }}";
 
 function getStudentData(studentId) {
@@ -295,6 +335,77 @@ function setStatus(msg) {
     document.getElementById('saveStatus').textContent = msg;
     setTimeout(() => document.getElementById('saveStatus').textContent = '', 3000);
 }
+
+// Reset Mark Logic
+document.addEventListener('DOMContentLoaded', function() {
+    let pendingStudentId = null;
+    let pendingRow = null;
+
+    const modalEl = document.getElementById('resetMarkModal');
+    const confirmBtn = document.getElementById('btnConfirmResetMark');
+
+    document.querySelectorAll('.btn-reset-mark').forEach(btn => {
+        btn.addEventListener('click', function() {
+            pendingStudentId = this.dataset.student;
+            pendingRow = document.querySelector(`tr[data-student-id="${pendingStudentId}"]`);
+
+            if (modalEl) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            } else {
+                // Fallback
+                if (!confirm('هل أنت متأكد من حذف درجة هذا الطالب؟')) return;
+                executeDelete(pendingStudentId, pendingRow);
+            }
+        });
+    });
+
+    if (confirmBtn && modalEl) {
+        confirmBtn.addEventListener('click', () => {
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            if (pendingStudentId && pendingRow) {
+                executeDelete(pendingStudentId, pendingRow);
+                pendingStudentId = null;
+                pendingRow = null;
+            }
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            pendingStudentId = null;
+            pendingRow = null;
+        });
+    }
+
+    function executeDelete(studentId, row) {
+        setStatus('جاري الحذف...');
+
+        fetch(DELETE_MARK_URL, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: JSON.stringify({ exam_id: EXAM_ID, student_id: studentId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success === true) {
+                setStatus('✓ تم الحذف بنجاح');
+                row.querySelector('.mark-input').value = '';
+                row.querySelector('.attendance-select').value = 'present';
+                row.querySelector('.remarks-input').value = '';
+                row.querySelector('.percentage-badge').textContent = '—';
+                row.querySelector('.grade-badge').textContent = '—';
+            } else {
+                setStatus('✗ ' + (data.message || 'خطأ'));
+                alert(data.message || 'Error deleting mark.');
+            }
+        })
+        .catch(err => {
+            setStatus('✗ فشل الاتصال');
+            console.error(err);
+        });
+    }
+});
 </script>
 @endpush
 

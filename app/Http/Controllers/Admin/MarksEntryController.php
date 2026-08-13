@@ -131,6 +131,26 @@ class MarksEntryController extends Controller
     }
 
     /**
+     * AJAX: Delete a single student's mark (Reset attempt).
+     */
+    public function deleteMark(Request $request): JsonResponse
+    {
+        $request->validate([
+            'exam_id' => 'required|exists:exams,id',
+            'student_id' => 'required|exists:students,id',
+        ]);
+
+        $exam = Exam::findOrFail($request->exam_id);
+
+        try {
+            $this->examResultService->deleteMark($exam, $request->student_id);
+            return $this->successResponse('تم حذف الدرجة بنجاح. يمكن للطالب الآن إعادة الاختبار.', null, 'MARK_DELETED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error deleting mark: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
+    }
+
+    /**
      * AJAX: Bulk save all marks (Save All button).
      */
     public function saveAll(Request $request): JsonResponse

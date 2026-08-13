@@ -126,6 +126,15 @@
                             <a href="{{ route('admin.exams.print', $exam->id) }}" target="_blank" class="btn btn-sm btn-outline-dark" title="طباعة">
                                 <i class="fas fa-print"></i>
                             </a>
+                            
+                            <!-- Duplicate Button -->
+                            <form action="{{ route('admin.exams.duplicate', $exam->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('هل أنت متأكد من إنشاء نسخة مطابقة من هذا الاختبار؟')" title="نسخ وفتح لشعب أخرى">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </form>
+
                             <a href="{{ route('admin.exams.edit', $exam->id) }}" class="btn btn-sm btn-outline-warning" title="تعديل">
                                 <i class="fas fa-edit"></i>
                             </a>

@@ -65,7 +65,7 @@
                 </x-form.select>
             </div>
             <div class="col-md-3">
-                <x-form.select name="class_id" label="الصف" required="true" :error="$errors->first('class_id')">
+                <x-form.select name="class_id" id="class_id" label="الصف" required="true" :error="$errors->first('class_id')">
                     <option value="">-- اختر --</option>
                     @foreach($classes as $class)
                         <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
@@ -76,7 +76,9 @@
                 <label for="section_ids" class="form-label">الشعب <span class="text-danger">*</span></label>
                 <select name="section_ids[]" id="section_ids" class="form-select select2" multiple required>
                     @foreach($sections as $section)
-                        <option value="{{ $section->id }}" {{ in_array($section->id, old('section_ids', [])) ? 'selected' : '' }}>{{ $section->name }}</option>
+                        <option value="{{ $section->id }}" data-class-id="{{ $section->class_id }}" {{ in_array($section->id, old('section_ids', [])) ? 'selected' : '' }}>
+                            {{ $section->schoolClass?->name }} - {{ $section->name }}
+                        </option>
                     @endforeach
                 </select>
                 @error('section_ids')
@@ -143,3 +145,42 @@
 </x-shared.card>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class_id');
+    const sectionSelect = document.getElementById('section_ids');
+    const sectionOptions = Array.from(sectionSelect.options);
+
+    function filterSections() {
+        const selectedClassId = classSelect.value;
+        let hasVisibleOptions = false;
+
+        sectionOptions.forEach(option => {
+            if (!selectedClassId || option.dataset.classId === selectedClassId) {
+                option.style.display = '';
+                // Optional: if using Select2, select2 needs to be re-initialized or updated
+                option.disabled = false;
+                hasVisibleOptions = true;
+            } else {
+                option.style.display = 'none';
+                option.selected = false; // unselect hidden options
+                option.disabled = true;
+            }
+        });
+
+        // Trigger change for Select2 if it exists
+        if (typeof jQuery !== 'undefined' && jQuery(sectionSelect).data('select2')) {
+            jQuery(sectionSelect).trigger('change.select2');
+        }
+    }
+
+    if (classSelect) {
+        classSelect.addEventListener('change', filterSections);
+        // Initial filter on page load (in case of old input)
+        filterSections();
+    }
+});
+</script>
+@endpush

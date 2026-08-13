@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('exams/{exam}/print', [ExamController::class, 'print'])->name('exams.print');
         Route::post('exams/{exam}/publish', [ExamController::class, 'publish'])->name('exams.publish');
         Route::post('exams/{exam}/unlock', [ExamController::class, 'unlock'])->name('exams.unlock');
+        Route::post('exams/{exam}/duplicate', [ExamController::class, 'duplicate'])->name('exams.duplicate');
         Route::resource('exams', ExamController::class);
         Route::post('exams/{exam}/questions', [App\Http\Controllers\Admin\QuestionController::class, 'store'])->name('questions.store');
         Route::put('exams/{exam}/questions/{question}', [App\Http\Controllers\Admin\QuestionController::class, 'update'])->name('questions.update');
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'role:admin'])
         // Marks Entry Routes
         Route::get('marks-entry', [MarksEntryController::class, 'index'])->name('marks-entry.index');
         Route::post('marks-entry/save-mark', [MarksEntryController::class, 'saveMark'])->name('marks-entry.save-mark');
+        Route::delete('marks-entry/delete-mark', [MarksEntryController::class, 'deleteMark'])->name('marks-entry.delete-mark');
         Route::post('marks-entry/save-all', [MarksEntryController::class, 'saveAll'])->name('marks-entry.save-all');
         Route::get('marks-entry/get-classes', [MarksEntryController::class, 'getClasses'])->name('marks-entry.get-classes');
         Route::get('marks-entry/get-sections', [MarksEntryController::class, 'getSections'])->name('marks-entry.get-sections');

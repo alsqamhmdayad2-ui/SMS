@@ -68,6 +68,40 @@ class ExamResultService
     }
 
     /**
+     * Delete a single student mark and reset their exam session.
+     */
+    public function deleteMark(Exam $exam, $studentId)
+    {
+        return DB::transaction(function () use ($exam, $studentId) {
+            $result = ExamResult::where('exam_id', $exam->id)
+                ->where('student_id', $studentId)
+                ->first();
+
+            if ($result) {
+                $result->delete();
+                
+                // Also delete the session so they can retake the exam
+                \App\Models\ExamSession::where('exam_id', $exam->id)
+                    ->where('student_id', $studentId)
+                    ->delete();
+
+                // Trigger grade recalculation for this student
+                $studentSectionId = \App\Models\Student::find($studentId)?->section_id;
+                $this->gradeCalculationService->calculateSubjectGrade(
+                    $studentId,
+                    $exam->subject_id,
+                    $exam->academic_year_id,
+                    $exam->semester_id,
+                    $studentSectionId
+                );
+                
+                return true;
+            }
+            return false;
+        });
+    }
+
+    /**
      * Bulk save marks for an exam (Excel-like entry).
      */
     public function bulkSaveMarks(Exam $exam, array $resultsData, $userId)

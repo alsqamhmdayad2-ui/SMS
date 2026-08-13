@@ -51,6 +51,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
         Route::post('/{exam}/questions/{question}/duplicate',    [App\Http\Controllers\Teacher\ExamQuestionController::class, 'duplicate']) ->name('questions.duplicate');
         Route::delete('/{exam}/questions/{question}',            [App\Http\Controllers\Teacher\ExamQuestionController::class, 'destroy'])   ->name('questions.destroy');
         Route::post('/marks/save',     [App\Http\Controllers\Teacher\ExamController::class, 'saveMark'])->name('marks.save');
+        Route::delete('/marks/delete', [App\Http\Controllers\Teacher\ExamController::class, 'deleteMark'])->name('marks.delete');
         Route::post('/marks/save-all', [App\Http\Controllers\Teacher\ExamController::class, 'saveAll']) ->name('marks.save-all');
         Route::get('/ajax/subjects',   [App\Http\Controllers\Teacher\ExamController::class, 'getSubjects'])->name('ajax.subjects');
         Route::get('/ajax/exams',      [App\Http\Controllers\Teacher\ExamController::class, 'getExams'])->name('ajax.exams');

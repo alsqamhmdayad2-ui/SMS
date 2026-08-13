@@ -69,15 +69,14 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">الشعبة <span class="text-danger">*</span></label>
-                            <select name="section_id" class="form-select @error('section_id') is-invalid @enderror" required>
-                                <option value="">-- اختر الشعبة --</option>
+                            <select name="section_ids[]" class="form-select select2 @error('section_ids') is-invalid @enderror" multiple required>
                                 @foreach($sections as $section)
-                                    <option value="{{ $section->id }}" {{ old('section_id') == $section->id ? 'selected' : '' }}>
+                                    <option value="{{ $section->id }}" {{ in_array($section->id, old('section_ids', [])) ? 'selected' : '' }}>
                                         {{ $section->schoolClass?->name }} - {{ $section->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('section_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            @error('section_ids')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="col-md-6">
