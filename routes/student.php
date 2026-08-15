@@ -7,6 +7,7 @@ use App\Http\Controllers\Student\ResultController;
 use App\Http\Controllers\Student\ReportController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\SettingsController;
+use App\Http\Controllers\Student\TimetableController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:student'])
@@ -24,4 +25,5 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/reports', [ReportController::class, 'index'])->name('reports');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable');
     });
