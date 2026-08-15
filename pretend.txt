@@ -1,0 +1,116 @@
+
+   INFO  Running migrations.  
+
+  2026_07_25_104410_create_student_enrollments_table .................................................................  
+  ⇂ create table `student_enrollments` (`id` bigint unsigned not null auto_increment primary key, `student_id` bigint unsigned not null, `academic_year_id` bigint unsigned not null, `grade_id` bigint unsigned not null, `class_id` bigint unsigned not null, `section_id` bigint unsigned not null, `registration_date` date not null, `registration_type` enum('New', 'Transferred', 'Re-enrolled') not null default 'New', `previous_school` varchar(255) null, `transfer_reason` varchar(255) null, `created_at` timestamp null, `updated_at` timestamp null, `deleted_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_student_id_foreign` foreign key (`student_id`) references `students` (`id`) on delete cascade  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_academic_year_id_foreign` foreign key (`academic_year_id`) references `academic_years` (`id`) on delete cascade  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_grade_id_foreign` foreign key (`grade_id`) references `grades` (`id`) on delete cascade  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_class_id_foreign` foreign key (`class_id`) references `classes` (`id`) on delete cascade  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_section_id_foreign` foreign key (`section_id`) references `sections` (`id`) on delete cascade  
+  2026_07_25_104411_create_student_documents_table ...................................................................  
+  ⇂ create table `student_documents` (`id` bigint unsigned not null auto_increment primary key, `student_id` bigint unsigned not null, `document_type` varchar(255) not null, `file_path` varchar(255) not null, `is_verified` tinyint(1) not null default '0', `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `student_documents` add constraint `student_documents_student_id_foreign` foreign key (`student_id`) references `students` (`id`) on delete cascade  
+  2026_07_25_115209_add_national_id_to_users_table ...................................................................  
+  ⇂ alter table `users` add `national_id` varchar(255) null after `name`  
+  ⇂ alter table `users` add unique `users_national_id_unique`(`national_id`)  
+  2026_07_25_125637_add_grade_and_class_to_subjects_table ............................................................  
+  ⇂ alter table `subjects` add `grade_id` bigint unsigned null after `id`  
+  ⇂ alter table `subjects` add constraint `subjects_grade_id_foreign` foreign key (`grade_id`) references `grades` (`id`) on delete set null  
+  ⇂ alter table `subjects` add `class_id` bigint unsigned null after `grade_id`  
+  ⇂ alter table `subjects` add constraint `subjects_class_id_foreign` foreign key (`class_id`) references `classes` (`id`) on delete set null  
+  2026_07_25_130536_create_class_subject_teacher_table ...............................................................  
+  ⇂ create table `class_subject_teacher` (`id` bigint unsigned not null auto_increment primary key, `class_id` bigint unsigned not null, `subject_id` bigint unsigned not null, `teacher_id` bigint unsigned null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `class_subject_teacher` add constraint `class_subject_teacher_class_id_foreign` foreign key (`class_id`) references `classes` (`id`) on delete cascade  
+  ⇂ alter table `class_subject_teacher` add constraint `class_subject_teacher_subject_id_foreign` foreign key (`subject_id`) references `subjects` (`id`) on delete cascade  
+  ⇂ alter table `class_subject_teacher` add constraint `class_subject_teacher_teacher_id_foreign` foreign key (`teacher_id`) references `teachers` (`id`) on delete set null  
+  ⇂ alter table `class_subject_teacher` add unique `class_subject_teacher_class_id_subject_id_unique`(`class_id`, `subject_id`)  
+  2026_07_25_131303_create_subject_section_teacher_table .............................................................  
+  ⇂ create table `subject_section_teacher` (`id` bigint unsigned not null auto_increment primary key, `subject_id` bigint unsigned not null, `section_id` bigint unsigned not null, `teacher_id` bigint unsigned null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `subject_section_teacher` add constraint `subject_section_teacher_subject_id_foreign` foreign key (`subject_id`) references `subjects` (`id`) on delete cascade  
+  ⇂ alter table `subject_section_teacher` add constraint `subject_section_teacher_section_id_foreign` foreign key (`section_id`) references `sections` (`id`) on delete cascade  
+  ⇂ alter table `subject_section_teacher` add constraint `subject_section_teacher_teacher_id_foreign` foreign key (`teacher_id`) references `teachers` (`id`) on delete set null  
+  ⇂ alter table `subject_section_teacher` add unique `subject_section_teacher_subject_id_section_id_unique`(`subject_id`, `section_id`)  
+  2026_07_25_132203_drop_grade_class_from_subjects_table .............................................................  
+  ⇂ alter table `subjects` drop foreign key `subjects_class_id_foreign`  
+  ⇂ alter table `subjects` drop foreign key `subjects_grade_id_foreign`  
+  ⇂ alter table `subjects` drop `class_id`, drop `grade_id`  
+  2026_07_25_133918_make_times_nullable_in_timetables ................................................................  
+  ⇂ alter table `timetables` modify `start_time` time null  
+  ⇂ alter table `timetables` modify `end_time` time null  
+  ⇂ alter table `timetables` modify `teacher_id` bigint unsigned null  
+  2026_08_01_075940_add_name_parts_to_parents_table ..................................................................  
+  ⇂ alter table `parents` add `first_name` varchar(255) null after `full_name`  
+  ⇂ alter table `parents` add `father_name` varchar(255) null after `first_name`  
+  ⇂ alter table `parents` add `grandfather_name` varchar(255) null after `father_name`  
+  ⇂ alter table `parents` add `family_name` varchar(255) null after `grandfather_name`  
+  2026_08_01_114454_create_subject_teacher_table .....................................................................  
+  ⇂ create table `subject_teacher` (`id` bigint unsigned not null auto_increment primary key, `subject_id` bigint unsigned not null, `teacher_id` bigint unsigned not null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `subject_teacher` add constraint `subject_teacher_subject_id_foreign` foreign key (`subject_id`) references `subjects` (`id`) on delete cascade  
+  ⇂ alter table `subject_teacher` add constraint `subject_teacher_teacher_id_foreign` foreign key (`teacher_id`) references `teachers` (`id`) on delete cascade  
+  ⇂ alter table `subject_teacher` add unique `subject_teacher_subject_id_teacher_id_unique`(`subject_id`, `teacher_id`)  
+  2026_08_03_102837_alter_student_enrollments_for_promotion ..........................................................  
+  ⇂ alter table `student_enrollments` drop foreign key `student_enrollments_section_id_foreign`  
+  ⇂ select column_name as `name`, data_type as `type_name`, column_type as `type`, collation_name as `collation`, is_nullable as `nullable`, column_default as `default`, column_comment as `comment`, generation_expression as `expression`, extra as `extra` from information_schema.columns where table_schema = schema() and table_name = 'student_enrollments' order by ordinal_position asc  
+  ⇂ alter table `student_enrollments` modify `section_id` bigint unsigned null  
+  ⇂ alter table `student_enrollments` add constraint `student_enrollments_section_id_foreign` foreign key (`section_id`) references `sections` (`id`) on delete set null  
+  ⇂ alter table `student_enrollments` add `status` varchar(255) not null default 'active' after `section_id`  
+  2026_08_03_114434_add_academic_year_id_to_subject_section_teacher_table ............................................  
+  ⇂ alter table `subject_section_teacher` add `academic_year_id` bigint unsigned null after `id`  
+  ⇂ alter table `subject_section_teacher` add constraint `subject_section_teacher_academic_year_id_foreign` foreign key (`academic_year_id`) references `academic_years` (`id`) on delete cascade  
+  ⇂ select * from `academic_years` where `status` = 1 limit 1  
+  ⇂ select * from `academic_years` order by `created_at` desc limit 1  
+  ⇂ alter table `subject_section_teacher` modify `academic_year_id` bigint unsigned not null  
+  ⇂ alter table `subject_section_teacher` drop foreign key `subject_section_teacher_subject_id_foreign`  
+  ⇂ alter table `subject_section_teacher` drop index `subject_section_teacher_subject_id_section_id_unique`  
+  ⇂ alter table `subject_section_teacher` add constraint `subject_section_teacher_subject_id_foreign` foreign key (`subject_id`) references `subjects` (`id`) on delete cascade  
+  ⇂ alter table `subject_section_teacher` add unique `sst_year_subject_section_unique`(`academic_year_id`, `subject_id`, `section_id`)  
+  2026_08_03_124524_add_weekly_periods_to_subjects_and_teachers ......................................................  
+  ⇂ alter table `subjects` add `weekly_periods` tinyint unsigned not null default '0' comment 'عدد الحصص الأسبوعية حسب المنهاج' after `code`  
+  ⇂ alter table `teachers` add `max_weekly_periods` tinyint unsigned not null default '24' comment 'النصاب الأسبوعي للمعلم (عدد الحصص)' after `salary`  
+  2026_08_03_130256_move_weekly_periods_to_class_subject_teacher .....................................................  
+  ⇂ alter table `class_subject_teacher` add `weekly_periods` tinyint unsigned not null default '0' comment 'عدد الحصص الأسبوعية لهذا الصف والمادة' after `teacher_id`  
+  ⇂ alter table `subjects` drop `weekly_periods`  
+  2026_08_08_105739_make_email_nullable_in_users_and_students ........................................................  
+  ⇂ alter table `users` modify `email` varchar(255) null  
+  ⇂ alter table `students` modify `email` varchar(255) null  
+  2026_08_08_123034_drop_grade_scales_and_assessment_components_tables ...............................................  
+  ⇂ SET FOREIGN_KEY_CHECKS=0;  
+  ⇂ drop table if exists `assessment_components`  
+  ⇂ drop table if exists `grade_scales`  
+  ⇂ SET FOREIGN_KEY_CHECKS=1;  
+  2026_08_08_123047_remove_grade_scale_id_from_student_subject_grades ................................................  
+  ⇂ alter table `student_subject_grades` drop foreign key `student_subject_grades_grade_scale_id_foreign`  
+  ⇂ alter table `student_subject_grades` drop `grade_scale_id`  
+  ⇂ alter table `student_subject_grades` drop `grade_scale_name_snapshot`  
+  ⇂ alter table `student_subject_grades` add `letter_grade` varchar(255) null after `total_percentage`  
+  2026_08_09_102745_add_display_mode_to_exams_table ..................................................................  
+  ⇂ alter table `exams` add `display_mode` enum('single_page', 'per_question') not null default 'single_page' after `status`  
+  2026_08_09_102746_create_exam_student_answers_table ................................................................  
+  ⇂ create table `exam_student_answers` (`id` bigint unsigned not null auto_increment primary key, `exam_result_id` bigint unsigned not null, `student_id` bigint unsigned not null, `exam_id` bigint unsigned not null, `question_id` bigint unsigned not null, `question_option_id` bigint unsigned null, `text_answer` text null, `marks_awarded` decimal(5, 2) not null default '0', `is_correct` tinyint(1) not null default '0', `is_graded` tinyint(1) not null default '1', `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `exam_student_answers` add constraint `exam_student_answers_exam_result_id_foreign` foreign key (`exam_result_id`) references `exam_results` (`id`) on delete cascade  
+  ⇂ alter table `exam_student_answers` add constraint `exam_student_answers_student_id_foreign` foreign key (`student_id`) references `students` (`id`) on delete cascade  
+  ⇂ alter table `exam_student_answers` add constraint `exam_student_answers_exam_id_foreign` foreign key (`exam_id`) references `exams` (`id`) on delete cascade  
+  ⇂ alter table `exam_student_answers` add constraint `exam_student_answers_question_id_foreign` foreign key (`question_id`) references `questions` (`id`) on delete cascade  
+  ⇂ alter table `exam_student_answers` add constraint `exam_student_answers_question_option_id_foreign` foreign key (`question_option_id`) references `question_options` (`id`) on delete set null  
+  2026_08_09_105716_create_exam_sessions_table .......................................................................  
+  ⇂ create table `exam_sessions` (`id` bigint unsigned not null auto_increment primary key, `exam_id` bigint unsigned not null, `student_id` bigint unsigned not null, `started_at` timestamp not null, `submitted_at` timestamp null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `exam_sessions` add constraint `exam_sessions_exam_id_foreign` foreign key (`exam_id`) references `exams` (`id`) on delete cascade  
+  ⇂ alter table `exam_sessions` add constraint `exam_sessions_student_id_foreign` foreign key (`student_id`) references `students` (`id`) on delete cascade  
+  ⇂ alter table `exam_sessions` add unique `exam_sessions_exam_id_student_id_unique`(`exam_id`, `student_id`)  
+  2026_08_10_120411_add_total_marks_to_exams_table ...................................................................  
+  ⇂ alter table `exams` add `total_marks` decimal(8, 2) not null default '0' after `duration_minutes`  
+  2026_08_10_121546_create_exam_section_table ........................................................................  
+  ⇂ create table `exam_section` (`id` bigint unsigned not null auto_increment primary key, `exam_id` bigint unsigned not null, `section_id` bigint unsigned not null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `exam_section` add constraint `exam_section_exam_id_foreign` foreign key (`exam_id`) references `exams` (`id`) on delete cascade  
+  ⇂ alter table `exam_section` add constraint `exam_section_section_id_foreign` foreign key (`section_id`) references `sections` (`id`) on delete cascade  
+  ⇂ INSERT INTO exam_section (exam_id, section_id, created_at, updated_at) SELECT id, section_id, created_at, updated_at FROM exams WHERE section_id IS NOT NULL  
+  ⇂ alter table `exams` drop foreign key `exams_section_id_foreign`  
+  ⇂ alter table `exams` drop `section_id`  
+  2026_08_10_123523_add_show_marks_to_exams_table ....................................................................  
+  ⇂ alter table `exams` add `show_marks_to_student` tinyint(1) not null default '0' comment 'Whether students can see their score immediately after submission' after `total_marks`  
+  2026_08_10_140546_add_draft_answers_to_exam_sessions_table .........................................................  
+  ⇂ alter table `exam_sessions` add `draft_answers` json null after `started_at`  
+  2026_08_10_142123_add_show_answers_to_student_to_exams_table .......................................................  
+  ⇂ alter table `exams` add `show_answers_to_student` tinyint(1) not null default '0' after `show_marks_to_student`  
+

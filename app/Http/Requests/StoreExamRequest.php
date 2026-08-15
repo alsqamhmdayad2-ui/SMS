@@ -37,7 +37,7 @@ class StoreExamRequest extends FormRequest
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'duration_minutes' => 'nullable|integer|min:1',
-            'status' => 'required|in:scheduled,ongoing,completed,cancelled',
+            'status' => 'required|in:draft,published,closed,archived',
             'instructions' => 'nullable|string',
             'total_marks' => 'required|numeric|min:1',
             'show_marks_to_student' => 'nullable|boolean',

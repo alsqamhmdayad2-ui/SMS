@@ -83,7 +83,7 @@ class ResultPublicationService
 
         $exams = Exam::where('academic_year_id', $academicYearId)
             ->where('subject_id', $subjectId)
-            ->where('section_id', $sectionId)
+            ->whereHas('sections', fn($q) => $q->where('sections.id', $sectionId))
             ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
             ->get();
 
@@ -229,7 +229,7 @@ class ResultPublicationService
     public function canGenerateOfficialReport($academicYearId, $semesterId, $sectionId): bool
     {
         $subjectIds = Exam::where('academic_year_id', $academicYearId)
-            ->where('section_id', $sectionId)
+            ->whereHas('sections', fn($q) => $q->where('sections.id', $sectionId))
             ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
             ->pluck('subject_id')
             ->unique();
