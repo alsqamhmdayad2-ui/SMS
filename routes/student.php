@@ -27,4 +27,6 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
         Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable');
         Route::get('/attendance', [App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendance');
+        Route::get('/documents', [App\Http\Controllers\Student\DocumentController::class, 'index'])->name('documents.index');
+        Route::get('/documents/{document}/download', [App\Http\Controllers\Student\DocumentController::class, 'download'])->name('documents.download');
     });

@@ -368,6 +368,14 @@ return [
         'roles'  => ['student'],
     ],
 
+    // المستندات
+    [
+        'title'  => 'المستندات',
+        'icon'   => 'folder-open',
+        'route'  => 'student.documents.index',
+        'roles'  => ['student'],
+    ],
+
     // الملف الشخصي
     [
         'title'  => 'الملف الشخصي',
