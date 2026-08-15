@@ -352,11 +352,19 @@ return [
         'roles'  => ['student'],
     ],
 
+    // الجدول الدراسي
+    [
+        'title'  => 'الجدول الدراسي',
+        'icon'   => 'calendar-alt',
+        'route'  => 'student.timetable',
+        'roles'  => ['student'],
+    ],
+
     // الحضور والغياب
     [
         'title'  => 'الحضور والغياب',
         'icon'   => 'calendar-check',
-        'route'  => 'student.reports', // We map this to reports page since reports page handles attendance details for students
+        'route'  => 'student.attendance',
         'roles'  => ['student'],
     ],
 

@@ -26,4 +26,5 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
         Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable');
+        Route::get('/attendance', [App\Http\Controllers\Student\AttendanceController::class, 'index'])->name('attendance');
     });
