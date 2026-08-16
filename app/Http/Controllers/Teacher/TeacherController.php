@@ -74,38 +74,7 @@ class TeacherController extends Controller
         return view('panels.teacher.schedule', compact('timetables', 'dayNames', 'teacher'));
     }
 
-    // ─── Grades ──────────────────────────────────────────────────────────
-    public function grades(Request $request)
-    {
-        $teacher = Auth::user()?->teacher;
-
-        $mySectionIds = [];
-        if ($teacher) {
-            $mySectionIds = Timetable::where('teacher_id', $teacher->id)
-                ->pluck('section_id')->unique()->values()->toArray();
-        }
-
-        $sections = Section::with(['schoolClass.grade', 'students'])
-            ->whereIn('id', $mySectionIds)
-            ->get();
-
-        // For now show students in selected section
-        $selectedSection = null;
-        $students = collect();
-        if ($request->section_id) {
-            $selectedSection = $sections->firstWhere('id', $request->section_id);
-            if ($selectedSection) {
-                $students = $selectedSection->students;
-            }
-        } else {
-            $selectedSection = $sections->first();
-            if ($selectedSection) {
-                $students = $selectedSection->students;
-            }
-        }
-
-        return view('panels.teacher.grades', compact('sections', 'students', 'selectedSection', 'teacher'));
-    }
+    // The 'grades' method has been replaced by GradebookController
 
     // ─── Profile ─────────────────────────────────────────────────────────
     public function profile()

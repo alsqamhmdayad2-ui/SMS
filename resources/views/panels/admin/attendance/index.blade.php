@@ -139,7 +139,7 @@
             <x-slot:header>
                 <th>{{ __('attendance.date') }}</th>
                 <th>{{ __('attendance.section') }}</th>
-                <th>Recorded By</th>
+                <th>{{ __('attendance.recorded_by') }}</th>
                 <th style="width:120px;">{{ __('attendance.attendance_rate') }}</th>
                 <th>{{ __('attendance.status') }}</th>
                 <th>{{ __('attendance.actions') }}</th>
@@ -157,7 +157,7 @@
                                 <div>
                                     <div class="fw-semibold">{{ $session->teacher->name ?? '—' }}</div>
                                     @if($session->period_number)
-                                        <small class="text-sms-muted">Recorded during Period {{ $session->period_number }}</small>
+                                        <small class="text-sms-muted">{{ __('attendance.recorded_during_period') }} {{ $session->period_number }}</small>
                                     @endif
                                 </div>
                             </div>

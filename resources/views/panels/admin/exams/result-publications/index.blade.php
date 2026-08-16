@@ -45,24 +45,16 @@
                     <div class="mb-3 p-3 bg-light rounded-3">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-mortarboard text-primary me-2"></i>
-                            <span class="fw-semibold">المرحلة:</span> <span class="ms-2">{{ $pub->grade->name }}</span>
+                            <span class="fw-semibold">الصف:</span> <span class="ms-2">{{ $pub->grade->name }}</span>
                         </div>
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-layers text-info me-2"></i>
                             <span class="fw-semibold">الشعبة:</span> <span class="ms-2">{{ $pub->section->name }}</span>
                         </div>
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-tag text-success me-2"></i>
-                            <span class="fw-semibold">النطاق:</span> 
-                            <span class="ms-2">
-                                @if($pub->published_type === 'subject')
-                                    مادة ({{ $pub->subject->name ?? 'غير محدد' }})
-                                @elseif($pub->published_type === 'section')
-                                    شعبة كاملة
-                                @else
-                                    فصل كامل
-                                @endif
-                            </span>
+                            <i class="bi bi-lock text-success me-2"></i>
+                            <span class="fw-semibold">حالة الرصد:</span> 
+                            <span class="ms-2 text-success">مقفلة بالكامل</span>
                         </div>
                     </div>
                     
@@ -109,18 +101,20 @@
 </div>
 
 <!-- Publish Modal -->
-<x-shared.modal id="publishModal" title="<i class='bi bi-megaphone'></i> نشر نتائج جديدة" headerClass="bg-sms-primary text-white">
+<x-shared.modal id="publishModal" title="<i class='bi bi-shield-check'></i> اعتماد ونشر نتائج فصلية" headerClass="bg-sms-primary text-white">
     <form action="{{ route('admin.result-publications.store') }}" method="POST">
         @csrf
         <x-slot:body>
-            <div class="alert alert-info py-2 small">
-                <i class="bi bi-info-circle"></i> نشر النتائج يجعلها مرئية للطلاب وأولياء الأمور ويمنع التعديل على الدرجات.
+            <div class="alert alert-warning py-2 small">
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i> <strong>ملاحظة هامة:</strong> 
+                اعتماد النتائج لشعبة معينة سيؤدي إلى <strong>قفل جميع المواد</strong> ومنع تعديل درجاتها، وستصبح النتائج والشهادات مرئية للطلاب وأولياء الأمور.
             </div>
 
             <div class="mb-3">
-                <x-form.select name="published_type" id="publishedType" label="نوع النشر" required="true" onchange="toggleSubject()">
-                    <option value="subject">مادة محددة</option>
-                    <option value="section">شعبة كاملة</option>
+                <x-form.select name="publish_scope" id="publishScope" label="نطاق النشر" required="true" onchange="toggleScope()">
+                    <option value="section">شعبة محددة</option>
+                    <option value="grade">صف بالكامل (جميع شعبه)</option>
+                    <option value="school">المدرسة بالكامل (جميع الصفوف والشعب)</option>
                 </x-form.select>
             </div>
 
@@ -133,8 +127,8 @@
                     </x-form.select>
                 </div>
                 <div class="col-6">
-                    <x-form.select name="semester_id" label="الفصل الدراسي">
-                        <option value="">سنة كاملة</option>
+                    <x-form.select name="semester_id" label="الفصل الدراسي" required="true">
+                        <option value="">اختر الفصل...</option>
                         @foreach($semesters as $s)
                         <option value="{{ $s->id }}">{{ $s->name }}</option>
                         @endforeach
@@ -142,18 +136,18 @@
                 </div>
             </div>
 
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <x-form.select name="grade_id" label="المرحلة الدراسية" required="true">
-                        <option value="">اختر المرحلة...</option>
+            <div class="row g-2 mb-3" id="gradeSectionDiv">
+                <div class="col-6" id="gradeDiv">
+                    <x-form.select name="grade_id" id="gradeSelect" label="الصف الدراسي">
+                        <option value="">اختر الصف...</option>
                         @foreach($grades as $g)
                         <option value="{{ $g->id }}">{{ $g->name }}</option>
                         @endforeach
                     </x-form.select>
                 </div>
-                <div class="col-6">
-                    <label class="form-label fw-semibold text-sms-main">الشعبة <span class="text-sms-danger">*</span></label>
-                    <select name="section_id" class="form-select" required>
+                <div class="col-6" id="sectionDiv">
+                    <label class="form-label fw-semibold text-sms-main">الشعبة المراد اعتمادها <span class="text-sms-danger">*</span></label>
+                    <select name="section_id" id="sectionSelect" class="form-select">
                         <option value="">اختر الشعبة...</option>
                         @php $sections = \App\Models\Section::with('schoolClass')->get(); @endphp
                         @foreach($sections as $sec)
@@ -163,18 +157,9 @@
                 </div>
             </div>
 
-            <div class="mb-3" id="subjectDiv">
-                <x-form.select name="subject_id" id="subjectSelect" label="المادة" required="true">
-                    <option value="">اختر المادة...</option>
-                    @foreach($subjects as $sub)
-                    <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                    @endforeach
-                </x-form.select>
-            </div>
-
             <div class="mb-3">
                 <label class="form-label fw-semibold text-sms-main">ملاحظات (اختياري)</label>
-                <textarea name="notes" class="form-control" rows="2" placeholder="مثال: النتائج النهائية لمادة الرياضيات"></textarea>
+                <textarea name="notes" class="form-control" rows="2" placeholder="مثال: تم مراجعة جميع الدرجات واعتمادها نهائياً"></textarea>
             </div>
 
         </x-slot:body>
@@ -197,21 +182,44 @@
 </style>
 @endpush
 
+
 @push('scripts')
 <script>
-    function toggleSubject() {
-        const type = document.getElementById('publishedType').value;
-        const subjDiv = document.getElementById('subjectDiv');
-        const subjSel = document.getElementById('subjectSelect');
-        if (type === 'subject') {
-            subjDiv.style.display = 'block';
-            subjSel.setAttribute('required', 'required');
+    function toggleScope() {
+        const scope = document.getElementById('publishScope').value;
+        const gradeDiv = document.getElementById('gradeDiv');
+        const sectionDiv = document.getElementById('sectionDiv');
+        const gradeSectionDiv = document.getElementById('gradeSectionDiv');
+        
+        const gradeSelect = document.getElementById('gradeSelect');
+        const sectionSelect = document.getElementById('sectionSelect');
+        
+        if (scope === 'school') {
+            gradeSectionDiv.style.display = 'none';
+            gradeSelect.removeAttribute('required');
+            sectionSelect.removeAttribute('required');
+        } else if (scope === 'grade') {
+            gradeSectionDiv.style.display = 'flex';
+            gradeDiv.style.display = 'block';
+            sectionDiv.style.display = 'none';
+            
+            gradeSelect.setAttribute('required', 'required');
+            sectionSelect.removeAttribute('required');
         } else {
-            subjDiv.style.display = 'none';
-            subjSel.removeAttribute('required');
-            subjSel.value = '';
+            // section
+            gradeSectionDiv.style.display = 'flex';
+            gradeDiv.style.display = 'block';
+            sectionDiv.style.display = 'block';
+            
+            gradeSelect.setAttribute('required', 'required');
+            sectionSelect.setAttribute('required', 'required');
         }
     }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleScope();
+    });
 </script>
 @endpush
 @endsection

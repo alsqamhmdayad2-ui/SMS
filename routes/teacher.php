@@ -15,6 +15,11 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
     // Schedule
     Route::get('schedule', [App\Http\Controllers\Teacher\TeacherController::class, 'schedule'])->name('schedule');
 
+    // Gradebook (Marks Entry)
+    Route::get('gradebook', [App\Http\Controllers\Teacher\GradebookController::class, 'index'])->name('gradebook.index');
+    Route::get('gradebook/{section}/{subject}/enter', [App\Http\Controllers\Teacher\GradebookController::class, 'enter'])->name('gradebook.enter');
+    Route::post('gradebook/save-all', [App\Http\Controllers\Teacher\GradebookController::class, 'saveAll'])->name('gradebook.save-all');
+
     // Grades
     Route::get('grades', [App\Http\Controllers\Teacher\TeacherController::class, 'grades'])->name('grades');
 

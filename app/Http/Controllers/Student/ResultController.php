@@ -14,18 +14,22 @@ class ResultController extends Controller
         protected StudentResultService $studentResultService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $student = Student::where('user_id', $user->id)->first();
-        
+        $student = Student::where('user_id', $user->id)->with(['section.schoolClass', 'grade'])->first();
+
         $academicYear = AcademicYear::where('status', 1)->first();
+        $semesters = \App\Models\Semester::all();
+        $selectedSemester = $request->get('semester_id');
         $resultData = [];
-        
+
         if ($student && $academicYear) {
-            $resultData = $this->studentResultService->getStudentResult($student, $academicYear->id);
+            $resultData = $this->studentResultService->getStudentResult(
+                $student, $academicYear->id, $selectedSemester
+            );
         }
 
-        return view('panels.student.results', compact('student', 'resultData'));
+        return view('panels.student.results', compact('student', 'resultData', 'semesters', 'selectedSemester', 'academicYear'));
     }
 }

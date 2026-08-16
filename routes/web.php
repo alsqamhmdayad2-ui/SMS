@@ -31,6 +31,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Messaging Routes
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Messaging\MessageController::class, 'index'])->name('index');
+        Route::get('/sent', [\App\Http\Controllers\Messaging\MessageController::class, 'sent'])->name('sent');
+        Route::get('/create', [\App\Http\Controllers\Messaging\MessageController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Messaging\MessageController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Messaging\MessageController::class, 'show'])->name('show');
+        Route::post('/{id}/reply', [\App\Http\Controllers\Messaging\MessageController::class, 'reply'])->name('reply');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -113,7 +113,7 @@
                             <div class="alert alert-light border mb-0">
                                 <small class="text-muted">
                                     <strong>المادة:</strong> {{ $exam->subject?->name }} &nbsp;|&nbsp;
-                                    <strong>الشعبة:</strong> {{ $exam->sections->first()?->schoolClass?->name }} - {{ $exam->sections->pluck('name')->join('، ') }}
+                                    <strong>الشعبة:</strong> {{ $exam->sections->first()?->schoolClass?->name }} - {{ collect($exam->sections)->map(fn($s) => trim(str_replace(['الشعبة', 'شعبة'], '', $s->name)))->join('، ') }}
                                     <br><em>لتغيير المادة أو الشعبة، احذف الاختبار وأنشئ اختباراً جديداً.</em>
                                 </small>
                             </div>

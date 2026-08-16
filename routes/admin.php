@@ -13,7 +13,6 @@ use App\Http\Controllers\Admin\SemesterController;
 use App\Http\Controllers\Admin\TimetableController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\MarksEntryController;
-use App\Http\Controllers\Admin\GradebookController;
 use App\Http\Controllers\Admin\StudentResultController;
 use App\Http\Controllers\Admin\ResultPublicationController;
 use App\Http\Controllers\Admin\UserController;
@@ -90,9 +89,19 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('marks-entry/get-subjects', [MarksEntryController::class, 'getSubjects'])->name('marks-entry.get-subjects');
         Route::get('marks-entry/get-exams', [MarksEntryController::class, 'getExams'])->name('marks-entry.get-exams');
 
-        // Gradebook Routes
-        Route::get('gradebook', [GradebookController::class, 'index'])->name('gradebook.index');
-        Route::get('gradebook/student-breakdown', [GradebookController::class, 'studentBreakdown'])->name('gradebook.student-breakdown');
+        // الـ Gradebook القديم — إعادة توجيه للنظام الجديد
+        Route::get('gradebook', fn() => redirect()->route('admin.marks.index'))->name('gradebook.index');
+        Route::get('gradebook/student-breakdown', fn() => redirect()->route('admin.marks.index'))->name('gradebook.student-breakdown');
+
+        // ── نظام الرصد الجديد بالبطاقات (Gradebook Wizard) ──
+        Route::prefix('marks')->name('marks.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'index'])->name('index');
+            Route::get('/sections/{schoolClass}', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'sections'])->name('sections');
+            Route::get('/subjects/{section}', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'subjects'])->name('subjects');
+            Route::get('/enter/{section}/{subject}', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'enter'])->name('enter');
+            Route::post('/save-all', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'saveAll'])->name('save-all');
+            Route::post('/toggle-lock', [\App\Http\Controllers\Admin\GradebookWizardController::class, 'toggleLock'])->name('toggle-lock');
+        });
 
         // Student Result Routes
         Route::get('students/{student}/result', [StudentResultController::class, 'show'])->name('students.result.show');
@@ -109,13 +118,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/generate/{type}', [App\Http\Controllers\Admin\ReportController::class, 'generate'])->name('reports.generate');
 
-        // Official Report Cards
+        // Official Report Cards — PDF Generation
         Route::get('report-cards', [App\Http\Controllers\Admin\ReportCardController::class, 'index'])->name('report-cards.index');
         Route::post('report-cards/generate', [App\Http\Controllers\Admin\ReportCardController::class, 'generate'])->name('report-cards.generate');
-        Route::post('report-cards/{reportCard}/publish', [App\Http\Controllers\Admin\ReportCardController::class, 'publish'])->name('report-cards.publish');
-        Route::post('report-cards/{reportCard}/revoke', [App\Http\Controllers\Admin\ReportCardController::class, 'revoke'])->name('report-cards.revoke');
-        Route::get('report-cards/{reportCard}/pdf', [App\Http\Controllers\Admin\ReportCardController::class, 'pdf'])->name('report-cards.pdf');
-
         // Phase 8.6.3 — Admin Attendance Management
         Route::get('attendance-sessions', [App\Http\Controllers\Admin\AttendanceAdminController::class, 'index'])->name('attendance-sessions.index');
         Route::get('attendance-sessions/create', [App\Http\Controllers\Admin\AttendanceAdminController::class, 'create'])->name('attendance-sessions.create');

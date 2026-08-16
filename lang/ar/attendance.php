@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'sessions' => 'جلسات الحضور',
+    'total_sessions' => 'إجمالي الجلسات',
+    'open_sessions' => 'الجلسات المفتوحة',
+    'locked_sessions' => 'الجلسات المغلقة',
+    'avg_attendance' => 'متوسط الحضور',
+    'filter_sessions' => 'تصفية الجلسات',
+    'academic_year' => 'العام الدراسي',
+    'all_years' => 'كل الأعوام',
+    'semester' => 'الفصل الدراسي',
+    'all_semesters' => 'كل الفصول',
+    'section' => 'الشعبة',
+    'all_sections' => 'كل الشعب',
+    'status' => 'الحالة',
+    'all_statuses' => 'كل الحالات',
+    'open' => 'مفتوح',
+    'locked' => 'مغلق',
+    'date' => 'التاريخ',
+    'apply' => 'تطبيق',
+    'reset' => 'إلغاء التصفية',
+    'attendance_rate' => 'نسبة الحضور',
+    'actions' => 'الإجراءات',
+    'view' => 'عرض',
+    'recorded_by' => 'سُجل بواسطة',
+    'recorded_during_period' => 'سُجل خلال الحصة',
+];

@@ -61,14 +61,14 @@ class GradebookService
                 
                 $totalObtained = 0;
                 $totalMax = 0;
-                $examDetails = [];
+                $details = [];
 
                 foreach ($compExams as $exam) {
                     $result = $studentResults->firstWhere('exam_id', $exam->id);
                     if ($result && $result->attendance_status === 'present' && $result->marks_obtained !== null) {
                         $totalObtained += (float)$result->marks_obtained;
                         $totalMax += (float)$result->total_marks;
-                        $examDetails[] = [
+                        $details[] = [
                             'exam_title' => $exam->title,
                             'obtained' => (float)$result->marks_obtained,
                             'total' => (float)$result->total_marks,
@@ -76,7 +76,7 @@ class GradebookService
                         ];
                     } elseif ($result) {
                         $totalMax += (float)$result->total_marks;
-                        $examDetails[] = [
+                        $details[] = [
                             'exam_title' => $exam->title,
                             'obtained' => 0,
                             'total' => (float)$result->total_marks,
@@ -100,7 +100,7 @@ class GradebookService
                     'percentage' => $compPercentage,
                     'weight' => 0.0,
                     'contribution' => $compPercentage,
-                    'exams' => $examDetails,
+                    'details' => $details,
                 ];
             }
 

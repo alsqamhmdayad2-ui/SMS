@@ -58,14 +58,14 @@
         <div class="col-md-3 col-sm-6">
             <div class="card h-100 hover-lift cursor-pointer section-card border-0 shadow-sm"
                  data-id="{{ $sec->id }}"
-                 data-name="{{ $sec->name }}"
+                 data-name="{{ trim(str_replace(['الشعبة', 'شعبة'], '', $sec->name)) }}"
                  data-class="{{ $sec->schoolClass?->name ?? '' }}">
                 <div class="card-body text-center p-4">
                     <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-inline-block mb-3 transition-all icon-container">
                         <i class="fas fa-users fs-3"></i>
                     </div>
                     <h5 class="fw-bold mb-1 text-dark">{{ $sec->schoolClass?->name ?? '' }}</h5>
-                    <p class="text-muted small mb-0">شعبة {{ $sec->name }}</p>
+                    <p class="text-muted small mb-0">شعبة {{ trim(str_replace(['الشعبة', 'شعبة'], '', $sec->name)) }}</p>
                 </div>
             </div>
         </div>

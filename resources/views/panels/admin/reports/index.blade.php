@@ -107,7 +107,9 @@
                         <select name="section_id" class="form-select form-select-sm" required>
                             <option value="">اختر الشعبة...</option>
                             @foreach($sections as $section)
-                                <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                <option value="{{ $section->id }}">
+                                    {{ $section->schoolClass->name ?? '' }} - {{ $section->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>

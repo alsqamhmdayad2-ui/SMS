@@ -158,29 +158,29 @@ return [
         'roles'  => ['admin'],
         'items'  => [
             [
+                'name'   => '📋 رصد الدرجات',
+                'route'  => 'admin.marks.index',
+                'roles'  => ['admin'],
+            ],
+            [
                 'name'   => 'الاختبارات',
                 'route'  => 'admin.exams.index',
                 'roles'  => ['admin'],
             ],
             [
-                'name'   => 'إدخال الدرجات',
+                'name'   => 'إدخال درجات الاختبارات',
                 'route'  => 'admin.marks-entry.index',
                 'roles'  => ['admin'],
             ],
         ],
     ],
 
-    // النتائج وكشوف الدرجات
+    // النتائج والشهادات
     [
-        'title'  => 'النتائج والكشوف',
+        'title'  => 'النتائج والشهادات',
         'icon'   => 'chart-bar',
         'roles'  => ['admin'],
         'items'  => [
-            [
-                'name'   => 'سجل الدرجات',
-                'route'  => 'admin.gradebook.index',
-                'roles'  => ['admin'],
-            ],
             [
                 'name'   => 'نتائج الطلاب',
                 'route'  => 'admin.students.result.index',
@@ -192,7 +192,7 @@ return [
                 'roles'  => ['admin'],
             ],
             [
-                'name'   => 'كشوف الدرجات',
+                'name'   => 'إصدار الشهادات (PDF)',
                 'route'  => 'admin.report-cards.index',
                 'roles'  => ['admin'],
             ],
@@ -285,7 +285,7 @@ return [
     [
         'title'  => 'رصد الدرجات',
         'icon'   => 'chart-bar',
-        'route'  => 'teacher.grades',
+        'route'  => 'teacher.gradebook.index',
         'roles'  => ['teacher'],
     ],
 
@@ -378,6 +378,18 @@ return [
         'icon'   => 'tachometer-alt',
         'route'  => 'dashboard',
         'roles'  => ['parent'],
+    ],
+
+    /* =============================================
+       GLOBAL SIDEBAR ITEMS
+       ============================================= */
+    
+    // صندوق الرسائل
+    [
+        'title'  => 'صندوق الرسائل',
+        'icon'   => 'envelope',
+        'route'  => 'messages.index',
+        'roles'  => ['admin', 'teacher', 'student', 'parent'],
     ],
 
 ];
