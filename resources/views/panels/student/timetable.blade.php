@@ -16,6 +16,7 @@
 
 @php
     $daysArabic = [
+        'Saturday' => 'السبت',
         'Sunday' => 'الأحد',
         'Monday' => 'الإثنين',
         'Tuesday' => 'الثلاثاء',

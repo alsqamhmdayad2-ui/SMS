@@ -49,6 +49,7 @@ class TimetableController extends Controller
         $dailySchedule = collect();
         $weeklySchedule = collect();
         $daysArabic = [
+            'Saturday' => 'السبت',
             'Sunday' => 'الأحد',
             'Monday' => 'الإثنين',
             'Tuesday' => 'الثلاثاء',
@@ -56,16 +57,23 @@ class TimetableController extends Controller
             'Thursday' => 'الخميس',
         ];
 
-        if ($academicYear && $selectedChild->school_class_id && $selectedChild->section_id) {
+        if ($academicYear && ($selectedChild->class_id || $selectedChild->school_class_id) && $selectedChild->section_id) {
             $scheduleData = \App\Models\Timetable::with(['subject', 'teacher.user'])
                 ->where('academic_year_id', $academicYear->id)
-                ->where('class_id', $selectedChild->school_class_id)
+                ->where('class_id', $selectedChild->class_id)
                 ->where('section_id', $selectedChild->section_id)
                 ->orderBy('period_number')
                 ->get();
             
             $weeklySchedule = $scheduleData->groupBy('day_of_week');
-            $dailySchedule = $weeklySchedule->get($currentDay, collect());
+            $dailySchedule = $weeklySchedule->get($currentDay, $weeklySchedule->get(
+                collect([
+                    'Sunday' => 'الأحد', 'Saturday' => 'السبت',
+                    'Monday' => 'الإثنين', 'Tuesday' => 'الثلاثاء',
+                    'Wednesday' => 'الأربعاء', 'Thursday' => 'الخميس',
+                ])->get($currentDay, $currentDay),
+                collect()
+            ));
         }
 
         return view('panels.parent.timetable', compact(
