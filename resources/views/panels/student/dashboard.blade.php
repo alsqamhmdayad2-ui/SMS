@@ -41,7 +41,7 @@
                         </div>
                         <div class="col-sm-6 col-lg-3">
                             <i class="fas fa-door-open me-1"></i>
-                            <strong>الصف والشعبة:</strong> {{ $student->schoolClass->name ?? '-' }} ({{ $student->section->name ?? '-' }})
+                            <strong>الصف:</strong> {{ trim(str_replace('الصف', '', $student->schoolClass->name ?? '-')) }} ({{ str_replace(['الشعبة ', 'شعبة '], '', $student->section->name ?? '-') }})
                         </div>
                         <div class="col-sm-6 col-lg-3">
                             <i class="fas fa-calendar-alt me-1"></i>

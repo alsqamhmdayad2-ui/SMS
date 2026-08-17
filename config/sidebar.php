@@ -368,13 +368,6 @@ return [
         'roles'  => ['student'],
     ],
 
-    // المستندات
-    [
-        'title'  => 'المستندات',
-        'icon'   => 'folder-open',
-        'route'  => 'student.documents.index',
-        'roles'  => ['student'],
-    ],
 
     // الملف الشخصي
     [
@@ -428,13 +421,6 @@ return [
         'roles'  => ['parent'],
     ],
 
-    // المستندات
-    [
-        'title'  => 'المستندات',
-        'icon'   => 'folder-open',
-        'route'  => 'parent.documents',
-        'roles'  => ['parent'],
-    ],
 
     // السجل الأكاديمي
     [
