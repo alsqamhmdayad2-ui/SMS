@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $children = $parent ? $parent->students : collect();
         $totalChildren = $children->count();
 
-        $academicYear = \App\Models\AcademicYear::where('status', 1)->first();
+        $academicYear = \App\Models\AcademicYear::where('status', 1)->with('semesters')->first();
         $attendanceSummary = 0;
         $totalAttendancePercentage = 0;
 
