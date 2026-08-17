@@ -72,6 +72,7 @@ class DashboardController extends Controller
         $dailySchedule = collect();
         $weeklySchedule = collect();
         $daysArabic = [
+            'Saturday' => 'السبت',
             'Sunday' => 'الأحد',
             'Monday' => 'الإثنين',
             'Tuesday' => 'الثلاثاء',
@@ -79,16 +80,23 @@ class DashboardController extends Controller
             'Thursday' => 'الخميس',
         ];
 
-        if ($academicYear && $student->school_class_id && $student->section_id) {
+        if ($academicYear && ($student->class_id || $student->school_class_id) && $student->section_id) {
             $scheduleData = \App\Models\Timetable::with(['subject', 'teacher.user'])
                 ->where('academic_year_id', $academicYear->id)
-                ->where('class_id', $student->school_class_id)
+                ->where('class_id', $student->class_id ?? $student->school_class_id)
                 ->where('section_id', $student->section_id)
                 ->orderBy('period_number')
                 ->get();
             
             $weeklySchedule = $scheduleData->groupBy('day_of_week');
-            $dailySchedule = $weeklySchedule->get($currentDay, collect());
+            $dailySchedule = $weeklySchedule->get($currentDay, $weeklySchedule->get(
+                collect([
+                    'Sunday' => 'الأحد', 'Saturday' => 'السبت',
+                    'Monday' => 'الإثنين', 'Tuesday' => 'الثلاثاء',
+                    'Wednesday' => 'الأربعاء', 'Thursday' => 'الخميس',
+                ])->get($currentDay, $currentDay),
+                collect()
+            ));
         }
 
         return view('panels.student.dashboard', compact('student', 'academicYear', 'attendanceStats', 'resultsSummary', 'subjectResults', 'upcomingExams', 'dailySchedule', 'weeklySchedule', 'daysArabic', 'currentDay'));

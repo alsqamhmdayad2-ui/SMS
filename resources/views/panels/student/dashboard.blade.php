@@ -161,22 +161,23 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="bg-primary text-white border-primary" style="width: 15%">اليوم / الحصة</th>
-                                    <th class="py-3">1<br><small class="fw-normal text-muted">08:00 - 08:45</small></th>
-                                    <th class="py-3">2<br><small class="fw-normal text-muted">08:50 - 09:35</small></th>
-                                    <th class="py-3">3<br><small class="fw-normal text-muted">09:55 - 10:40</small></th>
-                                    <th class="py-3">4<br><small class="fw-normal text-muted">10:45 - 11:30</small></th>
-                                    <th class="py-3">5<br><small class="fw-normal text-muted">11:30 - 12:15</small></th>
+                                    <th class="py-3">1</th>
+                                    <th class="py-3">2</th>
+                                    <th class="py-3">3</th>
+                                    <th class="py-3">4</th>
+                                    <th class="py-3">5</th>
+                                    <th class="py-3">6</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($daysArabic as $enDay => $arDay)
                                     @php
-                                        $dayPeriods = $weeklySchedule->get($enDay, collect());
+                                        $dayPeriods = $weeklySchedule->get($enDay, $weeklySchedule->get($arDay, collect()));
                                     @endphp
                                     @if($dayPeriods->isNotEmpty())
                                         <tr>
                                             <th class="table-light text-center align-middle">{{ $arDay }}</th>
-                                            @for($i = 1; $i <= 5; $i++)
+                                            @for($i = 1; $i <= 6; $i++)
                                                 @php
                                                     $period = $dayPeriods->firstWhere('period_number', $i);
                                                     $color = $periodColors[$i] ?? 'text-dark';
