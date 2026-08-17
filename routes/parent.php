@@ -7,6 +7,7 @@ use App\Http\Controllers\ParentPanel\ResultController;
 use App\Http\Controllers\ParentPanel\ProfileController;
 use App\Http\Controllers\ParentPanel\TimetableController;
 use App\Http\Controllers\ParentPanel\DocumentController;
+use App\Http\Controllers\ParentPanel\AcademicHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:parent'])
@@ -21,5 +22,6 @@ Route::middleware(['auth', 'role:parent'])
         Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable');
         Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
         Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+        Route::get('/academic-history', [AcademicHistoryController::class, 'index'])->name('academic-history');
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     });

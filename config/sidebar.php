@@ -428,6 +428,14 @@ return [
         'roles'  => ['parent'],
     ],
 
+    // السجل الأكاديمي
+    [
+        'title'  => 'السجل الأكاديمي',
+        'icon'   => 'history',
+        'route'  => 'parent.academic-history',
+        'roles'  => ['parent'],
+    ],
+
     // النتائج
     [
         'title'  => 'النتائج الدراسية',
