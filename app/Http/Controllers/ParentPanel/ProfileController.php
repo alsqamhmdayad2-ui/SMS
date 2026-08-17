@@ -10,7 +10,7 @@ class ProfileController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $parent = ParentModel::where('user_id', $user->id)->first();
+        $parent = ParentModel::where('user_id', $user->id)->with(['user', 'students.schoolClass'])->first();
 
         return view('panels.parent.profile', compact('parent'));
     }

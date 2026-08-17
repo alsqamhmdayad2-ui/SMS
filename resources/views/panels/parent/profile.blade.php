@@ -19,42 +19,79 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
+                    <div class="col-md-12">
+                        <div class="p-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-10">
+                            <small class="text-primary d-block mb-1 fw-bold">الاسم الكامل</small>
+                            <span class="fw-bold text-dark fs-5">{{ $parent->full_name ?: ($parent->user->name ?? '-') }}</span>
+                        </div>
+                    </div>
+                    @if($parent->first_name || $parent->father_name)
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
-                            <small class="text-muted d-block mb-1">اسم الأب</small>
-                            <span class="fw-bold text-dark">{{ $parent->father_name ?? '-' }}</span>
+                            <small class="text-muted d-block mb-1">الاسم الأول</small>
+                            <span class="fw-bold text-dark">{{ $parent->first_name ?: '-' }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
-                            <small class="text-muted d-block mb-1">اسم الأم</small>
-                            <span class="fw-bold text-dark">{{ $parent->mother_name ?? '-' }}</span>
+                            <small class="text-muted d-block mb-1">اسم الأب</small>
+                            <span class="fw-bold text-dark">{{ $parent->father_name ?: '-' }}</span>
+                        </div>
+                    </div>
+                    @endif
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+                            <small class="text-muted d-block mb-1">صفة الولاية</small>
+                            <span class="fw-bold text-dark">
+                                @php
+                                    $guardianTypes = [
+                                        'Father' => 'الأب',
+                                        'Mother' => 'الأم',
+                                        'Guardian' => 'ولي أمر',
+                                        'Grandfather' => 'الجد',
+                                        'Uncle' => 'العم / الخال',
+                                    ];
+                                @endphp
+                                {{ $guardianTypes[$parent->guardian_type] ?? ($parent->guardian_type ?? '-') }}
+                            </span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">البريد الإلكتروني</small>
-                            <span class="fw-bold text-dark">{{ $parent->email ?? '-' }}</span>
+                            <span class="fw-bold text-dark">{{ $parent->email ?: ($parent->user->email ?? '-') }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">رقم الهاتف</small>
-                            <span class="fw-bold text-dark" style="direction:ltr;display:inline-block;">{{ $parent->phone ?? '-' }}</span>
+                            <span class="fw-bold text-dark" style="direction:ltr;display:inline-block;">{{ $parent->phone_1 ?: '-' }}</span>
                         </div>
                     </div>
+                    @if($parent->phone_2)
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+                            <small class="text-muted d-block mb-1">رقم هاتف بديل</small>
+                            <span class="fw-bold text-dark" style="direction:ltr;display:inline-block;">{{ $parent->phone_2 }}</span>
+                        </div>
+                    </div>
+                    @endif
+                    @if($parent->occupation)
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">المهنة</small>
-                            <span class="fw-bold text-dark">{{ $parent->occupation ?? '-' }}</span>
+                            <span class="fw-bold text-dark">{{ $parent->occupation }}</span>
                         </div>
                     </div>
+                    @endif
+                    @if($parent->address)
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">العنوان</small>
-                            <span class="fw-bold text-dark">{{ $parent->address ?? '-' }}</span>
+                            <span class="fw-bold text-dark">{{ $parent->address }}</span>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
