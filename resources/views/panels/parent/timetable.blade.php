@@ -108,7 +108,7 @@
                             <tbody>
                                 @foreach($daysArabic as $enDay => $arDay)
                                     @php
-                                        $dayPeriods = $weeklySchedule->get($enDay, collect());
+                                        $dayPeriods = $weeklySchedule->get($enDay, $weeklySchedule->get($arDay, collect()));
                                     @endphp
                                     @if($dayPeriods->isNotEmpty())
                                         <tr>

@@ -47,7 +47,7 @@
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-10">
                             <small class="text-primary d-block mb-1 fw-bold">ولي الأمر</small>
-                            <span class="fw-bold text-primary">{{ $student->parent->father_name ?? '-' }}</span>
+                            <span class="fw-bold text-primary">{{ $student->parent ? ($student->parent->full_name ?: ($student->parent->user->name ?? '-')) : '-' }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
