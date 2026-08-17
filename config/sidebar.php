@@ -348,4 +348,44 @@ return [
         'roles'  => ['parent'],
     ],
 
+    // الأبناء
+    [
+        'title'  => 'الأبناء',
+        'icon'   => 'children',
+        'route'  => 'parent.children',
+        'roles'  => ['parent'],
+    ],
+
+    // الحضور والغياب
+    [
+        'title'  => 'متابعة الغياب',
+        'icon'   => 'clipboard-user',
+        'route'  => 'parent.attendance',
+        'roles'  => ['parent'],
+    ],
+
+    // جدول الحصص
+    [
+        'title'  => 'جدول الحصص',
+        'icon'   => 'calendar-alt',
+        'route'  => 'parent.timetable',
+        'roles'  => ['parent'],
+    ],
+
+    // النتائج
+    [
+        'title'  => 'النتائج الدراسية',
+        'icon'   => 'award',
+        'route'  => 'parent.results',
+        'roles'  => ['parent'],
+    ],
+
+    // الملف الشخصي
+    [
+        'title'  => 'الملف الشخصي',
+        'icon'   => 'user-circle',
+        'route'  => 'parent.profile',
+        'roles'  => ['parent'],
+    ],
+
 ];
