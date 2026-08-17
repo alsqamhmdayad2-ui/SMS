@@ -43,19 +43,7 @@
                         <tr>
                             <th class="bg-primary text-white border-primary" style="width: 12%;">اليوم / الحصة</th>
                             @for($i = 1; $i <= $maxPeriods; $i++)
-                                <th class="py-3">
-                                    الحصة {{ $i }}
-                                    @php
-                                        // Try to find the time for this period from any day to display in the header
-                                        $samplePeriod = $timetable->firstWhere('period_number', $i);
-                                    @endphp
-                                    @if($samplePeriod && $samplePeriod->start_time && $samplePeriod->end_time)
-                                        <br>
-                                        <small class="fw-normal text-muted" dir="ltr">
-                                            {{ \Carbon\Carbon::parse($samplePeriod->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($samplePeriod->end_time)->format('H:i') }}
-                                        </small>
-                                    @endif
-                                </th>
+                                <th class="py-3">{{ $i }}</th>
                             @endfor
                         </tr>
                     </thead>
