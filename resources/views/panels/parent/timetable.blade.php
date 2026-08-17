@@ -55,7 +55,6 @@
                                     <th>الحصة</th>
                                     <th>المادة</th>
                                     <th>المعلم</th>
-                                    <th>الوقت</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -75,11 +74,10 @@
                                         <td><span class="badge bg-secondary">{{ $periodNames[$period->period_number] ?? 'حصة '.$period->period_number }}</span></td>
                                         <td class="fw-bold {{ $periodColors[$period->period_number] ?? 'text-dark' }}">{{ $period->subject->name ?? '-' }}</td>
                                         <td>{{ $period->teacher ? $period->teacher->user->name : '-' }}</td>
-                                        <td class="text-muted"><i class="far fa-clock me-1 ms-1"></i>{{ \Carbon\Carbon::parse($period->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($period->end_time)->format('H:i') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-4">
+                                        <td colspan="3" class="text-center py-4">
                                             <div class="text-muted">
                                                 <i class="fas fa-bed fs-4 mb-2 d-block"></i>
                                                 لا توجد حصص في هذا اليوم
