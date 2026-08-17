@@ -103,6 +103,7 @@
                                     <th class="py-3">3<br><small class="fw-normal text-muted">09:55 - 10:40</small></th>
                                     <th class="py-3">4<br><small class="fw-normal text-muted">10:45 - 11:30</small></th>
                                     <th class="py-3">5<br><small class="fw-normal text-muted">11:30 - 12:15</small></th>
+                                    <th class="py-3">6<br><small class="fw-normal text-muted">12:15 - 13:00</small></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,8 +114,9 @@
                                     @if($dayPeriods->isNotEmpty())
                                         <tr>
                                             <th class="table-light text-center align-middle">{{ $arDay }}</th>
-                                            @for($i = 1; $i <= 5; $i++)
+                                            @for($i = 1; $i <= 6; $i++)
                                                 @php
+                                                    $maxPeriods = 6;
                                                     $period = $dayPeriods->firstWhere('period_number', $i);
                                                     $color = $periodColors[$i] ?? 'text-dark';
                                                 @endphp

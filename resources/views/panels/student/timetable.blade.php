@@ -23,9 +23,8 @@
         'Thursday' => 'الخميس',
     ];
     $weeklySchedule = $timetable->groupBy('day_of_week');
-    // Find the maximum period number to render enough columns, default to 8
-    $maxPeriods = $timetable->max('period_number') ?? 8;
-    if ($maxPeriods < 8) $maxPeriods = 8;
+    // Set max periods to 6 as requested
+    $maxPeriods = 6;
 @endphp
 
 <div class="card mb-4">

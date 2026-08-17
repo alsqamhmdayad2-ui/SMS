@@ -41,7 +41,7 @@
                     <div class="col-md-6">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">رقم الهاتف</small>
-                            <span class="fw-bold text-dark" style="direction:ltr;display:inline-block;">{{ $student->phone ?? '-' }}</span>
+                            <span class="fw-bold text-dark" style="direction:ltr;display:inline-block;">{{ $student->phone ?: ($student->user->phone ?? ($student->parent->phone ?? '-')) }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -59,7 +59,7 @@
                     <div class="col-md-4">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">النوع</small>
-                            <span class="fw-bold text-dark">{{ $student->gender ?? '-' }}</span>
+                            <span class="fw-bold text-dark">{{ $student->gender === 'Male' ? 'ذكر' : ($student->gender === 'Female' ? 'أنثى' : ($student->gender ?? '-')) }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
