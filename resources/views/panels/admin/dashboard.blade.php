@@ -45,7 +45,7 @@
 <!-- Quick Actions -->
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-3">
-        <a href="{{ route('admin.students.create') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white">
+        <a href="{{ route('admin.students.create') }}" class="d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white border border-primary border-opacity-25 text-decoration-none text-dark shadow-sm transition-all">
             <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 mb-2">
                 <i class="fas fa-user-plus fs-4"></i>
             </div>
@@ -53,7 +53,7 @@
         </a>
     </div>
     <div class="col-12 col-md-3">
-        <a href="{{ route('admin.teachers.create') }}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white">
+        <a href="{{ route('admin.teachers.create') }}" class="d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white border border-success border-opacity-25 text-decoration-none text-dark shadow-sm transition-all">
             <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 mb-2">
                 <i class="fas fa-chalkboard-teacher fs-4"></i>
             </div>
@@ -61,7 +61,7 @@
         </a>
     </div>
     <div class="col-12 col-md-3">
-        <a href="{{ route('admin.timetables.index') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white">
+        <a href="{{ route('admin.timetables.index') }}" class="d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white border border-info border-opacity-25 text-decoration-none text-dark shadow-sm transition-all">
             <div class="rounded-circle bg-info bg-opacity-10 text-info p-3 mb-2">
                 <i class="fas fa-calendar-alt fs-4"></i>
             </div>
@@ -69,7 +69,7 @@
         </a>
     </div>
     <div class="col-12 col-md-3">
-        <a href="{{ route('admin.study-plans.index') }}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white">
+        <a href="{{ route('admin.study-plans.index') }}" class="d-flex flex-column align-items-center justify-content-center p-3 rounded-4 hover-lift h-100 bg-white border border-warning border-opacity-25 text-decoration-none text-dark shadow-sm transition-all">
             <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 mb-2">
                 <i class="fas fa-book-open fs-4"></i>
             </div>

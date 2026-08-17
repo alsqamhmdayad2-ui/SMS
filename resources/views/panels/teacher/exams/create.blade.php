@@ -123,15 +123,41 @@
                             <input type="time" name="end_time" class="form-control" value="{{ old('end_time') }}">
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">المدة (بالدقائق)</label>
-                            <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes') }}" min="5" placeholder="60">
+                            <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes') }}" min="1" placeholder="60">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">الدرجة الكلية <span class="text-danger">*</span></label>
+                            <input type="number" name="total_marks" class="form-control @error('total_marks') is-invalid @enderror" value="{{ old('total_marks') }}" min="1" required>
+                            @error('total_marks')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">طريقة عرض الاختبار للطالب</label>
+                            <select name="display_mode" class="form-select">
+                                <option value="single_page" {{ old('display_mode') === 'single_page' ? 'selected' : '' }}>عرض جميع الأسئلة في صفحة واحدة</option>
+                                <option value="per_question" {{ old('display_mode') === 'per_question' ? 'selected' : '' }}>عرض سؤال واحد في كل مرة (التالي/السابق)</option>
+                            </select>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-semibold">تعليمات الاختبار</label>
                             <textarea name="instructions" class="form-control" rows="3"
                                       placeholder="أي تعليمات للطلاب...">{{ old('instructions') }}</textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_marks_to_student" id="showMarksCreate" value="1"
+                                    {{ old('show_marks_to_student') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="showMarksCreate">
+                                    <i class="fas fa-eye text-success me-1"></i>
+                                    <strong>السماح للطلاب برؤية درجاتهم فور انتهاء الاختبار</strong>
+                                    <small class="d-block text-muted">إن لم تُفعّل هذا الخيار، ستُخفى الدرجة حتى تعتمدها.</small>
+                                </label>
+                            </div>
                         </div>
                     </div>
 

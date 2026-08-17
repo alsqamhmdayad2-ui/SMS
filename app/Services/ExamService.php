@@ -10,7 +10,7 @@ class ExamService
 {
     public function getAll($filters = [])
     {
-        $query = Exam::with(['academicYear', 'semester', 'schoolClass', 'section', 'subject', 'teacher'])
+        $query = Exam::with(['academicYear', 'semester', 'schoolClass', 'sections', 'subject', 'teacher'])
             ->latest();
 
         if (!empty($filters['academic_year_id'])) {
@@ -23,7 +23,9 @@ class ExamService
             $query->where('subject_id', $filters['subject_id']);
         }
         if (!empty($filters['section_id'])) {
-            $query->where('section_id', $filters['section_id']);
+            $query->whereHas('sections', function ($q) use ($filters) {
+                $q->where('sections.id', $filters['section_id']);
+            });
         }
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -36,7 +38,13 @@ class ExamService
     {
         $data['status'] = $data['status'] ?? ExamStatus::DRAFT->value;
         $this->checkForConflicts($data);
-        return Exam::create($data);
+        
+        $exam = Exam::create($data);
+        if (isset($data['section_ids'])) {
+            $exam->sections()->sync($data['section_ids']);
+        }
+        
+        return $exam;
     }
 
     public function update(Exam $exam, array $data)
@@ -47,6 +55,10 @@ class ExamService
 
         $this->checkForConflicts($data, $exam->id);
         $exam->update($data);
+        if (isset($data['section_ids'])) {
+            $exam->sections()->sync($data['section_ids']);
+        }
+        
         return $exam;
     }
 
@@ -100,11 +112,16 @@ class ExamService
         }
 
         // Section conflict
-        $sectionConflict = (clone $query)->where('section_id', $data['section_id'])->exists();
-        if ($sectionConflict) {
-            throw ValidationException::withMessages([
-                'section_id' => ['The selected section already has an exam at this time.'],
-            ]);
+        if (!empty($data['section_ids'])) {
+            $sectionConflict = (clone $query)->whereHas('sections', function ($q) use ($data) {
+                $q->whereIn('sections.id', $data['section_ids']);
+            })->exists();
+            
+            if ($sectionConflict) {
+                throw ValidationException::withMessages([
+                    'section_ids' => ['One or more selected sections already have an exam at this time.'],
+                ]);
+            }
         }
 
 

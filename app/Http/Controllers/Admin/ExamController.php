@@ -49,7 +49,7 @@ class ExamController extends Controller
             $exam = $this->examService->create($data);
 
             return redirect()->route('admin.exams.show', $exam->id)
-                ->with('success', 'تم إنشاء الاختبار بنجاح.. You can now build questions.');
+                ->with('success', 'تم إنشاء الاختبار بنجاح. يمكنك الآن إضافة الأسئلة.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
@@ -57,13 +57,13 @@ class ExamController extends Controller
 
     public function show(Exam $exam)
     {
-        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'section', 'subject', 'teacher', 'questions.options']);
+        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'sections', 'subject', 'teacher', 'questions.options']);
         return view('panels.admin.exams.builder', compact('exam'));
     }
 
     public function print(Exam $exam)
     {
-        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'section', 'subject', 'teacher', 'questions.options']);
+        $exam->load(['academicYear', 'semester', 'grade', 'schoolClass', 'sections', 'subject', 'teacher', 'questions.options']);
         return view('panels.admin.exams.print', compact('exam'));
     }
 
@@ -71,7 +71,7 @@ class ExamController extends Controller
     {
         try {
             $this->examService->publish($exam);
-            return back()->with('success', 'Exam published and locked successfully.');
+            return back()->with('success', 'تم نشر وقفل الاختبار بنجاح.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors());
         }
@@ -80,7 +80,7 @@ class ExamController extends Controller
     public function unlock(Exam $exam)
     {
         $exam->update(['status' => ExamStatus::DRAFT->value]);
-        return back()->with('success', 'Exam unlocked. You can now modify questions.');
+        return back()->with('success', 'تم إلغاء قفل الاختبار. يمكنك الآن تعديل الأسئلة.');
     }
 
     public function edit(Exam $exam)
@@ -96,7 +96,7 @@ class ExamController extends Controller
             $this->examService->update($exam, $request->validated());
 
             return redirect()->route('admin.exams.index')
-                ->with('success', 'تم تحديث الاختبار بنجاح..');
+                ->with('success', 'تم تحديث الاختبار بنجاح.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
@@ -106,7 +106,7 @@ class ExamController extends Controller
     {
         try {
             $this->examService->delete($exam);
-            return back()->with('success', 'تم حذف الاختبار بنجاح..');
+            return back()->with('success', 'تم حذف الاختبار بنجاح.');
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors());
         }

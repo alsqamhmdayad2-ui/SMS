@@ -100,4 +100,17 @@ class Question extends Model
         }
         return "{$this->estimated_time} sec";
     }
+
+    public function getMarksAttribute()
+    {
+        return $this->pivot->mark_override ?? $this->mark ?? 0;
+    }
+
+    public function getCorrectAnswerAttribute()
+    {
+        if (in_array($this->type->value, ['short_answer', 'essay', 'fill_blank'])) {
+            return $this->options->first()?->option_text;
+        }
+        return null;
+    }
 }

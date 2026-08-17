@@ -73,12 +73,15 @@
                 </x-form.select>
             </div>
             <div class="col-md-4">
-                <x-form.select name="section_id" label="الشعبة" required="true" :error="$errors->first('section_id')">
-                    <option value="">-- اختر --</option>
+                <label for="section_ids" class="form-label">الشعب <span class="text-danger">*</span></label>
+                <select name="section_ids[]" id="section_ids" class="form-select select2" multiple required>
                     @foreach($sections as $section)
-                        <option value="{{ $section->id }}" {{ old('section_id') == $section->id ? 'selected' : '' }}>{{ $section->name }}</option>
+                        <option value="{{ $section->id }}" {{ in_array($section->id, old('section_ids', [])) ? 'selected' : '' }}>{{ $section->name }}</option>
                     @endforeach
-                </x-form.select>
+                </select>
+                @error('section_ids')
+                    <div class="text-danger small mt-1">{{ $message }}</div>
+                @enderror
             </div>
             <div class="col-md-4">
                 <x-form.select name="subject_id" label="المادة" required="true" :error="$errors->first('subject_id')">
@@ -111,7 +114,10 @@
                 <x-form.input type="time" name="end_time" label="وقت الانتهاء" required="true" :error="$errors->first('end_time')" />
             </div>
             <div class="col-md-2">
-                <x-form.input type="number" name="duration_minutes" label="المدة (دقيقة)" placeholder="90" :error="$errors->first('duration_minutes')" />
+                <x-form.input type="number" name="duration_minutes" label="المدة (دقائق)" min="1" :error="$errors->first('duration_minutes')" />
+            </div>
+            <div class="col-md-3">
+                <x-form.input type="number" name="total_marks" label="الدرجة الكلية" min="1" required="true" :error="$errors->first('total_marks')" />
             </div>
             <div class="col-md-3">
                 <x-form.select name="status" label="الحالة" required="true" :error="$errors->first('status')">

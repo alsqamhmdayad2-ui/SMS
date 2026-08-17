@@ -23,7 +23,9 @@ class StudentResultService
     {
         // Get all subjects the student has results in
         $subjectIds = Exam::where('academic_year_id', $academicYearId)
-            ->where('section_id', $student->section_id)
+            ->whereHas('sections', function ($q) use ($student) {
+                $q->where('sections.id', $student->section_id);
+            })
             ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
             ->whereHas('questions') // Only exams with questions
             ->pluck('subject_id')
@@ -43,7 +45,9 @@ class StudentResultService
             // Get exams for this subject/section
             $exams = Exam::where('academic_year_id', $academicYearId)
                 ->where('subject_id', $subject->id)
-                ->where('section_id', $student->section_id)
+                ->whereHas('sections', function ($q) use ($student) {
+                    $q->where('sections.id', $student->section_id);
+                })
                 ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
                 ->get();
 

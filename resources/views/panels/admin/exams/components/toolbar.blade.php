@@ -3,7 +3,7 @@
         <div class="row align-items-center g-2">
             <div class="col-md-4">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                     <input type="text" id="searchExamQuestions" class="form-control bg-light border-start-0" placeholder="بحث في أسئلة الامتحان...">
                 </div>
             </div>
@@ -11,7 +11,7 @@
                 <span class="text-muted small me-2">إجمالي الأسئلة: <strong id="questionCount" class="text-dark">{{ $exam->question_count }}</strong></span>
                 @if($exam->status === \App\Enums\ExamStatus::DRAFT)
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#questionBankModal">
-                    <i class="bi bi-box-arrow-in-down"></i> استيراد من بنك الأسئلة
+                    <i class="fas fa-download"></i> استيراد من بنك الأسئلة
                 </button>
                 @endif
             </div>

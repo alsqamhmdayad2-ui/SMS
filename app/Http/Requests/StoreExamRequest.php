@@ -29,15 +29,18 @@ class StoreExamRequest extends FormRequest
             'semester_id' => 'required|exists:semesters,id',
             'grade_id' => 'required|exists:grades,id',
             'class_id' => 'required|exists:classes,id',
-            'section_id' => 'required|exists:sections,id',
+            'section_ids' => 'required|array|min:1',
+            'section_ids.*' => 'exists:sections,id',
             'subject_id' => 'required|exists:subjects,id',
             'teacher_id' => 'required|exists:teachers,id',
             'exam_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'duration_minutes' => 'nullable|integer|min:1',
-            'status' => 'required|in:scheduled,ongoing,completed,cancelled',
+            'status' => 'required|in:draft,published,closed,archived',
             'instructions' => 'nullable|string',
+            'total_marks' => 'required|numeric|min:1',
+            'show_marks_to_student' => 'nullable|boolean',
         ];
     }
 }

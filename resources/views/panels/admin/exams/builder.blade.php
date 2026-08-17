@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Exam Builder Pro')
+@section('title', 'تصميم الأسئلة')
 
 @section('content')
 @include('components.page-header', [
-    'title' => 'Exam Builder Pro: ' . $exam->title,
-    'subtitle' => $exam->subject->name . ' | ' . $exam->schoolClass->name . ' (' . $exam->section->name . ')'
+    'title' => 'تصميم الأسئلة: ' . $exam->title,
+    'subtitle' => $exam->subject->name . ' | ' . $exam->schoolClass->name . ' (' . $exam->sections->pluck('name')->join('، ') . ')'
 ])
 
 <div class="row">
@@ -18,7 +18,7 @@
         <div class="card shadow-sm border-0 border-top border-primary border-3 mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title fw-bold mb-0" id="creatorCardTitle"><i class="bi bi-plus-circle"></i> إضافة سؤال جديد</h5>
+                    <h5 class="card-title fw-bold mb-0" id="creatorCardTitle"><i class="fas fa-plus-circle"></i> إضافة سؤال جديد</h5>
                     <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="cancelEditBtn">إلغاء التعديل</button>
                 </div>
                 <form id="questionForm">
@@ -60,19 +60,7 @@
                     </div>
 
                     <div class="row mb-3 g-2">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">تصنيف بلوم</label>
-                            <select class="form-select form-select-sm" name="bloom_level" id="questionBloomLevel">
-                                <option value="">غير محدد</option>
-                                <option value="remember">تذكر (Remember)</option>
-                                <option value="understand">فهم (Understand)</option>
-                                <option value="apply">تطبيق (Apply)</option>
-                                <option value="analyze">تحليل (Analyze)</option>
-                                <option value="evaluate">تقييم (Evaluate)</option>
-                                <option value="create">ابتكار (Create)</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <label class="form-label small fw-bold">الوقت المقدر (ثواني)</label>
                             <input type="number" min="5" class="form-control form-control-sm" name="estimated_time" id="questionEstimatedTime" placeholder="مثال: 60">
                         </div>
@@ -105,14 +93,14 @@
 
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-list-task"></i> أسئلة الامتحان الحالية</h5>
+                <h5 class="mb-0 fw-bold"><i class="fas fa-list"></i> أسئلة الامتحان الحالية</h5>
             </div>
             <div class="card-body bg-light" id="questionsContainer" style="min-height: 500px;">
                 @forelse($exam->questions as $index => $q)
                     @include('panels.admin.exams.components.question-card', ['q' => $q, 'index' => $index])
                 @empty
                     <div class="text-center py-5 text-muted" id="noQuestionsMsg">
-                        <i class="bi bi-inbox fs-1 d-block mb-3 text-muted"></i>
+                        <i class="fas fa-inbox fa-3x d-block mb-3 text-muted"></i>
                         <h5>لا توجد أسئلة مضافة بعد.</h5>
                         <p class="small">استخدم محرر الأسئلة على اليمين، أو استورد أسئلة جاهزة من بنك الأسئلة.</p>
                     </div>
@@ -128,6 +116,7 @@
 @include('panels.admin.exams.components.forms.matching-form')
 @include('panels.admin.exams.components.forms.essay-form')
 @include('panels.admin.exams.components.forms.fillblank-form')
+@include('panels.admin.exams.components.forms.shortanswer-form')
 
 <!-- Question Bank Import Modal -->
 @include('panels.admin.exams.components.question-bank-modal', ['exam' => $exam])
@@ -210,8 +199,51 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (type === 'fill_blank') {
             const template = document.getElementById('fillblank-form-template').innerHTML;
             dynamicFields.innerHTML = template;
+            setupModelAnswersForm('fillblank', optionsData);
+        } else if (type === 'short_answer') {
+            const template = document.getElementById('shortanswer-form-template').innerHTML;
+            dynamicFields.innerHTML = template;
+            setupModelAnswersForm('shortanswer', optionsData);
         } else {
             dynamicFields.classList.add('d-none');
+        }
+    }
+
+    // Model Answers setup helper (for short_answer and fill_blank)
+    function setupModelAnswersForm(prefix, optionsData = null) {
+        const container = document.getElementById(prefix + 'AnswersContainer');
+        const addBtn = document.getElementById('add' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'AnswerBtn');
+
+        if (optionsData && optionsData.length > 0) {
+            optionsData.forEach((opt) => {
+                if (opt.is_correct) addModelAnswerRow(container);
+            });
+            // Fill values after creation
+            const rows = container.querySelectorAll('input[name="model_answers[]"]');
+            optionsData.filter(o => o.is_correct).forEach((opt, i) => {
+                if (rows[i]) rows[i].value = opt.option_text;
+            });
+        } else {
+            addModelAnswerRow(container);
+        }
+
+        addBtn.addEventListener('click', function() {
+            addModelAnswerRow(container);
+        });
+    }
+
+    function addModelAnswerRow(container) {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 model-answer-row';
+        const isFirst = container.children.length === 0;
+        div.innerHTML = `
+            <input type="text" class="form-control form-control-sm" name="model_answers[]" placeholder="اكتب الإجابة الصحيحة هنا..." required>
+            ${!isFirst ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
+        `;
+        container.appendChild(div);
+        const removeBtn = div.querySelector('.remove-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => div.remove());
         }
     }
 
@@ -243,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input class="form-check-input mt-0" type="radio" name="correct_option_index" value="${index}" required ${checked ? 'checked' : ''}>
             </div>
             <input type="text" class="form-control form-control-sm" name="options[]" value="${val}" placeholder="الخيار ${index + 1}" required>
-            ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="bi bi-x"></i></button>' : ''}
+            ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
         `;
         container.appendChild(div);
         const removeBtn = div.querySelector('.remove-btn');
@@ -282,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="col-4">
                 <input type="text" class="form-control form-control-sm" name="pairs[${index}][left]" value="${left}" placeholder="العنصر الأيمن" required>
             </div>
-            <div class="col-1 text-center"><i class="bi bi-arrow-right text-muted small"></i></div>
+            <div class="col-1 text-center"><i class="fas fa-arrow-right text-muted small"></i></div>
             <div class="col-4">
                 <input type="text" class="form-control form-control-sm" name="pairs[${index}][right]" value="${right}" placeholder="العنصر الأيسر" required>
             </div>
@@ -290,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="number" step="0.25" min="0" class="form-control form-control-sm" name="pairs[${index}][partial_mark]" value="${partial}" placeholder="درجة جزئية">
             </div>
             <div class="col-1 text-end">
-                ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn w-100" type="button"><i class="bi bi-x"></i></button>' : ''}
+                ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn w-100" type="button"><i class="fas fa-times"></i></button>' : ''}
             </div>
         `;
         container.appendChild(div);
@@ -429,7 +461,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const text = btn.dataset.text;
         const mark = btn.dataset.mark;
         const difficulty = btn.dataset.difficulty;
-        const bloom = btn.dataset.bloom;
         const time = btn.dataset.estimatedTime;
         const isPublic = btn.dataset.public === '1';
         const options = JSON.parse(btn.dataset.options);
@@ -441,13 +472,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('questionText').value = text;
         document.getElementById('questionMark').value = mark;
         document.getElementById('questionDifficulty').value = difficulty;
-        document.getElementById('questionBloomLevel').value = bloom;
         document.getElementById('questionEstimatedTime').value = time;
         document.getElementById('questionIsPublic').checked = isPublic;
 
         renderFormForType(type, options);
 
-        creatorCardTitle.innerHTML = `<i class="bi bi-pencil-square text-warning"></i> تعديل السؤال`;
+        creatorCardTitle.innerHTML = `<i class="fas fa-edit text-warning"></i> تعديل السؤال`;
         saveBtnText.textContent = 'تحديث السؤال';
         saveBtn.className = 'btn btn-warning w-100';
         cancelEditBtn.classList.remove('d-none');
@@ -464,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dynamicFields.innerHTML = '';
         dynamicFields.classList.add('d-none');
 
-        creatorCardTitle.innerHTML = `<i class="bi bi-plus-circle"></i> إضافة سؤال جديد`;
+        creatorCardTitle.innerHTML = `<i class="fas fa-plus-circle"></i> إضافة سؤال جديد`;
         saveBtnText.textContent = 'حفظ السؤال';
         saveBtn.className = 'btn btn-primary w-100';
         cancelEditBtn.classList.add('d-none');
@@ -578,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (questions.length === 0) {
             bankQuestionsList.innerHTML = `
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+                    <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
                     لا توجد أسئلة متوفرة في البنك تطابق البحث.
                 </div>
             `;
@@ -593,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 q.options.forEach(opt => {
                     optionsHtml += `
                         <li class="list-group-item py-1 ${opt.is_correct ? 'list-group-item-success fw-bold text-success' : ''}">
-                            ${opt.is_correct ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>'}
+                            ${opt.is_correct ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="far fa-circle me-1"></i>'}
                             ${opt.option_text}
                         </li>
                     `;
@@ -611,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     optionsHtml += `
                         <div class="col-6">
                             <span class="badge bg-white border text-dark p-1 w-100 text-start text-truncate">
-                                ${opt.left_item} <i class="bi bi-arrow-right text-muted"></i> ${opt.right_item}
+                                ${opt.left_item} <i class="fas fa-arrow-right mx-1 text-muted"></i> ${opt.right_item}
                             </span>
                         </div>
                     `;
@@ -627,11 +657,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="badge bg-secondary text-uppercase small">${q.type}</span>
                                 <span class="badge bg-success small">${parseFloat(q.mark)} درجات</span>
                                 <span class="badge bg-light text-dark border small">${q.difficulty}</span>
-                                ${q.bloom_level ? `<span class="badge bg-light text-dark border small">${q.bloom_level}</span>` : ''}
                                 <span class="badge bg-light text-muted border small">${q.question_code}</span>
                             </div>
                             <button type="button" class="btn btn-sm btn-primary import-to-exam-btn" data-id="${q.id}" data-mark="${q.mark}">
-                                <i class="bi bi-plus-circle"></i> استيراد
+                                <i class="fas fa-plus-circle"></i> استيراد
                             </button>
                         </div>
                         <p class="mb-1 mt-2 text-dark fw-bold small">${q.question_text}</p>
@@ -700,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 9. Auto-save local draft feature on field blurs (for questionText/Mark)
     // We will auto-save the active question creator form to localStorage on changes
-    const inputsToTrack = ['questionText', 'questionMark', 'questionDifficulty', 'questionBloomLevel', 'questionEstimatedTime', 'questionType'];
+    const inputsToTrack = ['questionText', 'questionMark', 'questionDifficulty', 'questionEstimatedTime', 'questionType'];
     inputsToTrack.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -716,7 +745,6 @@ document.addEventListener('DOMContentLoaded', function() {
             type: typeSelect.value,
             mark: document.getElementById('questionMark').value,
             difficulty: document.getElementById('questionDifficulty').value,
-            bloom: document.getElementById('questionBloomLevel').value,
             time: document.getElementById('questionEstimatedTime').value,
         };
         localStorage.setItem(`exam_${{$exam->id}}_question_draft`, JSON.stringify(draft));
@@ -734,7 +762,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (draft.text) document.getElementById('questionText').value = draft.text;
             if (draft.mark) document.getElementById('questionMark').value = draft.mark;
             if (draft.difficulty) document.getElementById('questionDifficulty').value = draft.difficulty;
-            if (draft.bloom) document.getElementById('questionBloomLevel').value = draft.bloom;
             if (draft.time) document.getElementById('questionEstimatedTime').value = draft.time;
         } catch (e) {
             console.error('Error loading draft', e);

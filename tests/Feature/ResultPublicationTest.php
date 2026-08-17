@@ -14,7 +14,7 @@ use App\Models\Section;
 use App\Models\Subject;
 use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\AssessmentComponent;
+
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\StudentSubjectGrade;
@@ -42,7 +42,12 @@ class ResultPublicationTest extends TestCase
         parent::setUp();
         
         $this->admin = User::create(['name' => 'Admin', 'email' => 'a@a.com', 'password' => 'password']);
-        $this->teacher = Teacher::create(['name' => 'Teacher', 'email' => 't@t.com']);
+        $this->teacher = Teacher::create([
+            'first_name' => 'Test',
+            'father_name' => 'Teacher',
+            'family_name' => 'One',
+            'national_id' => 'TEST-TEACHER-002',
+        ]);
         $this->academicYear = AcademicYear::create(['name' => '2026/2027', 'start_date' => '2026-09-01', 'end_date' => '2027-06-01', 'status' => true]);
         $this->semester = Semester::create(['name' => 'Semester 1', 'academic_year_id' => $this->academicYear->id, 'start_date' => '2026-09-01', 'end_date' => '2027-01-01', 'status' => true]);
         $this->grade = Grade::create(['name' => 'Grade 10']);
@@ -53,7 +58,11 @@ class ResultPublicationTest extends TestCase
         $user = User::create(['name' => 'Student', 'email' => 's@s.com', 'password' => 'password']);
         $this->student = Student::create([
             'user_id' => $user->id,
-            'name' => 'Student',
+            'student_number' => 'STU-TEST-001',
+            'first_name' => 'Student',
+            'father_name' => 'Test',
+            'grandfather_name' => 'Grand',
+            'family_name' => 'User',
             'email' => 's@s.com',
             'phone' => '123456',
             'date_of_birth' => '2010-01-01',
@@ -64,56 +73,25 @@ class ResultPublicationTest extends TestCase
         $this->service = app(ResultPublicationService::class);
     }
 
-    public function test_cannot_publish_if_weights_not_100()
-    {
-        AssessmentComponent::create([
-            'academic_year_id' => $this->academicYear->id,
-            'subject_id' => $this->subject->id,
-            'name' => 'Quiz',
-            'code' => 'QZ',
-            'weight_percentage' => 50,
-            'status' => true,
-        ]);
-
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('components for this subject do not equal 100%');
-
-        $this->service->publish([
-            'academic_year_id' => $this->academicYear->id,
-            'semester_id' => null,
-            'grade_id' => $this->grade->id,
-            'section_id' => $this->section->id,
-            'subject_id' => $this->subject->id,
-            'published_type' => 'subject',
-        ], $this->admin->id);
-    }
-
     public function test_cannot_publish_if_marks_missing()
     {
-        AssessmentComponent::create([
-            'academic_year_id' => $this->academicYear->id,
-            'subject_id' => $this->subject->id,
-            'name' => 'Quiz',
-            'code' => 'QZ',
-            'weight_percentage' => 100,
-            'status' => true,
-        ]);
-
-        Exam::create([
+        $exam = Exam::create([
             'academic_year_id' => $this->academicYear->id,
             'semester_id' => $this->semester->id,
             'grade_id' => $this->grade->id,
             'class_id' => $this->schoolClass->id,
             'subject_id' => $this->subject->id,
-            'section_id' => $this->section->id,
             'teacher_id' => $this->teacher->id,
             'title' => 'Quiz 1',
-            'type' => 'QZ',
+            'type' => 'quiz',
             'exam_date' => '2026-10-10',
             'start_time' => '10:00:00',
             'end_time' => '11:00:00',
             'duration_minutes' => 60,
+            'status' => 'draft',
+            'total_marks' => 100,
         ]);
+        $exam->sections()->attach($this->section->id);
 
         // Note: No ExamResult created for the student
 
@@ -132,30 +110,23 @@ class ResultPublicationTest extends TestCase
 
     public function test_can_publish_if_all_validations_pass()
     {
-        AssessmentComponent::create([
-            'academic_year_id' => $this->academicYear->id,
-            'subject_id' => $this->subject->id,
-            'name' => 'Quiz',
-            'code' => 'QZ',
-            'weight_percentage' => 100,
-            'status' => true,
-        ]);
-
         $exam = Exam::create([
             'academic_year_id' => $this->academicYear->id,
             'semester_id' => $this->semester->id,
             'grade_id' => $this->grade->id,
             'class_id' => $this->schoolClass->id,
             'subject_id' => $this->subject->id,
-            'section_id' => $this->section->id,
             'teacher_id' => $this->teacher->id,
             'title' => 'Quiz 1',
-            'type' => 'QZ',
+            'type' => 'quiz',
             'exam_date' => '2026-10-10',
             'start_time' => '10:00:00',
             'end_time' => '11:00:00',
             'duration_minutes' => 60,
+            'status' => 'draft',
+            'total_marks' => 100,
         ]);
+        $exam->sections()->attach($this->section->id);
 
         ExamResult::create([
             'exam_id' => $exam->id,

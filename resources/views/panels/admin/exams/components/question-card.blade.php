@@ -5,7 +5,7 @@
                 <!-- Drag Handle (only in draft) -->
                 @if($exam->status === \App\Enums\ExamStatus::DRAFT)
                 <span class="btn btn-sm btn-light cursor-move drag-handle p-1" title="اسحب لإعادة الترتيب">
-                    <i class="bi bi-grip-vertical fs-5"></i>
+                    <i class="fas fa-grip-vertical fs-5"></i>
                 </span>
                 @endif
                 <span class="badge bg-secondary">سؤال {{ $index + 1 }}</span>
@@ -13,17 +13,14 @@
                 <span class="badge bg-success">{{ (float)($q->pivot->mark_override ?? $q->mark) }} درجة</span>
                 <span class="badge bg-{{ $q->difficulty->badgeColor() }}">{{ $q->difficulty->label() }}</span>
                 
-                @if($q->bloom_level)
-                    <span class="badge bg-light text-dark border"><i class="bi bi-brain"></i> {{ $q->bloom_level->label() }}</span>
-                @endif
                 @if($q->estimated_time)
-                    <span class="badge bg-light text-dark border"><i class="bi bi-clock"></i> {{ $q->estimated_time_formatted }}</span>
+                    <span class="badge bg-light text-dark border"><i class="fas fa-clock"></i> {{ $q->estimated_time_formatted }}</span>
                 @endif
                 @if($q->question_code)
                     <span class="badge bg-light text-muted border">{{ $q->question_code }}</span>
                 @endif
                 @if($q->version > 1)
-                    <span class="badge bg-dark bg-opacity-75"><i class="bi bi-layers"></i> v{{ $q->version }}</span>
+                    <span class="badge bg-dark bg-opacity-75"><i class="fas fa-layer-group"></i> v{{ $q->version }}</span>
                 @endif
             </div>
             
@@ -35,18 +32,17 @@
                         data-text="{{ $q->question_text }}"
                         data-mark="{{ $q->pivot->mark_override ?? $q->mark }}"
                         data-difficulty="{{ $q->difficulty->value }}"
-                        data-bloom="{{ $q->bloom_level ? $q->bloom_level->value : '' }}"
                         data-estimated-time="{{ $q->estimated_time }}"
                         data-public="{{ $q->is_public ? '1' : '0' }}"
                         data-options='@json($q->options)'
                         title="تعديل السؤال">
-                    <i class="bi bi-pencil"></i>
+                    <i class="fas fa-edit"></i>
                 </button>
                 <button class="btn btn-sm btn-outline-primary duplicate-question" data-id="{{ $q->id }}" title="تكرار السؤال">
-                    <i class="bi bi-copy"></i>
+                    <i class="fas fa-copy"></i>
                 </button>
                 <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ $q->id }}" title="حذف من الامتحان">
-                    <i class="bi bi-trash"></i>
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
             @endif
@@ -59,9 +55,9 @@
                 @foreach($q->options as $opt)
                     <li class="list-group-item {{ $opt->is_correct ? 'list-group-item-success fw-bold text-success' : '' }}">
                         @if($opt->is_correct) 
-                            <i class="bi bi-check-circle-fill text-success me-2"></i> 
+                            <i class="fas fa-check-circle text-success me-2"></i> 
                         @else 
-                            <i class="bi bi-circle text-muted me-2"></i> 
+                            <i class="far fa-circle text-muted me-2"></i> 
                         @endif
                         {{ $opt->option_text }}
                     </li>
@@ -71,7 +67,7 @@
             <div class="mt-2 p-2 bg-light border rounded">
                 @php $correctOption = $q->options->first(); @endphp
                 <span class="fw-bold text-success">
-                    <i class="bi bi-check2-circle"></i> الإجابة الصحيحة: 
+                    <i class="fas fa-check-circle"></i> الإجابة الصحيحة: 
                     {{ $correctOption && $correctOption->is_correct ? 'True (صح)' : 'False (خطأ)' }}
                 </span>
             </div>
@@ -80,7 +76,7 @@
                 @foreach($q->options as $opt)
                     <div class="col-12 col-md-6 mb-1">
                         <div class="p-2 border bg-light rounded d-flex justify-content-between align-items-center">
-                            <span>{{ $opt->left_item }} <i class="bi bi-arrow-right mx-2 text-primary"></i> {{ $opt->right_item }}</span>
+                            <span>{{ $opt->left_item }} <i class="fas fa-arrow-right mx-2 text-primary"></i> {{ $opt->right_item }}</span>
                             @if($opt->partial_mark)
                                 <span class="badge bg-secondary">الدرجة الجزئية: {{ (float)$opt->partial_mark }}</span>
                             @endif

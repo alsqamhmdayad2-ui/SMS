@@ -18,7 +18,6 @@ class Exam extends Model
         'semester_id',
         'grade_id',
         'class_id',
-        'section_id',
         'subject_id',
         'teacher_id',
         'exam_date',
@@ -26,12 +25,18 @@ class Exam extends Model
         'end_time',
         'duration_minutes',
         'status',
+        'display_mode',
         'instructions',
+        'total_marks',
+        'show_marks_to_student',
+        'show_answers_to_student',
     ];
 
     protected $casts = [
         'exam_date' => 'date',
         'status' => ExamStatus::class,
+        'show_marks_to_student'   => 'boolean',
+        'show_answers_to_student' => 'boolean',
     ];
 
     // ── Academic Relations ──
@@ -56,9 +61,9 @@ class Exam extends Model
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    public function section()
+    public function sections()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsToMany(Section::class, 'exam_section');
     }
 
     public function subject()
@@ -83,11 +88,17 @@ class Exam extends Model
 
     // ── Computed ──
 
-    public function getTotalMarksAttribute()
+    public function getTotalMarksAttribute($value)
     {
-        return $this->questions->sum(function ($q) {
-            return $q->pivot->mark_override ?? $q->mark;
-        });
+        // If there are specific questions built for this exam, the sum overrides the column
+        if ($this->questions()->exists()) {
+            return $this->questions->sum(function ($q) {
+                return $q->pivot->mark_override ?? $q->mark;
+            });
+        }
+        
+        // Otherwise, use the manually entered total_marks column
+        return $value ?? 0;
     }
 
     public function getQuestionCountAttribute()

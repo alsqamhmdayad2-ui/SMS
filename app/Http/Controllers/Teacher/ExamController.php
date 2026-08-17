@@ -51,12 +51,16 @@ class ExamController extends Controller
         $sectionIds = $this->getTeacherSectionIds($teacher);
         $subjectIds = $this->getTeacherSubjectIds($teacher);
 
-        $query = Exam::with(['section.schoolClass', 'subject', 'academicYear', 'semester'])
-            ->whereIn('section_id', $sectionIds)
+        $query = Exam::with(['sections.schoolClass', 'subject', 'academicYear', 'semester'])
+            ->whereHas('sections', function ($q) use ($sectionIds) {
+                $q->whereIn('sections.id', $sectionIds);
+            })
             ->whereIn('subject_id', $subjectIds);
 
         if ($request->filled('section_id')) {
-            $query->where('section_id', $request->section_id);
+            $query->whereHas('sections', function ($q) use ($request) {
+                $q->where('sections.id', $request->section_id);
+            });
         }
         if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->subject_id);
@@ -74,6 +78,70 @@ class ExamController extends Controller
         return view('panels.teacher.exams.index', compact(
             'exams', 'sections', 'subjects', 'statuses', 'teacher'
         ));
+    }
+
+    // ─── AJAX for Drill-down ──────────────────────────────────────────────────
+    public function getSubjects(Request $request): JsonResponse
+    {
+        try {
+            $teacher = $this->getTeacher();
+            $subjectIds = $this->getTeacherSubjectIds($teacher);
+
+            if (empty($subjectIds)) {
+                return $this->successResponse('Subjects', []);
+            }
+
+            // Get subjects that have exams in this section taught by this teacher
+            $subjects = Subject::whereIn('id', $subjectIds)
+                ->whereHas('exams', function ($q) use ($request) {
+                    $q->whereHas('sections', function ($q2) use ($request) {
+                        $q2->where('sections.id', $request->section_id);
+                    });
+                })->get(['id', 'name']);
+
+            return $this->successResponse('Subjects', $subjects->values());
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
+    }
+
+    public function getExams(Request $request): JsonResponse
+    {
+        try {
+            $teacher = $this->getTeacher();
+
+            $query = Exam::whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
+                ->where('subject_id', $request->subject_id);
+
+            // Filter by teacher if teacher_id column exists and teacher is found
+            if ($teacher) {
+                $query->where('teacher_id', $teacher->id);
+            }
+
+            $exams = $query->get();
+
+            return $this->successResponse('Exams', $exams->map(function ($e) {
+                return [
+                    'id'          => $e->id,
+                    'name'        => $e->title,
+                    'type'        => match($e->type) { 'quiz' => 'اختبار قصير', 'midterm' => 'نصف فصلي', 'final' => 'نهائي', 'assignment' => 'واجب', default => $e->type },
+                    'status'      => $e->status->value,
+                    'total_marks' => $e->total_marks,
+                    'date'        => $e->exam_date ? $e->exam_date->format('Y-m-d') : '-',
+                    'urls'        => [
+                        'show'      => route('teacher.exams.show', $e->id),
+                        'edit'      => route('teacher.exams.edit', $e->id),
+                        'questions' => route('teacher.exams.questions.index', $e->id),
+                        'publish'   => route('teacher.exams.publish', $e->id),
+                        'destroy'   => route('teacher.exams.destroy', $e->id),
+                    ]
+                ];
+            }));
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
     }
 
     // ─── Create Exam ─────────────────────────────────────────────────────────
@@ -106,23 +174,28 @@ class ExamController extends Controller
             'type'             => 'required|in:quiz,midterm,final,assignment',
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester_id'      => 'required|exists:semesters,id',
-            'section_id'       => 'required|in:' . implode(',', $sectionIds),
+            'section_ids'      => 'required|array|min:1',
+            'section_ids.*'    => 'required|in:' . implode(',', $sectionIds),
             'subject_id'       => 'required|in:' . implode(',', $subjectIds),
             'exam_date'        => 'nullable|date',
             'start_time'       => 'nullable|date_format:H:i',
             'end_time'         => 'nullable|date_format:H:i',
             'duration_minutes' => 'nullable|integer|min:5',
+            'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
+            'show_marks_to_student' => 'nullable|boolean',
         ]);
 
-        // Resolve grade_id from section
-        $section = Section::with('schoolClass')->findOrFail($validated['section_id']);
+        // Resolve grade_id from the first section
+        $section = Section::with('schoolClass')->findOrFail($validated['section_ids'][0]);
         $validated['grade_id'] = $section->schoolClass?->grade_id;
         $validated['class_id'] = $section->class_id;
         $validated['teacher_id'] = $teacher?->id;
         $validated['status'] = ExamStatus::DRAFT->value;
+        $validated['show_marks_to_student'] = $request->boolean('show_marks_to_student');
 
         $exam = Exam::create($validated);
+        $exam->sections()->sync($validated['section_ids']);
 
         return redirect()->route('teacher.exams.show', $exam->id)
             ->with('success', 'تم إنشاء الاختبار بنجاح. يمكنك الآن إدخال درجات الطلاب.');
@@ -133,9 +206,9 @@ class ExamController extends Controller
     {
         $this->authorizeTeacherExam($exam);
 
-        $exam->load(['section.schoolClass.grade', 'subject', 'academicYear', 'semester']);
+        $exam->load(['sections.schoolClass.grade', 'subject', 'academicYear', 'semester']);
 
-        $students = Student::where('section_id', $exam->section_id)
+        $students = Student::whereIn('section_id', $exam->sections->pluck('id'))
             ->orderBy('first_name')->get();
 
         $results = ExamResult::where('exam_id', $exam->id)
@@ -184,9 +257,12 @@ class ExamController extends Controller
             'start_time'       => 'nullable|date_format:H:i',
             'end_time'         => 'nullable|date_format:H:i',
             'duration_minutes' => 'nullable|integer|min:5',
+            'display_mode'     => 'required|in:single_page,per_question',
             'instructions'     => 'nullable|string',
+            'show_marks_to_student' => 'nullable|boolean',
         ]);
 
+        $validated['show_marks_to_student'] = $request->boolean('show_marks_to_student');
         $exam->update($validated);
 
         return redirect()->route('teacher.exams.index')
@@ -203,6 +279,58 @@ class ExamController extends Controller
         $exam->delete();
         return redirect()->route('teacher.exams.index')
             ->with('success', 'تم حذف الاختبار.');
+    }
+
+    // ─── Publish Exam ─────────────────────────────────────────────────────────
+    public function publish(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+        
+        if ($exam->status !== ExamStatus::DRAFT) {
+            return back()->with('error', 'الاختبار ليس في حالة المسودة.');
+        }
+
+        if ($exam->questions()->count() === 0) {
+            // Uncomment next line if you require questions to publish
+            // return back()->with('error', 'لا يمكن نشر اختبار بدون أسئلة.');
+        }
+
+        $exam->update(['status' => ExamStatus::PUBLISHED->value]);
+
+        return redirect()->route('teacher.exams.show', $exam)
+            ->with('success', 'تم نشر الاختبار بنجاح.');
+    }
+
+    // ─── Toggle: show/hide marks to student ──────────────────────────────────
+    public function toggleMarks(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+        $exam->update(['show_marks_to_student' => !$exam->show_marks_to_student]);
+
+        $msg = $exam->show_marks_to_student
+            ? 'تم إظهار الدرجات للطلاب.'
+            : 'تم إخفاء الدرجات عن الطلاب.';
+
+        return back()->with('success', $msg);
+    }
+
+    // ─── Toggle: show/hide correct answers to student ────────────────────────
+    public function toggleAnswers(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        // Cannot show answers without showing marks first
+        if (!$exam->show_marks_to_student && !$exam->show_answers_to_student) {
+            return back()->with('error', 'يجب إظهار الدرجات أولاً قبل السماح بمراجعة الإجابات.');
+        }
+
+        $exam->update(['show_answers_to_student' => !$exam->show_answers_to_student]);
+
+        $msg = $exam->show_answers_to_student
+            ? 'تم السماح للطلاب بمراجعة إجاباتهم الصحيحة والخاطئة.'
+            : 'تم إخفاء مراجعة الإجابات عن الطلاب.';
+
+        return back()->with('success', $msg);
     }
 
     // ─── AJAX: Save single mark ───────────────────────────────────────────────
@@ -266,11 +394,63 @@ class ExamController extends Controller
     protected function authorizeTeacherExam(Exam $exam): void
     {
         $teacher    = $this->getTeacher();
-        $sectionIds = $this->getTeacherSectionIds($teacher);
-        $subjectIds = $this->getTeacherSubjectIds($teacher);
+        $exam->load(['sections', 'subject', 'academicYear', 'semester', 'teacher', 'questions.options']);
 
-        if (!in_array($exam->section_id, $sectionIds) || !in_array($exam->subject_id, $subjectIds)) {
-            abort(403, 'غير مصرح لك بالوصول لهذا الاختبار.');
+        // Check if teacher has access to at least one section of the exam
+        $teacherSectionIds = $this->getTeacherSectionIds($teacher);
+        if (!$exam->sections->pluck('id')->intersect($teacherSectionIds)->count()) {
+            abort(403, 'غير مصرح لك بعرض هذا الاختبار.');
         }
+    }
+
+    // ─── Review and Grade Student Answers ──────────────────────────────────────
+    public function reviewAnswers(Exam $exam, Student $student)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        $examResult = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $answers = \Illuminate\Support\Facades\DB::table('exam_student_answers')
+            ->where('exam_result_id', $examResult->id)
+            ->get()
+            ->keyBy('question_id');
+
+        $exam->load('questions.options');
+
+        return view('panels.teacher.exams.review', compact('exam', 'student', 'examResult', 'answers'));
+    }
+
+    public function saveGrades(\Illuminate\Http\Request $request, Exam $exam, Student $student)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        $examResult = ExamResult::where('exam_id', $exam->id)
+            ->where('student_id', $student->id)
+            ->firstOrFail();
+
+        $grades = $request->input('grades', []);
+        
+        \Illuminate\Support\Facades\DB::transaction(function () use ($examResult, $grades) {
+            foreach ($grades as $questionId => $mark) {
+                \Illuminate\Support\Facades\DB::table('exam_student_answers')
+                    ->where('exam_result_id', $examResult->id)
+                    ->where('question_id', $questionId)
+                    ->update([
+                        'marks_awarded' => $mark,
+                        'is_graded' => true,
+                    ]);
+            }
+            
+            // Recalculate total marks
+            $totalMarks = \Illuminate\Support\Facades\DB::table('exam_student_answers')
+                ->where('exam_result_id', $examResult->id)
+                ->sum('marks_awarded');
+                
+            $examResult->update(['marks_obtained' => $totalMarks]);
+        });
+
+        return redirect()->route('teacher.exams.show', $exam)->with('success', 'تم حفظ الدرجات وتحديث المجموع بنجاح.');
     }
 }

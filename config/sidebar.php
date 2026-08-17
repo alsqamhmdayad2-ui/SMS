@@ -332,7 +332,55 @@ return [
     [
         'title'  => 'لوحة التحكم',
         'icon'   => 'tachometer-alt',
-        'route'  => 'dashboard',
+        'route'  => 'student.dashboard',
+        'roles'  => ['student'],
+    ],
+
+    // الاختبارات
+    [
+        'title'  => 'الاختبارات',
+        'icon'   => 'file-alt',
+        'route'  => 'student.exams',
+        'roles'  => ['student'],
+    ],
+
+    // الدرجات والنتائج
+    [
+        'title'  => 'الدرجات والنتائج',
+        'icon'   => 'chart-line',
+        'route'  => 'student.results',
+        'roles'  => ['student'],
+    ],
+
+    // الجدول الدراسي
+    [
+        'title'  => 'الجدول الدراسي',
+        'icon'   => 'calendar-alt',
+        'route'  => 'student.timetable',
+        'roles'  => ['student'],
+    ],
+
+    // الحضور والغياب
+    [
+        'title'  => 'الحضور والغياب',
+        'icon'   => 'calendar-check',
+        'route'  => 'student.attendance',
+        'roles'  => ['student'],
+    ],
+
+    // المستندات
+    [
+        'title'  => 'المستندات',
+        'icon'   => 'folder-open',
+        'route'  => 'student.documents.index',
+        'roles'  => ['student'],
+    ],
+
+    // الملف الشخصي
+    [
+        'title'  => 'الملف الشخصي',
+        'icon'   => 'user-circle',
+        'route'  => 'student.profile',
         'roles'  => ['student'],
     ],
 

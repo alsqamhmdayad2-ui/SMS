@@ -85,6 +85,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('marks-entry/save-all', [MarksEntryController::class, 'saveAll'])->name('marks-entry.save-all');
         Route::get('marks-entry/get-classes', [MarksEntryController::class, 'getClasses'])->name('marks-entry.get-classes');
         Route::get('marks-entry/get-sections', [MarksEntryController::class, 'getSections'])->name('marks-entry.get-sections');
+        Route::get('marks-entry/get-subjects', [MarksEntryController::class, 'getSubjects'])->name('marks-entry.get-subjects');
         Route::get('marks-entry/get-exams', [MarksEntryController::class, 'getExams'])->name('marks-entry.get-exams');
 
         // Gradebook Routes

@@ -38,10 +38,11 @@ class MarksEntryController extends Controller
         $grades = Grade::all();
         $subjects = Subject::all();
 
-        $classes = collect();
-        if ($request->filled('grade_id')) {
-            $classes = SchoolClass::where('grade_id', $request->grade_id)->get();
-        }
+        // Detect current academic year & semester
+        $currentAcademicYear = AcademicYear::where('status', true)->first();
+        $currentSemester = Semester::where('status', true)->first();
+
+        $classes = SchoolClass::all();
 
         // Get sections based on selected filters
         $sections = collect();
@@ -53,7 +54,9 @@ class MarksEntryController extends Controller
         $exams = collect();
         if ($request->filled(['academic_year_id', 'section_id', 'subject_id'])) {
             $exams = Exam::where('academic_year_id', $request->academic_year_id)
-                ->where('section_id', $request->section_id)
+                ->whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
                 ->where('subject_id', $request->subject_id)
                 ->when($request->filled('semester_id'), function ($q) use ($request) {
                     $q->where('semester_id', $request->semester_id);
@@ -66,9 +69,9 @@ class MarksEntryController extends Controller
         $exam = null;
         $results = collect();
         if ($request->filled('exam_id')) {
-            $exam = Exam::with(['subject', 'section', 'academicYear', 'semester'])->findOrFail($request->exam_id);
+            $exam = Exam::with(['subject', 'sections', 'academicYear', 'semester'])->findOrFail($request->exam_id);
 
-            $students = Student::where('section_id', $exam->section_id)
+            $students = Student::whereIn('section_id', $exam->sections->pluck('id'))
                 ->orderBy('first_name')
                 ->get();
 
@@ -79,7 +82,8 @@ class MarksEntryController extends Controller
 
         return view('panels.admin.exams.marks-entry.index', compact(
             'academicYears', 'semesters', 'grades', 'classes', 'subjects',
-            'sections', 'exams', 'students', 'exam', 'results'
+            'sections', 'exams', 'students', 'exam', 'results',
+            'currentAcademicYear', 'currentSemester'
         ));
     }
 
@@ -170,8 +174,33 @@ class MarksEntryController extends Controller
         $sections = Section::where('class_id', $request->class_id)->with('schoolClass')->get();
 
         return $this->successResponse('Sections retrieved', $sections->map(function ($s) {
-            return ['id' => $s->id, 'name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name];
+            return [
+                'id'        => $s->id,
+                'name'      => $s->name,           // just the section letter e.g. "أ"
+                'full_name' => ($s->schoolClass->name ?? '') . ' - ' . $s->name,
+            ];
         }), 'SECTIONS_LOADED');
+    }
+
+    /**
+     * AJAX: Get subjects for a section based on exams (cascading filter).
+     */
+    public function getSubjects(Request $request): JsonResponse
+    {
+        try {
+            $subjects = Subject::whereHas('exams', function ($q) use ($request) {
+                $q->where('academic_year_id', $request->academic_year_id)
+                  ->whereHas('sections', function ($q2) use ($request) {
+                      $q2->where('sections.id', $request->section_id);
+                  });
+                if ($request->filled('semester_id')) {
+                    $q->where('semester_id', $request->semester_id);
+                }
+            })->get(['id', 'name']);
+            return $this->successResponse('Subjects retrieved', $subjects, 'SUBJECTS_LOADED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error: ' . $e->getMessage(), 'ERROR', [], 500);
+        }
     }
 
     /**
@@ -179,18 +208,24 @@ class MarksEntryController extends Controller
      */
     public function getExams(Request $request): JsonResponse
     {
-        $exams = Exam::where('academic_year_id', $request->academic_year_id)
-            ->where('section_id', $request->section_id)
-            ->where('subject_id', $request->subject_id)
-            ->when($request->filled('semester_id'), fn($q) => $q->where('semester_id', $request->semester_id))
-            ->get();
+        try {
+            $exams = Exam::where('academic_year_id', $request->academic_year_id)
+                ->whereHas('sections', function ($q) use ($request) {
+                    $q->where('sections.id', $request->section_id);
+                })
+                ->where('subject_id', $request->subject_id)
+                ->when($request->filled('semester_id'), fn($q) => $q->where('semester_id', $request->semester_id))
+                ->get();
 
-        return $this->successResponse('Exams retrieved', $exams->map(function ($e) {
-            return [
-                'id' => $e->id,
-                'name' => $e->title . ' (' . ($e->exam_date ? $e->exam_date->format('Y-m-d') : 'No Date') . ') - ' . ucfirst($e->type),
-                'total_marks' => $e->total_marks,
-            ];
-        }), 'EXAMS_LOADED');
+            return $this->successResponse('Exams retrieved', $exams->map(function ($e) {
+                return [
+                    'id' => $e->id,
+                    'name' => $e->title . ' (' . ($e->exam_date ? $e->exam_date->format('Y-m-d') : 'No Date') . ') - ' . ucfirst($e->type),
+                    'total_marks' => $e->total_marks,
+                ];
+            }), 'EXAMS_LOADED');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error fetching exams', 'ERROR', [], 500);
+        }
     }
 }

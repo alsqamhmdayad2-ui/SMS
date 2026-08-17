@@ -9,8 +9,21 @@
             <i class="fas fa-arrow-right me-1"></i> عودة
         </a>
         @if($exam->status->value === 'draft')
+        <a href="{{ route('teacher.exams.questions.index', $exam) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-list-ol me-1"></i> إدارة الأسئلة
+        </a>
         <a href="{{ route('teacher.exams.edit', $exam) }}" class="btn btn-outline-warning btn-sm">
             <i class="fas fa-edit me-1"></i> تعديل الاختبار
+        </a>
+        <form action="{{ route('teacher.exams.publish', $exam) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من نشر الاختبار؟ لا يمكن التراجع عن هذا الإجراء ولن تتمكن من تعديل الأسئلة بعد النشر.')">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-bullhorn me-1"></i> نشر الاختبار
+            </button>
+        </form>
+        @else
+        <a href="{{ route('teacher.exams.questions.index', $exam) }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-eye me-1"></i> عرض الأسئلة
         </a>
         @endif
     </x-slot:actions>
@@ -28,7 +41,7 @@
         <div class="row g-3 align-items-center">
             <div class="col-md-4">
                 <div class="fw-bold fs-5">{{ $exam->title }}</div>
-                <div class="text-muted small">{{ $exam->subject?->name }} — {{ $exam->section?->schoolClass?->name }} / {{ $exam->section?->name }}</div>
+                <div class="text-muted small">{{ $exam->subject?->name }} — {{ $exam->sections->first()?->schoolClass?->name }} / {{ $exam->sections->pluck('name')->join('، ') }}</div>
             </div>
             <div class="col-md-2 text-center">
                 <div class="text-muted small">النوع</div>
@@ -52,11 +65,62 @@
     </div>
 </div>
 
-{{-- Marks Notice if no questions --}}
-@if($exam->total_marks == 0)
-<div class="alert alert-warning">
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    لم يتم تحديد الدرجة الكلية لهذا الاختبار. يرجى التواصل مع الإدارة لتعيين الدرجة الكلية.
+
+
+{{-- ── Visibility Controls ── --}}
+@if($exam->status->value !== 'draft')
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <h6 class="fw-bold mb-3"><i class="fas fa-eye text-primary me-1"></i> التحكم في ظهور النتائج للطلاب</h6>
+        <div class="row g-3">
+            {{-- Toggle: Show Marks --}}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border {{ $exam->show_marks_to_student ? 'border-success bg-success bg-opacity-10' : 'border-secondary bg-light' }}">
+                    <div>
+                        <div class="fw-bold mb-1">
+                            <i class="fas fa-star me-1 {{ $exam->show_marks_to_student ? 'text-success' : 'text-secondary' }}"></i>
+                            إظهار الدرجات
+                        </div>
+                        <div class="small text-muted">يرى الطالب درجته ونسبته المئوية</div>
+                    </div>
+                    <form action="{{ route('teacher.exams.toggle-marks', $exam) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="btn btn-sm {{ $exam->show_marks_to_student ? 'btn-success' : 'btn-outline-secondary' }} rounded-pill px-3">
+                            @if($exam->show_marks_to_student)
+                                <i class="fas fa-toggle-on me-1"></i> مُفعّل
+                            @else
+                                <i class="fas fa-toggle-off me-1"></i> مُخفي
+                            @endif
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- Toggle: Show Answers Review --}}
+            <div class="col-md-6">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border {{ $exam->show_answers_to_student ? 'border-info bg-info bg-opacity-10' : 'border-secondary bg-light' }}">
+                    <div>
+                        <div class="fw-bold mb-1">
+                            <i class="fas fa-list-check me-1 {{ $exam->show_answers_to_student ? 'text-info' : 'text-secondary' }}"></i>
+                            مراجعة الإجابات
+                        </div>
+                        <div class="small text-muted">يرى الطالب الصح والخطأ لكل سؤال</div>
+                    </div>
+                    <form action="{{ route('teacher.exams.toggle-answers', $exam) }}" method="POST">
+                        @csrf @method('PATCH')
+                        <button type="submit" class="btn btn-sm {{ $exam->show_answers_to_student ? 'btn-info text-white' : 'btn-outline-secondary' }} rounded-pill px-3"
+                            {{ !$exam->show_marks_to_student ? 'title=يجب إظهار الدرجات أولاً' : '' }}>
+                            @if($exam->show_answers_to_student)
+                                <i class="fas fa-toggle-on me-1"></i> مُفعّلة
+                            @else
+                                <i class="fas fa-toggle-off me-1"></i> مُخفية
+                            @endif
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endif
 
@@ -85,6 +149,7 @@
                         <th>النسبة</th>
                         <th>التقدير</th>
                         <th>ملاحظات</th>
+                        <th>مراجعة</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,6 +206,15 @@
                                    value="{{ $result?->remarks }}"
                                    placeholder="ملاحظة..."
                                    onblur="autoSave({{ $student->id }})">
+                        </td>
+                        <td>
+                            @if($result)
+                                <a href="{{ route('teacher.exams.results.review', [$exam, $student]) }}" class="btn btn-sm btn-outline-primary" title="مراجعة الإجابات والتصحيح">
+                                    <i class="fas fa-search"></i>
+                                </a>
+                            @else
+                                <span class="text-muted small">لم يُمتحن</span>
+                            @endif
                         </td>
                     </tr>
                     @empty

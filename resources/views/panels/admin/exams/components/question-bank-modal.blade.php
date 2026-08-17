@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold" id="questionBankModalLabel">
-                    <i class="bi bi-box-arrow-in-down"></i> بنك الأسئلة لمادة: {{ $exam->subject->name }}
+                    <i class="fas fa-download"></i> بنك الأسئلة لمادة: {{ $exam->subject->name }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -36,7 +36,7 @@
                             </div>
                             <div class="col-md-1">
                                 <button type="button" id="refreshBankBtn" class="btn btn-sm btn-outline-secondary w-100" title="تحديث البنك">
-                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <i class="fas fa-sync"></i>
                                 </button>
                             </div>
                         </div>

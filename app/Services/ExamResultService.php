@@ -54,12 +54,13 @@ class ExamResultService
             $result->save();
 
             // Trigger grade recalculation for this student
+            $studentSectionId = \App\Models\Student::find($studentId)?->section_id;
             $this->gradeCalculationService->calculateSubjectGrade(
                 $studentId,
                 $exam->subject_id,
                 $exam->academic_year_id,
                 $exam->semester_id,
-                $exam->section_id
+                $studentSectionId
             );
 
             return $result;

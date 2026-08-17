@@ -135,7 +135,7 @@ class ExamBuilderService
             // Direct edit (custom or sole user)
             $question->update($data);
 
-            if (isset($data['type']) || isset($data['options']) || isset($data['is_correct_boolean']) || isset($data['pairs'])) {
+            if (isset($data['type']) || isset($data['options']) || isset($data['is_correct_boolean']) || isset($data['pairs']) || isset($data['model_answer'])) {
                 $question->options()->delete();
                 $this->createOptionsForType($question, $data);
             }
@@ -267,9 +267,17 @@ class ExamBuilderService
                 ]);
             }
         } elseif ($type === 'true_false') {
+            $isCorrect = (bool) ($data['is_correct_boolean'] ?? false);
+            
             $question->options()->create([
-                'option_text' => 'True/False',
-                'is_correct' => (bool) ($data['is_correct_boolean'] ?? false),
+                'option_text' => 'صح',
+                'is_correct' => $isCorrect,
+                'order' => 0,
+            ]);
+            $question->options()->create([
+                'option_text' => 'خطأ',
+                'is_correct' => !$isCorrect,
+                'order' => 1,
             ]);
         } elseif ($type === 'matching') {
             foreach (($data['pairs'] ?? []) as $index => $pair) {
@@ -279,6 +287,25 @@ class ExamBuilderService
                     'partial_mark' => $pair['partial_mark'] ?? null,
                     'order' => $index,
                 ]);
+            }
+        } elseif (in_array($type, ['short_answer', 'essay', 'fill_blank'])) {
+            // Save model answers as reference options for correction
+            $answers = [];
+            if (!empty($data['model_answers']) && is_array($data['model_answers'])) {
+                $answers = $data['model_answers'];
+            } elseif (!empty($data['model_answer'])) {
+                // Fallback for older format
+                $answers = [$data['model_answer']];
+            }
+            
+            foreach ($answers as $index => $answer) {
+                if (!empty(trim($answer))) {
+                    $question->options()->create([
+                        'option_text' => trim($answer),
+                        'is_correct'  => true,
+                        'order'       => $index,
+                    ]);
+                }
             }
         }
     }

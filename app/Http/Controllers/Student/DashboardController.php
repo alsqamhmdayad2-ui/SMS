@@ -24,6 +24,12 @@ class DashboardController extends Controller
             ->with(['grade', 'schoolClass', 'section', 'parent'])
             ->first();
 
+        if (!$student) {
+            // If the user has a student role but no student record, log them out to prevent them getting stuck
+            auth()->logout();
+            return redirect()->route('login')->with('error', 'حساب الطالب غير مكتمل البيانات. يرجى مراجعة الإدارة.');
+        }
+
         $academicYear = AcademicYear::where('status', 1)->first();
         
         // Attendance Summary
@@ -49,9 +55,12 @@ class DashboardController extends Controller
         // Upcoming Exams (Next 5 exams)
         $upcomingExams = collect();
         if ($academicYear && $student->section_id) {
-            $upcomingExams = Exam::with('subject')
+            $upcomingExams = Exam::with(['subject', 'teacher.user'])
                 ->where('academic_year_id', $academicYear->id)
-                ->where('section_id', $student->section_id)
+                ->whereHas('sections', function($q) use ($student) {
+                    $q->where('sections.id', $student->section_id);
+                })
+                ->where('status', 'published')
                 ->where('exam_date', '>=', now()->toDateString())
                 ->orderBy('exam_date', 'asc')
                 ->take(5)

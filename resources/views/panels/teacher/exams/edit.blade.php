@@ -70,10 +70,25 @@
                             <input type="time" name="end_time" class="form-control" value="{{ old('end_time', $exam->end_time) }}">
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">المدة (دقائق)</label>
-                            <input type="number" name="duration_minutes" class="form-control" min="5"
+                            <input type="number" name="duration_minutes" class="form-control" min="1"
                                    value="{{ old('duration_minutes', $exam->duration_minutes) }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">الدرجة الكلية <span class="text-danger">*</span></label>
+                            <input type="number" name="total_marks" class="form-control @error('total_marks') is-invalid @enderror" min="1" required
+                                   value="{{ old('total_marks', $exam->getRawOriginal('total_marks')) }}">
+                            @error('total_marks')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">طريقة عرض الاختبار للطالب</label>
+                            <select name="display_mode" class="form-select">
+                                <option value="single_page" {{ old('display_mode', $exam->display_mode) === 'single_page' ? 'selected' : '' }}>عرض جميع الأسئلة في صفحة واحدة</option>
+                                <option value="per_question" {{ old('display_mode', $exam->display_mode) === 'per_question' ? 'selected' : '' }}>عرض سؤال واحد في كل مرة (التالي/السابق)</option>
+                            </select>
                         </div>
 
                         <div class="col-12">
@@ -81,12 +96,24 @@
                             <textarea name="instructions" class="form-control" rows="3">{{ old('instructions', $exam->instructions) }}</textarea>
                         </div>
 
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_marks_to_student" id="showMarksEdit" value="1"
+                                    {{ old('show_marks_to_student', $exam->show_marks_to_student) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="showMarksEdit">
+                                    <i class="fas fa-eye text-success me-1"></i>
+                                    <strong>السماح للطلاب برؤية درجاتهم فور انتهاء الاختبار</strong>
+                                    <small class="d-block text-muted">إن لم تُفعّل هذا الخيار، ستُخفى الدرجة حتى تعتمدها.</small>
+                                </label>
+                            </div>
+                        </div>
+
                         {{-- Read-only info --}}
                         <div class="col-12">
                             <div class="alert alert-light border mb-0">
                                 <small class="text-muted">
                                     <strong>المادة:</strong> {{ $exam->subject?->name }} &nbsp;|&nbsp;
-                                    <strong>الشعبة:</strong> {{ $exam->section?->schoolClass?->name }} - {{ $exam->section?->name }}
+                                    <strong>الشعبة:</strong> {{ $exam->sections->first()?->schoolClass?->name }} - {{ $exam->sections->pluck('name')->join('، ') }}
                                     <br><em>لتغيير المادة أو الشعبة، احذف الاختبار وأنشئ اختباراً جديداً.</em>
                                 </small>
                             </div>
