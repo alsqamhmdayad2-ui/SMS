@@ -420,6 +420,14 @@ return [
         'roles'  => ['parent'],
     ],
 
+    // المستندات
+    [
+        'title'  => 'المستندات',
+        'icon'   => 'folder-open',
+        'route'  => 'parent.documents',
+        'roles'  => ['parent'],
+    ],
+
     // النتائج
     [
         'title'  => 'النتائج الدراسية',
