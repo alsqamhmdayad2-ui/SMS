@@ -23,5 +23,6 @@ Route::middleware(['auth', 'role:parent'])
         Route::get('/documents', [DocumentController::class, 'index'])->name('documents');
         Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
         Route::get('/academic-history', [AcademicHistoryController::class, 'index'])->name('academic-history');
+        Route::get('/academic-calendar', [\App\Http\Controllers\ParentPanel\AcademicCalendarController::class, 'index'])->name('academic-calendar');
         Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     });

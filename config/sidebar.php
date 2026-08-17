@@ -392,7 +392,15 @@ return [
     [
         'title'  => 'لوحة التحكم',
         'icon'   => 'tachometer-alt',
-        'route'  => 'dashboard',
+        'route'  => 'parent.dashboard',
+        'roles'  => ['parent'],
+    ],
+
+    // التقويم الأكاديمي
+    [
+        'title'  => 'التقويم الأكاديمي',
+        'icon'   => 'calendar-alt',
+        'route'  => 'parent.academic-calendar',
         'roles'  => ['parent'],
     ],
 
