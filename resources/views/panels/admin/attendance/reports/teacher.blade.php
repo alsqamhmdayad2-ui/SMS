@@ -93,7 +93,7 @@
                             <td>{{ $session->date?->format('D, d M Y') ?? '—' }}</td>
                             <td>{{ __('attendance_reports.period') }} {{ $session->period_number }}</td>
                             <td>{{ $session->subject->name ?? '—' }}</td>
-                            <td>{{ $session->section->grade->name ?? '' }} — {{ $session->section->name ?? '' }}</td>
+                            <td>{{ $session->section->schoolClass->name ?? '' }} — {{ $session->section->name ?? '' }}</td>
                             <td class="text-center">
                                 <x-shared.badge type="{{ $session->status->color() }}">
                                     <i class="fas fa-{{ $session->status === App\Enums\AttendanceSessionStatus::Locked ? 'lock' : 'lock-open' }} me-1"></i>

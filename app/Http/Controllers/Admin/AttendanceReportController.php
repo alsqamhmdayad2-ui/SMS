@@ -86,7 +86,7 @@ class AttendanceReportController extends Controller
             $data = $this->reportService->getSectionReport($filters->sectionId, $filters);
         }
 
-        $sections      = Section::with('grade')->get();
+        $sections      = Section::with('schoolClass')->get();
         $academicYears = AcademicYear::all();
         $semesters     = Semester::all();
         $view = 'panels.admin.attendance.reports.section';
@@ -153,7 +153,7 @@ class AttendanceReportController extends Controller
         $month   = $filters->month ?? Carbon::today()->format('Y-m');
         $data    = $this->reportService->getMonthlySummary($month, $filters);
 
-        $sections      = Section::with('grade')->get();
+        $sections      = Section::with('schoolClass')->get();
         $academicYears = AcademicYear::all();
         $view = 'panels.admin.attendance.reports.monthly';
 

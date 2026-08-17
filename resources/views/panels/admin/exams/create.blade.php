@@ -42,7 +42,7 @@
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <x-form.select name="academic_year_id" label="العام الدراسي" required="true" :error="$errors->first('academic_year_id')">
-                    <option value="">-- اختر --</option>
+                    <option value="">-- اختر العام --</option>
                     @foreach($academicYears as $year)
                         <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>{{ $year->name }}</option>
                     @endforeach
@@ -50,15 +50,15 @@
             </div>
             <div class="col-md-3">
                 <x-form.select name="semester_id" label="الفصل الدراسي" required="true" :error="$errors->first('semester_id')">
-                    <option value="">-- اختر --</option>
+                    <option value="">-- اختر الفصل --</option>
                     @foreach($semesters as $semester)
                         <option value="{{ $semester->id }}" {{ old('semester_id') == $semester->id ? 'selected' : '' }}>{{ $semester->name }}</option>
                     @endforeach
                 </x-form.select>
             </div>
             <div class="col-md-3">
-                <x-form.select name="grade_id" label="المرحلة" required="true" :error="$errors->first('grade_id')">
-                    <option value="">-- اختر --</option>
+                <x-form.select name="grade_id" id="grade_id" label="المرحلة" required="true" :error="$errors->first('grade_id')">
+                    <option value="">-- اختر المرحلة --</option>
                     @foreach($grades as $grade)
                         <option value="{{ $grade->id }}" {{ old('grade_id') == $grade->id ? 'selected' : '' }}>{{ $grade->name }}</option>
                     @endforeach
@@ -66,15 +66,15 @@
             </div>
             <div class="col-md-3">
                 <x-form.select name="class_id" id="class_id" label="الصف" required="true" :error="$errors->first('class_id')">
-                    <option value="">-- اختر --</option>
+                    <option value="">-- اختر الصف --</option>
                     @foreach($classes as $class)
-                        <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                        <option value="{{ $class->id }}" data-grade-id="{{ $class->grade_id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
                     @endforeach
                 </x-form.select>
             </div>
             <div class="col-md-4">
                 <label for="section_ids" class="form-label">الشعب <span class="text-danger">*</span></label>
-                <select name="section_ids[]" id="section_ids" class="form-select select2" multiple required>
+                <select name="section_ids[]" id="section_ids" class="form-select searchable-select" data-placeholder="-- اختر الشعب --" multiple required>
                     @foreach($sections as $section)
                         <option value="{{ $section->id }}" data-class-id="{{ $section->class_id }}" {{ in_array($section->id, old('section_ids', [])) ? 'selected' : '' }}>
                             {{ $section->schoolClass?->name }} - {{ $section->name }}
@@ -86,7 +86,7 @@
                 @enderror
             </div>
             <div class="col-md-4">
-                <x-form.select name="subject_id" label="المادة" required="true" :error="$errors->first('subject_id')">
+                <x-form.select name="subject_id" id="subject_id" label="المادة" required="true" :error="$errors->first('subject_id')">
                     <option value="">-- اختر المادة --</option>
                     @foreach($subjects as $subject)
                         <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>{{ $subject->name }}</option>
@@ -94,10 +94,10 @@
                 </x-form.select>
             </div>
             <div class="col-md-4">
-                <x-form.select name="teacher_id" label="المعلم" required="true" :error="$errors->first('teacher_id')">
+                <x-form.select name="teacher_id" id="teacher_id" label="المعلم" required="true" :error="$errors->first('teacher_id')">
                     <option value="">-- اختر المعلم --</option>
                     @foreach($teachers as $teacher)
-                        <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>{{ $teacher->name }}</option>
+                        <option value="{{ $teacher->id }}" data-subject-ids="{{ $teacher->qualifiedSubjects->pluck('id')->implode(',') }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>{{ $teacher->name }}</option>
                     @endforeach
                 </x-form.select>
             </div>
@@ -148,39 +148,80 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const classSelect = document.getElementById('class_id');
-    const sectionSelect = document.getElementById('section_ids');
-    const sectionOptions = Array.from(sectionSelect.options);
-
-    function filterSections() {
-        const selectedClassId = classSelect.value;
-        let hasVisibleOptions = false;
-
-        sectionOptions.forEach(option => {
-            if (!selectedClassId || option.dataset.classId === selectedClassId) {
-                option.style.display = '';
-                // Optional: if using Select2, select2 needs to be re-initialized or updated
-                option.disabled = false;
-                hasVisibleOptions = true;
-            } else {
-                option.style.display = 'none';
-                option.selected = false; // unselect hidden options
-                option.disabled = true;
-            }
-        });
-
-        // Trigger change for Select2 if it exists
-        if (typeof jQuery !== 'undefined' && jQuery(sectionSelect).data('select2')) {
-            jQuery(sectionSelect).trigger('change.select2');
+$(document).ready(function() {
+    // 1. Stage -> Classes filtering
+    var allClasses = $('#class_id option').not('[value=""]').clone();
+    
+    $('#grade_id').on('change', function() {
+        var gradeId = $(this).val();
+        var currentClass = $('#class_id').val();
+        
+        $('#class_id').empty().append('<option value="">-- اختر الصف --</option>');
+        
+        if (gradeId) {
+            allClasses.each(function() {
+                if ($(this).data('grade-id') == gradeId) {
+                    var newOpt = $(this).clone();
+                    if (newOpt.val() == currentClass) newOpt.prop('selected', true);
+                    $('#class_id').append(newOpt);
+                }
+            });
+        } else {
+            // If no grade, maybe show all or none. Let's show none.
         }
-    }
+        $('#class_id').trigger('change');
+    });
 
-    if (classSelect) {
-        classSelect.addEventListener('change', filterSections);
-        // Initial filter on page load (in case of old input)
-        filterSections();
-    }
+    // 2. Class -> Sections filtering
+    var allSections = $('#section_ids option').clone();
+    
+    $('#class_id').on('change', function() {
+        var classId = $(this).val();
+        var currentSelected = $('#section_ids').val() || [];
+        
+        $('#section_ids').empty();
+        
+        if (classId) {
+            allSections.each(function() {
+                if ($(this).data('class-id') == classId) {
+                    var newOpt = $(this).clone();
+                    if (currentSelected.includes(newOpt.val())) newOpt.prop('selected', true);
+                    $('#section_ids').append(newOpt);
+                }
+            });
+        }
+        $('#section_ids').trigger('change');
+    });
+
+    // 3. Subject -> Teachers filtering
+    var allTeachers = $('#teacher_id option').not('[value=""]').clone();
+    
+    $('#subject_id').on('change', function() {
+        var subjectId = $(this).val();
+        var currentTeacher = $('#teacher_id').val();
+        
+        $('#teacher_id').empty().append('<option value="">-- اختر المعلم --</option>');
+        
+        if (subjectId) {
+            allTeachers.each(function() {
+                var subjectIds = $(this).data('subject-ids');
+                if (subjectIds) {
+                    subjectIds = subjectIds.toString().split(',');
+                    if (subjectIds.includes(subjectId.toString())) {
+                        var newOpt = $(this).clone();
+                        if (newOpt.val() == currentTeacher) newOpt.prop('selected', true);
+                        $('#teacher_id').append(newOpt);
+                    }
+                }
+            });
+        }
+        $('#teacher_id').trigger('change');
+    });
+
+    // Trigger initial state
+    if ($('#grade_id').val()) $('#grade_id').trigger('change');
+    if ($('#class_id').val()) $('#class_id').trigger('change');
+    if ($('#subject_id').val()) $('#subject_id').trigger('change');
 });
 </script>
 @endpush

@@ -62,14 +62,17 @@ class StudentController extends Controller
         $parentId = $data['parent_id'] ?? null;
         if (!$parentId) {
             $parent = ParentModel::create([
-                'full_name' => $data['parent_full_name'],
+                'first_name' => $data['parent_first_name'],
+                'father_name' => $data['parent_father_name'],
+                'grandfather_name' => $data['parent_grandfather_name'],
+                'family_name' => $data['parent_family_name'],
                 'national_id' => $data['parent_national_id'],
                 'guardian_type' => $data['guardian_type'],
                 'phone_1' => $data['parent_phone_1'],
                 'phone_2' => $data['parent_phone_2'] ?? null,
                 'occupation' => $data['parent_occupation'] ?? null,
                 'workplace' => $data['parent_workplace'] ?? null,
-                'address' => $data['governorate'] . ' - ' . $data['city'] . ' - ' . $data['street'],
+                'address' => $data['parent_address'] ?? ($data['governorate'] . ' - ' . $data['city'] . ' - ' . ($data['street'] ?? '')),
             ]);
             $parentId = $parent->id;
         }

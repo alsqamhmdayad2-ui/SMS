@@ -15,6 +15,10 @@
         </ul>
     </div>
     <div class="d-flex flex-wrap gap-2 align-items-center">
+        <div class="position-relative" style="width: 250px;">
+            <i class="fas fa-search position-absolute text-muted" style="right: 12px; top: 12px;"></i>
+            <input type="text" id="studentSearch" class="form-control form-control-sm" style="padding-right: 32px;" placeholder="بحث بالاسم، رقم الطالب، الهوية...">
+        </div>
         <form method="GET" class="d-flex flex-wrap gap-2">
             <select name="section_id" class="form-select" style="width:160px" onchange="this.form.submit()">
                 <option value="">جميع الشعب</option>
@@ -50,7 +54,7 @@
                 </thead>
                 <tbody>
                     @forelse($students as $i => $student)
-                        <tr>
+                        <tr class="student-row" data-search="{{ $student->full_name }} {{ $student->student_number }} {{ $student->national_id }} {{ str_pad($student->id, 8, '0', STR_PAD_LEFT) }}">
                             <td>{{ $i + 1 }}</td>
                             <td>
                                 <strong style="direction:ltr;display:inline-block">
@@ -86,3 +90,24 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('studentSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            document.querySelectorAll('.student-row').forEach(row => {
+                const searchData = (row.dataset.search || '').toLowerCase();
+                if (searchData.includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+@endpush

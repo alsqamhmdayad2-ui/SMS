@@ -6,13 +6,13 @@
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
         <div>
             <h2 class="mb-1 fw-bold text-sms-primary">
-                {{ __('attendance.daily_section_attendance') ?? 'Daily Attendance' }} : {{ $session->section?->grade?->name ?? '' }} — {{ $session->section?->name ?? '—' }}
+                {{ __('attendance.daily_section_attendance') ?? 'Daily Attendance' }} : {{ $session->section?->schoolClass?->name ?? '' }} — {{ $session->section?->name ?? '—' }}
             </h2>
             <p class="text-sms-muted mb-0">
-                <i class="fas fa-calendar-day me-1"></i>{{ $session->date?->format('l, F j, Y') ?? '—' }}
-                · <i class="fas fa-user-tie me-1"></i>Recorded by {{ $session->teacher->name ?? '—' }}
+                <i class="fas fa-calendar-day me-1"></i>{{ $session->date?->translatedFormat('l، j F Y') ?? '—' }}
+                · <i class="fas fa-user-tie me-1"></i>{{ __('attendance.recorded_by') }}: {{ $session->teacher->name ?? '—' }}
                 @if($session->period_number)
-                    <span class="opacity-75">(Period {{ $session->period_number }} - {{ $session->subject->name ?? '' }})</span>
+                    <span class="opacity-75">({{ __('attendance.period_label') }} {{ $session->period_number }} - {{ $session->subject->name ?? '' }})</span>
                 @endif
             </p>
         </div>
@@ -24,13 +24,13 @@
             @else
                 <form action="{{ route('admin.attendance-sessions.lock', $session->id) }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-secondary" onclick="return confirm('Lock this session?')">
+                    <button type="submit" class="btn btn-secondary" onclick="return confirm('{{ __('attendance.lock_confirm') }}')">
                         <i class="fas fa-lock me-1"></i> {{ __('attendance.lock_session') }}
                     </button>
                 </form>
             @endif
             <a href="{{ route('admin.attendance-sessions.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i> {{ __('attendance.back') }}
+                <i class="fas fa-arrow-right me-1"></i> {{ __('attendance.back') }}
             </a>
         </div>
     </div>
@@ -51,8 +51,8 @@
         @if($session->is_locked && $session->locked_at)
             <div class="alert alert-secondary mt-3 mb-0 py-2">
                 <i class="fas fa-lock me-1"></i>
-                Locked by <strong>{{ $session->lockedBy->name ?? 'System' }}</strong>
-                at {{ $session->locked_at?->format('h:i A, D F j') ?? '—' }}
+                تم الإغلاق بواسطة <strong>{{ $session->lockedBy->name ?? 'النظام' }}</strong>
+                بتاريخ {{ $session->locked_at?->translatedFormat('h:i A، D j F') ?? '—' }}
             </div>
         @endif
     </x-shared.card>
@@ -167,9 +167,9 @@
     </x-shared.card>
 </div>
 
-<x-shared.modal id="overrideModal" title="<i class='fas fa-edit me-2 text-danger'></i>{{ __('attendance.override_attendance') }}" headerClass="border-0" footerClass="border-0">
-    <form action="{{ route('admin.attendance-sessions.override', $session->id) }}" method="POST">
-        @csrf
+<form action="{{ route('admin.attendance-sessions.override', $session->id) }}" method="POST">
+    @csrf
+    <x-shared.modal id="overrideModal" title="<i class='fas fa-edit me-2 text-danger'></i>{{ __('attendance.override_attendance') }}" headerClass="border-0" footerClass="border-0">
         <x-slot:body>
             <input type="hidden" name="student_id" id="overrideStudentId">
             <div class="alert alert-warning py-2 small">
@@ -196,12 +196,12 @@
                 <i class="fas fa-save me-1"></i> {{ __('attendance.save_override') }}
             </button>
         </x-slot:footer>
-    </form>
-</x-shared.modal>
+    </x-shared.modal>
+</form>
 
-<x-shared.modal id="unlockModal" title="<i class='fas fa-lock-open me-2 text-warning'></i>{{ __('attendance.unlock_session') }}" headerClass="border-0" footerClass="border-0">
-    <form action="{{ route('admin.attendance-sessions.unlock', $session->id) }}" method="POST">
-        @csrf
+<form action="{{ route('admin.attendance-sessions.unlock', $session->id) }}" method="POST">
+    @csrf
+    <x-shared.modal id="unlockModal" title="<i class='fas fa-lock-open me-2 text-warning'></i>{{ __('attendance.unlock_session') }}" headerClass="border-0" footerClass="border-0">
         <x-slot:body>
             <div class="alert alert-warning py-2 small">
                 إلغاء الإغلاق يسمح للمعلم بتعديل الحضور مجدداً. يرجى كتابة السبب.
@@ -217,8 +217,8 @@
                 <i class="fas fa-lock-open me-1"></i> {{ __('attendance.confirm_unlock') }}
             </button>
         </x-slot:footer>
-    </form>
-</x-shared.modal>
+    </x-shared.modal>
+</form>
 
 @push('scripts')
 <script>

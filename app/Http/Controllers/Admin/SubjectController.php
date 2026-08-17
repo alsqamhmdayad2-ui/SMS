@@ -106,12 +106,10 @@ class SubjectController extends Controller
 
         $subject->update($data);
 
-        // Derive current assigned classes from subject_section_teacher (single source of truth)
-        $existingClassIds = DB::table('subject_section_teacher')
-            ->join('sections', 'sections.id', '=', 'subject_section_teacher.section_id')
-            ->where('subject_section_teacher.subject_id', $subject->id)
-            ->pluck('sections.class_id')
-            ->unique()
+        // Derive current assigned classes from class_subject_teacher (same source as index view)
+        $existingClassIds = DB::table('class_subject_teacher')
+            ->where('subject_id', $subject->id)
+            ->pluck('class_id')
             ->map(fn($id) => (int)$id)
             ->toArray();
 
@@ -136,6 +134,12 @@ class SubjectController extends Controller
                 ->where('subject_id', $subject->id)
                 ->whereIn('class_id', $toRemove)
                 ->delete();
+        }
+
+        // If all classes removed, clean up completely
+        if (empty($newClassIds)) {
+            DB::table('class_subject_teacher')->where('subject_id', $subject->id)->delete();
+            DB::table('subject_section_teacher')->where('subject_id', $subject->id)->delete();
         }
 
         return redirect()->route('admin.subjects.index')->with('success', 'تم تعديل المادة الدراسية بنجاح.');

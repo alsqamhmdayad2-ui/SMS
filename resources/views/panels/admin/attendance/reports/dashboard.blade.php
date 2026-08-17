@@ -78,7 +78,7 @@
                     @forelse($lowestSections as $rank)
                         <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <div>
-                                <h6 class="mb-0">{{ $rank['section']->grade?->name ?? '' }} — {{ $rank['section']->name ?? '' }}</h6>
+                                <h6 class="mb-0">{{ $rank['section']->schoolClass?->name ?? '' }} — {{ $rank['section']->name ?? '' }}</h6>
                                 <small class="text-sms-muted">{{ $rank['present'] }} / {{ $rank['total'] }} حاضر</small>
                             </div>
                             <span class="badge bg-{{ $rank['rate'] >= 75 ? 'success' : ($rank['rate'] >= 50 ? 'warning' : 'danger') }} rounded-pill fs-6">
@@ -110,7 +110,7 @@
                                 @endif
                                 <div>
                                     <h6 class="mb-0">{{ $absentee['student']->name }}</h6>
-                                    <small class="text-sms-muted">{{ $absentee['student']->section?->grade?->name ?? '' }} — {{ $absentee['student']->section?->name ?? '' }}</small>
+                                    <small class="text-sms-muted">{{ $absentee['student']->section?->schoolClass?->name ?? '' }} — {{ $absentee['student']->section?->name ?? '' }}</small>
                                 </div>
                             </div>
                             <div class="text-end">

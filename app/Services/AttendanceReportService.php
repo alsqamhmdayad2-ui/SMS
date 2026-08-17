@@ -66,7 +66,7 @@ class AttendanceReportService
      */
     public function getSectionReport(int $sectionId, AttendanceFilterData $filters): array
     {
-        $section   = Section::with(['grade'])->findOrFail($sectionId);
+        $section   = Section::with(['schoolClass'])->findOrFail($sectionId);
         $students  = $this->analytics->getSectionStats($sectionId, $filters);
         $absentees = $this->analytics->getTopAbsentees($filters->with(sectionId: $sectionId));
 
@@ -101,7 +101,7 @@ class AttendanceReportService
     public function getDailySummary(string $date, AttendanceFilterData $filters): array
     {
         $stats    = $this->analytics->getDailySummary($date, $filters->academicYearId);
-        $sessions = AttendanceSession::with(['section', 'subject', 'teacher', 'records'])
+        $sessions = AttendanceSession::with(['section.schoolClass', 'subject', 'teacher', 'records'])
             ->where('date', $date)
             ->when($filters->academicYearId, fn($q) => $q->where('academic_year_id', $filters->academicYearId))
             ->orderBy('period_number')

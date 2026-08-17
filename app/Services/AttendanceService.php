@@ -72,7 +72,7 @@ class AttendanceService
         ], [
             'period_number'    => $data['period_number'],
             'subject_id'       => $data['subject_id'],
-            'teacher_id'       => $data['teacher_id'],
+            'teacher_id'       => $data['teacher_id'] ?? null,
             'timetable_id'     => $data['timetable_id'] ?? null,
             'status'           => AttendanceSessionStatus::Open,
             'created_by'       => $userId,

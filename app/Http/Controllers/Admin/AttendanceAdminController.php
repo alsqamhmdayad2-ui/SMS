@@ -27,7 +27,7 @@ class AttendanceAdminController extends Controller
      */
     public function index(Request $request)
     {
-        $sessions = AttendanceSession::with(['subject', 'teacher', 'records'])
+        $sessions = AttendanceSession::with(['subject', 'teacher', 'records', 'section.schoolClass'])
             ->when($request->academic_year_id, fn($q) => $q->where('academic_year_id', $request->academic_year_id))
             ->when($request->semester_id,      fn($q) => $q->where('semester_id', $request->semester_id))
             ->when($request->section_id,       fn($q) => $q->where('section_id', $request->section_id))
@@ -62,7 +62,7 @@ class AttendanceAdminController extends Controller
     public function show(AttendanceSession $session)
     {
         $session->load([
-            'section',
+            'section.schoolClass',
             'subject',
             'teacher',
             'records.student',
@@ -152,7 +152,7 @@ class AttendanceAdminController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester_id'      => 'required|exists:semesters,id',
             'section_id'       => 'required|exists:sections,id',
-            'date'             => 'required|date',
+            'date'             => 'required|date|before_or_equal:today',
         ]);
 
         $sessionData = [
@@ -161,11 +161,26 @@ class AttendanceAdminController extends Controller
             'section_id'       => $validated['section_id'],
             'date'             => $validated['date'],
             'subject_id'       => null,
-            'teacher_id'       => auth()->id(), // Admin acts as the creator
+            'teacher_id'       => $this->getAdminTeacherId(), // Safe: only set if admin is also a teacher
             'timetable_id'     => null,
-            'period_number'    => 1, // Defaulting to 1 for manual admin entry
+            'period_number'    => 1,
         ];
 
+        // Check for soft-deleted duplicate first, restore it
+        $trashed = \App\Models\AttendanceSession::onlyTrashed()
+            ->where('academic_year_id', $sessionData['academic_year_id'])
+            ->where('semester_id', $sessionData['semester_id'])
+            ->where('section_id', $sessionData['section_id'])
+            ->whereDate('date', $sessionData['date'])
+            ->first();
+
+        if ($trashed) {
+            $trashed->restore();
+            return redirect()->route('admin.attendance-sessions.show', $trashed->id)
+                ->with('info', 'تم استعادة جلسة الحضور السابقة.');
+        }
+
+        // Check for existing active session
         $session = $this->attendanceService->getSession($sessionData);
 
         if ($session) {
@@ -177,5 +192,14 @@ class AttendanceAdminController extends Controller
 
         return redirect()->route('admin.attendance-sessions.show', $session->id)
             ->with('success', 'تم فتح جلسة حضور جديدة لهذه الشعبة. يمكنك الآن تعديل حالة الغائبين.');
+    }
+
+    /**
+     * Returns the teacher ID if the logged-in admin also has a teacher record.
+     * Returns null otherwise (admin-only action).
+     */
+    private function getAdminTeacherId(): ?int
+    {
+        return \App\Models\Teacher::where('user_id', auth()->id())->value('id');
     }
 }

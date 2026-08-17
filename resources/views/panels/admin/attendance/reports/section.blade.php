@@ -18,7 +18,7 @@
                     <option value="">-- {{ __('attendance_reports.section') }} --</option>
                     @foreach($sections as $sec)
                         <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>
-                            {{ $sec->grade->name ?? '' }} — {{ $sec->name }}
+                            {{ $sec->schoolClass->name ?? '' }} — {{ $sec->name }}
                         </option>
                     @endforeach
                 </x-form.select>
@@ -58,7 +58,7 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div>
-                    <h3 class="mb-1 fw-bold">{{ $data['section']->grade->name ?? '' }} — {{ $data['section']->name ?? '' }}</h3>
+                    <h3 class="mb-1 fw-bold">{{ $data['section']->schoolClass->name ?? '' }} — {{ $data['section']->name ?? '' }}</h3>
                     <p class="text-sms-muted mb-0">{{ __('attendance_reports.student_count') }}: <strong>{{ count($data['students']) }}</strong></p>
                 </div>
                 <div class="ms-auto text-end">

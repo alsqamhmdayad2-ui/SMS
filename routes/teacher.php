@@ -43,6 +43,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth'])->group(function
         Route::put('/{exam}',          [App\Http\Controllers\Teacher\ExamController::class, 'update'])  ->name('update');
         Route::delete('/{exam}',       [App\Http\Controllers\Teacher\ExamController::class, 'destroy']) ->name('destroy');
         Route::post('/{exam}/publish',        [App\Http\Controllers\Teacher\ExamController::class, 'publish'])       ->name('publish');
+        Route::post('/{exam}/unlock',        [App\Http\Controllers\Teacher\ExamController::class, 'unlock'])       ->name('unlock');
         Route::patch('/{exam}/toggle-marks',   [App\Http\Controllers\Teacher\ExamController::class, 'toggleMarks'])   ->name('toggle-marks');
         Route::patch('/{exam}/toggle-answers', [App\Http\Controllers\Teacher\ExamController::class, 'toggleAnswers']) ->name('toggle-answers');
         Route::get('/{exam}/student/{student}/review', [App\Http\Controllers\Teacher\ExamController::class, 'reviewAnswers'])->name('results.review');

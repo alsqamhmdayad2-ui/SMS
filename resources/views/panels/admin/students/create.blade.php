@@ -203,41 +203,62 @@
                             </select>
                         </div>
 
-                        {{-- اسم ولي الأمر --}}
+                        {{-- الاسم الأول --}}
+                        <div class="col-md-2">
+                            <label class="form-label">الاسم الأول</label>
+                            <input type="text" class="form-control" name="parent_first_name" value="{{ old('parent_first_name') }}" />
+                        </div>
+                        {{-- اسم الأب --}}
+                        <div class="col-md-2">
+                            <label class="form-label">اسم الأب</label>
+                            <input type="text" class="form-control" name="parent_father_name" value="{{ old('parent_father_name') }}" />
+                        </div>
+                        {{-- اسم الجد --}}
+                        <div class="col-md-2">
+                            <label class="form-label">اسم الجد</label>
+                            <input type="text" class="form-control" name="parent_grandfather_name" value="{{ old('parent_grandfather_name') }}" />
+                        </div>
+                        {{-- اسم العائلة --}}
                         <div class="col-md-3">
-                            <label class="form-label">الاسم الكامل لولي الأمر</label>
-                            <input type="text" class="form-control" name="parent_full_name"
-                                   value="{{ old('parent_full_name') }}" />
+                            <label class="form-label">اسم العائلة</label>
+                            <input type="text" class="form-control" name="parent_family_name" value="{{ old('parent_family_name') }}" />
                         </div>
 
                         {{-- رقم هوية ولي الأمر --}}
                         <div class="col-md-3">
-                            <label class="form-label">رقم هوية ولي الأمر</label>
-                            <input type="text" class="form-control" name="parent_national_id"
-                                   value="{{ old('parent_national_id') }}" />
+                            <label class="form-label">رقم الهوية</label>
+                            <input type="text" class="form-control" name="parent_national_id" value="{{ old('parent_national_id') }}" />
                         </div>
 
-                        {{-- رقم الجوال --}}
+                        {{-- رقم الجوال الأول --}}
                         <div class="col-md-3">
-                            <label class="form-label">رقم الجوال</label>
-                            <input type="text" class="form-control" name="parent_phone_1"
-                                   value="{{ old('parent_phone_1') }}" />
+                            <label class="form-label">رقم الجوال الأول</label>
+                            <input type="text" class="form-control" name="parent_phone_1" value="{{ old('parent_phone_1') }}" />
                         </div>
 
                         {{-- رقم الجوال الثاني --}}
                         <div class="col-md-3">
                             <label class="form-label">رقم الجوال الثاني</label>
-                            <input type="text" class="form-control" name="parent_phone_2"
-                                   value="{{ old('parent_phone_2') }}" />
+                            <input type="text" class="form-control" name="parent_phone_2" value="{{ old('parent_phone_2') }}" />
                         </div>
 
                         {{-- المهنة --}}
                         <div class="col-md-3">
                             <label class="form-label">المهنة</label>
-                            <input type="text" class="form-control" name="parent_occupation"
-                                   value="{{ old('parent_occupation') }}" />
+                            <input type="text" class="form-control" name="parent_occupation" value="{{ old('parent_occupation') }}" />
                         </div>
 
+                        {{-- جهة العمل --}}
+                        <div class="col-md-4">
+                            <label class="form-label">جهة العمل</label>
+                            <input type="text" class="form-control" name="parent_workplace" value="{{ old('parent_workplace') }}" />
+                        </div>
+
+                        {{-- العنوان --}}
+                        <div class="col-md-8">
+                            <label class="form-label">العنوان</label>
+                            <input type="text" class="form-control" name="parent_address" value="{{ old('parent_address') }}" placeholder="اتركه فارغاً لاعتماد عنوان السكن الخاص بالطالب..." />
+                        </div>
                     </div>
                 </div>
             </div>

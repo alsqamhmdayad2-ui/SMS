@@ -16,7 +16,7 @@
             <div class="col">
                 <h4 class="mb-0 fw-bold">{{ $timetable->subject->name }}</h4>
                 <p class="mb-0 opacity-75">
-                    {{ $timetable->section?->grade?->name ?? '' }} &mdash; {{ $timetable->section?->name ?? '' }}
+                    {{ $timetable->section?->schoolClass?->name ?? '' }} &mdash; {{ $timetable->section?->name ?? '' }}
                     &nbsp;·&nbsp;
                     <i class="fas fa-user-tie me-1"></i>{{ auth()->user()->name }}
                 </p>

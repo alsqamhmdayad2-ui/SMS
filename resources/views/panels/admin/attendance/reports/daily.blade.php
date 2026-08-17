@@ -83,7 +83,7 @@
                     @foreach($data['sessions'] as $session)
                         <tr>
                             <td>{{ __('attendance_reports.period') }} {{ $session->period_number }}</td>
-                            <td>{{ $session->section->grade->name ?? '' }} — {{ $session->section->name ?? '' }}</td>
+                            <td>{{ $session->section->schoolClass->name ?? '' }} — {{ $session->section->name ?? '' }}</td>
                             <td>{{ $session->subject->name ?? '—' }}</td>
                             <td>{{ $session->teacher->name ?? '—' }}</td>
                             <td class="text-center">

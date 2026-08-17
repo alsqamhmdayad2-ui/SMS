@@ -22,6 +22,14 @@
                 <i class="fas fa-bullhorn me-1"></i> نشر الاختبار
             </button>
         </form>
+        @elseif($exam->status === \App\Enums\ExamStatus::PUBLISHED)
+        <form action="{{ route('teacher.exams.unlock', $exam) }}" method="POST" class="d-inline"
+              onsubmit="return confirm('هل أنت متأكد من إلغاء نشر الاختبار وإعادته كمسودة؟ هذا سيسمح لك بتعديل الأسئلة مجدداً.')">
+            @csrf
+            <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-lock-open me-1"></i> إلغاء النشر
+            </button>
+        </form>
         @endif
     </x-slot:actions>
 </x-page-header>

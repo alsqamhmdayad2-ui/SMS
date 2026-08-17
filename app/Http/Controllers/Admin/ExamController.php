@@ -132,7 +132,7 @@ class ExamController extends Controller
             'classes' => SchoolClass::all(),
             'sections' => Section::all(),
             'subjects' => Subject::where('status', true)->get(),
-            'teachers' => Teacher::all(),
+            'teachers' => Teacher::with('qualifiedSubjects')->get(),
             'statuses' => ExamStatus::cases(),
         ];
     }

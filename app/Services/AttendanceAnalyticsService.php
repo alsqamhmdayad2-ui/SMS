@@ -129,7 +129,7 @@ class AttendanceAnalyticsService
      */
     public function getTeacherStats(int $teacherId, AttendanceFilterData $filters): array
     {
-        $sessions = AttendanceSession::with(['records', 'subject', 'section'])
+        $sessions = AttendanceSession::with(['records', 'subject', 'section.schoolClass'])
             ->where('teacher_id', $teacherId)
             ->when($filters->academicYearId, fn($q) => $q->where('academic_year_id', $filters->academicYearId))
             ->when($filters->semesterId,     fn($q) => $q->where('semester_id',      $filters->semesterId))
@@ -155,7 +155,7 @@ class AttendanceAnalyticsService
      */
     public function getTopAbsentees(AttendanceFilterData $filters, int $limit = 10): array
     {
-        return AttendanceRecord::with('student')
+        return AttendanceRecord::with('student.section.schoolClass')
             ->where('status', AttendanceStatus::Absent->value)
             ->whereHas('session', function ($q) use ($filters) {
                 $q->when($filters->academicYearId, fn($q2) => $q2->where('academic_year_id', $filters->academicYearId))
@@ -179,7 +179,7 @@ class AttendanceAnalyticsService
      */
     public function getSectionRankings(AttendanceFilterData $filters): array
     {
-        $sessions = AttendanceSession::with('records')
+        $sessions = AttendanceSession::with(['records', 'section.schoolClass'])
             ->when($filters->academicYearId, fn($q) => $q->where('academic_year_id', $filters->academicYearId))
             ->when($filters->semesterId,     fn($q) => $q->where('semester_id',      $filters->semesterId))
             ->get()

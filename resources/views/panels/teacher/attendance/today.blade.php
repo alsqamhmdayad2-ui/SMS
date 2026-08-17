@@ -16,8 +16,6 @@
         <x-shared.badge type="primary" class="fs-6 px-3 py-2">{{ $teacher->name }}</x-shared.badge>
     </div>
 
-    <x-alerts />
-
     {{-- No classes today --}}
     @if($timetables->isEmpty())
         <x-shared.empty-state
@@ -78,7 +76,7 @@
                         </div>
 
                         {{-- Subject & Section --}}
-                        <h4 class="card-title mb-1 fw-bold">{{ $tt->section?->grade?->name ?? '' }} — {{ $tt->section?->name ?? '' }}</h4>
+                        <h4 class="card-title mb-1 fw-bold">{{ $tt->section?->schoolClass?->name ?? '' }} - {{ $tt->section?->name ?? '' }}</h4>
                         <p class="text-sms-muted mb-3">
                             <i class="fas fa-book me-1"></i>
                             أول حصة لك اليوم: {{ $tt->subject->name ?? 'مادة' }} (الحصة {{ $tt->period_number }})

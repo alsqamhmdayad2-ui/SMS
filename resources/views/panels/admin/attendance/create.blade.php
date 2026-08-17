@@ -47,7 +47,7 @@
                         <option value="">اختر الشعبة...</option>
                         @foreach($sections as $sec)
                             <option value="{{ $sec->id }}">
-                                {{ $sec->schoolClass?->grade?->name }} - {{ $sec->name }}
+                                {{ $sec->schoolClass?->name }} - {{ $sec->name }}
                             </option>
                         @endforeach
                     </select>

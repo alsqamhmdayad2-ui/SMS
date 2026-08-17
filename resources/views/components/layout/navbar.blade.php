@@ -1,9 +1,9 @@
 <header class="top-header">
     <div class="header-right">
         <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-        <div class="search-box d-none d-md-flex">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="بحث سريع...">
+        <div class="search-box d-none d-md-flex" onclick="document.getElementById('globalNavSearch').focus()" style="cursor: text;">
+            <i class="fas fa-search" onclick="document.getElementById('globalNavSearch').focus()"></i>
+            <input type="text" id="globalNavSearch" placeholder="بحث في القائمة...">
         </div>
     </div>
     <div class="header-left d-flex align-items-center gap-3">
@@ -88,3 +88,48 @@
         </div>
     </div>
 </header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('globalNavSearch');
+        if(searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                const sidebarLinks = document.querySelectorAll('.sidebar .nav-link, .sidebar .sidebar-title');
+                
+                sidebarLinks.forEach(link => {
+                    // Skip if it's the logout button or similar
+                    if(link.closest('form')) return;
+                    
+                    if(term === '') {
+                        link.style.display = '';
+                        // Open menus that were open, but we just reset all display
+                        let parentLi = link.closest('.nav-item');
+                        if (parentLi) parentLi.style.display = '';
+                    } else {
+                        const text = link.textContent.toLowerCase();
+                        let parentLi = link.closest('.nav-item');
+                        let parentTitle = link.classList.contains('sidebar-title');
+                        
+                        if(text.includes(term)) {
+                            link.style.display = '';
+                            if(parentLi) parentLi.style.display = '';
+                            // If it's inside a submenu, make sure the submenu is visible
+                            let submenu = link.closest('.collapse');
+                            if(submenu) {
+                                submenu.classList.add('show');
+                            }
+                        } else {
+                            if(parentLi && !parentLi.querySelector('.collapse.show')) {
+                                parentLi.style.display = 'none';
+                            }
+                            if(parentTitle) {
+                                link.style.display = 'none';
+                            }
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>

@@ -1,440 +1,617 @@
 @extends('layouts.app')
-
-@section('title', 'تصميم الأسئلة')
+@section('title', 'بناء الاختبار — ' . $exam->title)
 
 @section('content')
-@include('components.page-header', [
-    'title' => 'تصميم الأسئلة: ' . $exam->title,
-    'subtitle' => $exam->subject->name . ' | ' . $exam->schoolClass->name . ' (' . $exam->sections->pluck('name')->join('، ') . ')'
-])
 
-<div class="row">
-    <!-- Left Column: Exam Details & Summary -->
-    <div class="col-md-4">
-        @include('panels.admin.exams.components.exam-summary', ['exam' => $exam])
-
+<x-page-header title="بناء أسئلة الاختبار: {{ $exam->title }}">
+    <x-slot:actions>
+        <a href="{{ route('admin.exams.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-right me-1"></i> رجوع
+        </a>
         @if($exam->status === \App\Enums\ExamStatus::DRAFT)
-        <!-- Question Creator/Editor Card -->
-        <div class="card shadow-sm border-0 border-top border-primary border-3 mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title fw-bold mb-0" id="creatorCardTitle"><i class="fas fa-plus-circle"></i> إضافة سؤال جديد</h5>
-                    <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="cancelEditBtn">إلغاء التعديل</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+            <i class="fas fa-plus-circle me-1"></i> إضافة سؤال
+        </button>
+        <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#questionBankModal">
+            <i class="fas fa-database me-1"></i> استيراد من البنك
+        </button>
+        <form action="{{ route('admin.exams.publish', $exam) }}" method="POST" class="d-inline"
+              onsubmit="return confirm('هل أنت متأكد من نشر الاختبار؟ لن تتمكن من تعديل الأسئلة بعد النشر.')">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-bullhorn me-1"></i> نشر الاختبار
+            </button>
+        </form>
+        @elseif($exam->status === \App\Enums\ExamStatus::PUBLISHED)
+        <form action="{{ route('admin.exams.unlock', $exam) }}" method="POST" class="d-inline"
+              onsubmit="return confirm('هل أنت متأكد من إلغاء نشر الاختبار وإعادته كمسودة؟ هذا سيسمح لك بتعديل الأسئلة مجدداً.')">
+            @csrf
+            <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-lock-open me-1"></i> إلغاء النشر
+            </button>
+        </form>
+        @endif
+    </x-slot:actions>
+</x-page-header>
+
+<x-breadcrumb :items="[
+    ['name' => 'الرئيسية', 'url' => route('admin.dashboard')],
+    ['name' => 'الاختبارات', 'url' => route('admin.exams.index')],
+    ['name' => 'بناء أسئلة الاختبار: ' . $exam->title]
+]" />
+
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+@endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+@endif
+
+{{-- ─── Stats Bar ─── --}}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width:48px;height:48px;flex-shrink:0">
+                    <i class="fas fa-list-ol fa-lg"></i>
                 </div>
-                <form id="questionForm">
-                    @csrf
-                    <!-- Hidden field for editing questions -->
-                    <input type="hidden" name="question_id" id="editQuestionId" value="">
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">نوع السؤال</label>
-                        <select class="form-select form-select-sm" name="type" id="questionType" required>
-                            <option value="">اختر النوع...</option>
-                            <option value="mcq">اختيار من متعدد (MCQ)</option>
-                            <option value="true_false">صح / خطأ</option>
-                            <option value="short_answer">إجابة قصيرة</option>
-                            <option value="essay">مقال</option>
-                            <option value="matching">توصيل / مطابقة</option>
-                            <option value="fill_blank">إكمال الفراغ</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">نص السؤال</label>
-                        <textarea class="form-control" name="question_text" id="questionText" rows="3" required placeholder="اكتب نص السؤال هنا..."></textarea>
-                    </div>
-
-                    <div class="row mb-3 g-2">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">الدرجة</label>
-                            <input type="number" step="0.5" min="0.5" class="form-control form-control-sm" name="mark" id="questionMark" value="1.0" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">الصعوبة</label>
-                            <select class="form-select form-select-sm" name="difficulty" id="questionDifficulty">
-                                <option value="easy">سهل (Easy)</option>
-                                <option value="medium" selected>متوسط (Medium)</option>
-                                <option value="hard">صعب (Hard)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3 g-2">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">الوقت المقدر (ثواني)</label>
-                            <input type="number" min="5" class="form-control form-control-sm" name="estimated_time" id="questionEstimatedTime" placeholder="مثال: 60">
-                        </div>
-                    </div>
-
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_public" id="questionIsPublic" value="1" checked>
-                        <label class="form-check-label small" for="questionIsPublic">إتاحة السؤال في بنك الأسئلة العام</label>
-                    </div>
-
-                    <!-- Dynamic Fields Container -->
-                    <div id="dynamicFields" class="p-3 bg-light rounded mb-3 d-none">
-                        <!-- Content injected via JS -->
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100" id="saveQuestionBtn">
-                        <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
-                        <span id="saveBtnText">حفظ السؤال</span>
-                    </button>
-                </form>
+                <div>
+                    <div class="text-muted small">عدد الأسئلة</div>
+                    <div class="fw-bold fs-4" id="questionCount">{{ $exam->questions->count() }}</div>
+                </div>
             </div>
         </div>
-        @endif
     </div>
-
-    <!-- Right Column: Exam Question List & Toolbar -->
-    <div class="col-md-8">
-        <!-- Search & Actions Toolbar -->
-        @include('panels.admin.exams.components.toolbar', ['exam' => $exam])
-
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="fas fa-list"></i> أسئلة الامتحان الحالية</h5>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width:48px;height:48px;flex-shrink:0">
+                    <i class="fas fa-star fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">مجموع الدرجات</div>
+                    <div class="fw-bold fs-4" id="totalMarksDisplay">{{ $exam->questions->sum('pivot.mark_override') }}</div>
+                </div>
             </div>
-            <div class="card-body bg-light" id="questionsContainer" style="min-height: 500px;">
-                @forelse($exam->questions as $index => $q)
-                    @include('panels.admin.exams.components.question-card', ['q' => $q, 'index' => $index])
-                @empty
-                    <div class="text-center py-5 text-muted" id="noQuestionsMsg">
-                        <i class="fas fa-inbox fa-3x d-block mb-3 text-muted"></i>
-                        <h5>لا توجد أسئلة مضافة بعد.</h5>
-                        <p class="small">استخدم محرر الأسئلة على اليمين، أو استورد أسئلة جاهزة من بنك الأسئلة.</p>
-                    </div>
-                @endforelse
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width:48px;height:48px;flex-shrink:0">
+                    <i class="fas fa-book fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">المادة</div>
+                    <div class="fw-bold small">{{ $exam->subject?->name }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width:48px;height:48px;flex-shrink:0">
+                    <i class="fas fa-signal fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">الحالة</div>
+                    @php $st = $exam->status->value; @endphp
+                    <span class="badge fs-6 {{ match($st) { 'draft'=>'bg-warning text-dark','published'=>'bg-success','closed'=>'bg-danger', default=>'bg-secondary' } }}">
+                        {{ match($st) { 'draft'=>'مسودة','published'=>'منشور','closed'=>'مغلق', default=>$st } }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Form Templates for Question Types -->
-@include('panels.admin.exams.components.forms.mcq-form')
-@include('panels.admin.exams.components.forms.truefalse-form')
-@include('panels.admin.exams.components.forms.matching-form')
-@include('panels.admin.exams.components.forms.essay-form')
-@include('panels.admin.exams.components.forms.fillblank-form')
-@include('panels.admin.exams.components.forms.shortanswer-form')
+{{-- ─── Questions List (Full width) ─── --}}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-list-ol me-2 text-primary"></i>أسئلة الاختبار الحالية</h6>
+        <div class="d-flex align-items-center gap-2">
+            <input type="text" id="searchExamQuestions" class="form-control form-control-sm" style="max-width:220px;" placeholder="بحث في الأسئلة...">
+            @if($exam->status === \App\Enums\ExamStatus::DRAFT)
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+                <i class="fas fa-plus me-1"></i> إضافة سؤال
+            </button>
+            @endif
+        </div>
+    </div>
+    <div class="card-body bg-light" id="questionsContainer" style="min-height: 350px;">
+        @forelse($exam->questions as $index => $q)
+        <div class="card mb-3 border-0 shadow-sm question-item" id="question-{{ $q->id }}" data-id="{{ $q->id }}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        @if($exam->status === \App\Enums\ExamStatus::DRAFT)
+                        <span class="btn btn-sm btn-light cursor-move drag-handle p-1" title="اسحب لإعادة الترتيب">
+                            <i class="fas fa-grip-vertical"></i>
+                        </span>
+                        @endif
+                        <span class="badge bg-secondary">سؤال {{ $index + 1 }}</span>
+                        <span class="badge bg-info text-dark">{{ $q->type->label() }}</span>
+                        <span class="badge bg-success">{{ (float)($q->pivot->mark_override ?? $q->mark) }} درجة</span>
+                        <span class="badge bg-{{ $q->difficulty->badgeColor() }}">{{ $q->difficulty->label() }}</span>
+                        <span class="badge bg-light text-muted border small">{{ $q->question_code }}</span>
+                    </div>
 
-<!-- Question Bank Import Modal -->
-@include('panels.admin.exams.components.question-bank-modal', ['exam' => $exam])
+                    @if($exam->status === \App\Enums\ExamStatus::DRAFT)
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        <button class="btn btn-sm btn-outline-warning edit-question"
+                                data-id="{{ $q->id }}"
+                                data-type="{{ $q->type->value }}"
+                                data-text="{{ $q->question_text }}"
+                                data-mark="{{ $q->pivot->mark_override ?? $q->mark }}"
+                                data-difficulty="{{ $q->difficulty->value }}"
+                                data-options='@json($q->options)'
+                                title="تعديل السؤال">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary duplicate-question" data-id="{{ $q->id }}" title="تكرار السؤال">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ $q->id }}" title="حذف السؤال">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    @endif
+                </div>
+
+                <p class="mb-2 mt-2 fs-6 text-dark question-text-content">{{ $q->question_text }}</p>
+
+                @if($q->type->value === 'mcq')
+                <ul class="list-group list-group-flush mt-2 border rounded">
+                    @foreach($q->options as $opt)
+                    <li class="list-group-item py-2 {{ $opt->is_correct ? 'list-group-item-success fw-bold text-success' : '' }}">
+                        @if($opt->is_correct)
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        @else
+                        <i class="far fa-circle text-muted me-2"></i>
+                        @endif
+                        {{ $opt->option_text }}
+                    </li>
+                    @endforeach
+                </ul>
+                @elseif($q->type->value === 'true_false')
+                <div class="mt-2 p-2 bg-white border rounded">
+                    @php $correctOption = $q->options->first(); @endphp
+                    <span class="fw-bold text-success">
+                        <i class="fas fa-check-circle me-1"></i> الإجابة الصحيحة:
+                        {{ $correctOption && $correctOption->is_correct ? 'صح (True)' : 'خطأ (False)' }}
+                    </span>
+                </div>
+                @elseif($q->type->value === 'matching')
+                <div class="row mt-2 g-1">
+                    @foreach($q->options as $opt)
+                    <div class="col-12 col-md-6">
+                        <div class="p-2 border bg-white rounded d-flex align-items-center justify-content-between">
+                            <span class="small">{{ $opt->left_item }} <i class="fas fa-arrow-right mx-1 text-primary"></i> {{ $opt->right_item }}</span>
+                            @if($opt->partial_mark)
+                            <span class="badge bg-secondary">{{ (float)$opt->partial_mark }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @elseif(in_array($q->type->value, ['short_answer', 'essay', 'fill_blank']))
+                @php $modelOpt = $q->options->first(); @endphp
+                @if($modelOpt && $modelOpt->option_text)
+                <div class="mt-2 p-2 bg-white border border-primary border-opacity-25 rounded">
+                    <span class="text-muted small fw-bold"><i class="fas fa-lightbulb text-warning me-1"></i>
+                    {{ $q->type->value === 'fill_blank' ? 'الإجابة الصحيحة:' : 'نموذج الإجابة:' }}
+                    </span>
+                    <span class="small ms-1">{{ $modelOpt->option_text }}</span>
+                </div>
+                @endif
+                @endif
+            </div>
+        </div>
+        @empty
+        <div class="text-center py-5 text-muted" id="noQuestionsMsg">
+            <i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>
+            <h6>لا توجد أسئلة مضافة بعد.</h6>
+            <p class="small mb-3">اضغط على "إضافة سؤال" لإنشاء أسئلة جديدة، أو استورد من بنك الأسئلة.</p>
+            @if($exam->status === \App\Enums\ExamStatus::DRAFT)
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+                <i class="fas fa-plus-circle me-1"></i> إضافة أول سؤال
+            </button>
+            @endif
+        </div>
+        @endforelse
+    </div>
+</div>
+
+{{-- ─── Add / Edit Question Modal ─── --}}
+<div class="modal fade" id="addQuestionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i> إضافة سؤال جديد
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="questionForm">
+                    @csrf
+                    <input type="hidden" name="question_id" id="editQuestionId" value="">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">نوع السؤال <span class="text-danger">*</span></label>
+                            <select class="form-select" name="type" id="questionType" required>
+                                <option value="">اختر النوع...</option>
+                                <option value="mcq">اختيار من متعدد (MCQ)</option>
+                                <option value="true_false">صح / خطأ</option>
+                                <option value="short_answer">إجابة قصيرة</option>
+                                <option value="essay">مقال</option>
+                                <option value="matching">توصيل / مطابقة</option>
+                                <option value="fill_blank">إكمال الفراغ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">الدرجة <span class="text-danger">*</span></label>
+                            <input type="number" step="0.5" min="0.5" class="form-control" name="mark" id="questionMark" value="1.0" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">الصعوبة</label>
+                            <select class="form-select" name="difficulty" id="questionDifficulty">
+                                <option value="easy" selected>سهل</option>
+                                <option value="medium">متوسط</option>
+                                <option value="hard">صعب</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">نص السؤال <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="question_text" id="questionText" rows="4" required placeholder="اكتب نص السؤال هنا..."></textarea>
+                    </div>
+
+                    {{-- Dynamic Fields (MCQ, True/False, Matching) --}}
+                    <div id="dynamicFields" class="p-3 bg-light rounded mb-3 d-none"></div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" id="cancelEditBtn" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" id="saveQuestionBtn">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                    <span id="saveBtnText">حفظ السؤال</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ─── Question Bank Import Modal ─── --}}
+<div class="modal fade" id="questionBankModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="fas fa-database me-2 text-primary"></i>استيراد من بنك الأسئلة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-5">
+                        <input type="text" id="bankSearch" class="form-control form-control-sm" placeholder="بحث في الأسئلة...">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="bankTypeFilter" class="form-select form-select-sm">
+                            <option value="">كل الأنواع</option>
+                            <option value="mcq">اختيار من متعدد</option>
+                            <option value="true_false">صح / خطأ</option>
+                            <option value="short_answer">إجابة قصيرة</option>
+                            <option value="essay">مقال</option>
+                            <option value="matching">توصيل</option>
+                            <option value="fill_blank">إكمال الفراغ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="bankDifficultyFilter" class="form-select form-select-sm">
+                            <option value="">كل المستويات</option>
+                            <option value="easy">سهل</option>
+                            <option value="medium">متوسط</option>
+                            <option value="hard">صعب</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-sm btn-outline-secondary w-100" id="refreshBankBtn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+                <div id="bankQuestionsList">
+                    <div class="text-center py-4 text-muted"><i class="fas fa-search fa-2x mb-2 d-block opacity-25"></i>افتح النافذة لتحميل الأسئلة.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ─── Form Templates ─── --}}
+<template id="mcq-form-template">
+    <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold text-primary mb-0"><i class="fas fa-list-ol me-1"></i> خيارات الاختيار من متعدد</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addMcqOptionBtn"><i class="fas fa-plus-circle me-1"></i>إضافة خيار</button>
+        </div>
+        <div id="mcqContainer"></div>
+    </div>
+</template>
+
+<template id="truefalse-form-template">
+    <div class="mb-2">
+        <h6 class="fw-bold text-primary mb-2"><i class="fas fa-question-circle me-1"></i>الإجابة الصحيحة</h6>
+        <div class="d-flex gap-4">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_correct_boolean" id="tfTrue" value="1" required>
+                <label class="form-check-label fw-bold text-success" for="tfTrue">صح (True)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_correct_boolean" id="tfFalse" value="0" required>
+                <label class="form-check-label fw-bold text-danger" for="tfFalse">خطأ (False)</label>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="matching-form-template">
+    <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold text-primary mb-0"><i class="fas fa-random me-1"></i>أزواج التوصيل</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addMatchPairBtn"><i class="fas fa-plus-circle me-1"></i>إضافة زوج</button>
+        </div>
+        <div id="matchingContainer"></div>
+    </div>
+</template>
+
+<template id="essay-form-template">
+    <div class="mb-2">
+        <div class="alert alert-info small py-2 mb-3"><i class="fas fa-info-circle me-1"></i>سؤال مقالي — يمكنك كتابة نموذج إجابة للمرجعية عند التصحيح.</div>
+        <label class="form-label fw-bold small">نموذج الإجابة <span class="text-muted fw-normal">(اختياري — للمرجعية فقط)</span></label>
+        <textarea class="form-control" name="model_answer" id="modelAnswer" rows="3" placeholder="اكتب نموذج الإجابة المتوقعة هنا..."></textarea>
+    </div>
+</template>
+
+<template id="fillblank-form-template">
+    <div class="mb-2">
+        <div class="alert alert-warning small py-2 mb-3"><i class="fas fa-fill-drip me-1"></i>استخدم <strong>___</strong> في نص السؤال للإشارة إلى مكان الفراغ. مثال: <em>عاصمة المملكة هي ___</em></div>
+        <label class="form-label fw-bold small">الإجابة الصحيحة <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="model_answer" id="modelAnswer" placeholder="اكتب الإجابة الصحيحة المتوقعة..." required>
+        <div class="form-text">سيتم مقارنة إجابة الطالب بهذه الإجابة عند التصحيح.</div>
+    </div>
+</template>
+
+<template id="shortanswer-form-template">
+    <div class="mb-2">
+        <div class="alert alert-info small py-2 mb-3"><i class="fas fa-pen me-1"></i>سؤال إجابة قصيرة — يمكنك تحديد الإجابة النموذجية للمرجعية.</div>
+        <label class="form-label fw-bold small">الإجابة النموذجية <span class="text-muted fw-normal">(للمرجعية عند التصحيح)</span></label>
+        <input type="text" class="form-control" name="model_answer" id="modelAnswer" placeholder="اكتب الإجابة النموذجية...">
+    </div>
+</template>
 
 @endsection
 
 @push('styles')
 <style>
-    .cursor-move {
-        cursor: move !important;
-    }
-    .question-item {
-        transition: all 0.2s ease;
-    }
-    .question-item.sortable-ghost {
-        opacity: 0.4;
-        background-color: #e9ecef !important;
-        border: 2px dashed #007bff !important;
-    }
+.cursor-move { cursor: move !important; }
+.question-item { transition: all 0.2s ease; }
+.question-item.sortable-ghost {
+    opacity: 0.4;
+    background-color: #e9ecef !important;
+    border: 2px dashed #0d6efd !important;
+}
 </style>
 @endpush
 
 @push('scripts')
-<!-- SortableJS library for Drag & Drop support -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const typeSelect = document.getElementById('questionType');
-    const dynamicFields = document.getElementById('dynamicFields');
-    const form = document.getElementById('questionForm');
-    const saveBtn = document.getElementById('saveQuestionBtn');
-    const saveBtnText = document.getElementById('saveBtnText');
-    const creatorCardTitle = document.getElementById('creatorCardTitle');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const editQuestionId = document.getElementById('editQuestionId');
-    const questionsContainer = document.getElementById('questionsContainer');
-    const noQuestionsMsg = document.getElementById('noQuestionsMsg');
-    const totalMarksDisplay = document.getElementById('totalMarksDisplay');
-    const questionCountDisplay = document.getElementById('questionCount');
+document.addEventListener('DOMContentLoaded', function () {
 
-    // CSRF Token header config
+    const CSRF       = '{{ csrf_token() }}';
+    const BASE_URL   = '{{ url("admin/exams/" . $exam->id . "/questions") }}';
+    const REORDER_URL= '{{ route("admin.questions.reorder", $exam) }}';
+    const BANK_URL   = '{{ route("admin.questions.bank", $exam) }}';
+    const IMPORT_URL = '{{ route("admin.questions.import", $exam) }}';
+
     const headers = {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'X-CSRF-TOKEN': CSRF,
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
     };
 
-    // 1. Dynamic Forms Switching
-    typeSelect.addEventListener('change', function() {
-        renderFormForType(this.value);
-    });
+    const typeSelect         = document.getElementById('questionType');
+    const dynamicFields      = document.getElementById('dynamicFields');
+    const form               = document.getElementById('questionForm');
+    const saveBtn            = document.getElementById('saveQuestionBtn');
+    const saveBtnText        = document.getElementById('saveBtnText');
+    const modalTitle         = document.getElementById('modalTitle');
+    const cancelEditBtn      = document.getElementById('cancelEditBtn');
+    const editQuestionId     = document.getElementById('editQuestionId');
+    const questionsContainer = document.getElementById('questionsContainer');
+    const addModal           = document.getElementById('addQuestionModal');
+    const bsAddModal         = new bootstrap.Modal(addModal);
+
+    // Reset form when modal is closed
+    addModal.addEventListener('hidden.bs.modal', resetForm);
+
+    // ── 1. Dynamic Form Switching ─────────────────────────────────────────────
+    typeSelect.addEventListener('change', () => renderFormForType(typeSelect.value));
 
     function renderFormForType(type, optionsData = null) {
         dynamicFields.innerHTML = '';
-        if (!type) {
-            dynamicFields.classList.add('d-none');
-            return;
-        }
+        if (!type) { dynamicFields.classList.add('d-none'); return; }
         dynamicFields.classList.remove('d-none');
 
         if (type === 'mcq') {
-            const template = document.getElementById('mcq-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
+            dynamicFields.innerHTML = document.getElementById('mcq-form-template').innerHTML;
             setupMcqForm(optionsData);
         } else if (type === 'true_false') {
-            const template = document.getElementById('truefalse-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
-            if (optionsData && optionsData.length > 0) {
-                const correct = optionsData[0].is_correct;
-                document.getElementById(correct ? 'tfTrue' : 'tfFalse').checked = true;
+            dynamicFields.innerHTML = document.getElementById('truefalse-form-template').innerHTML;
+            if (optionsData?.length > 0) {
+                document.getElementById(optionsData[0].is_correct ? 'tfTrue' : 'tfFalse').checked = true;
             }
         } else if (type === 'matching') {
-            const template = document.getElementById('matching-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
+            dynamicFields.innerHTML = document.getElementById('matching-form-template').innerHTML;
             setupMatchingForm(optionsData);
-        } else if (type === 'essay') {
-            const template = document.getElementById('essay-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
-        } else if (type === 'fill_blank') {
-            const template = document.getElementById('fillblank-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
-            setupModelAnswersForm('fillblank', optionsData);
         } else if (type === 'short_answer') {
-            const template = document.getElementById('shortanswer-form-template').innerHTML;
-            dynamicFields.innerHTML = template;
-            setupModelAnswersForm('shortanswer', optionsData);
+            dynamicFields.innerHTML = document.getElementById('shortanswer-form-template').innerHTML;
+            if (optionsData?.length > 0 && optionsData[0].option_text) {
+                const field = document.getElementById('modelAnswer');
+                if (field) field.value = optionsData[0].option_text;
+            }
+        } else if (type === 'essay') {
+            dynamicFields.innerHTML = document.getElementById('essay-form-template').innerHTML;
+            if (optionsData?.length > 0 && optionsData[0].option_text) {
+                const field = document.getElementById('modelAnswer');
+                if (field) field.value = optionsData[0].option_text;
+            }
+        } else if (type === 'fill_blank') {
+            dynamicFields.innerHTML = document.getElementById('fillblank-form-template').innerHTML;
+            if (optionsData?.length > 0 && optionsData[0].option_text) {
+                const field = document.getElementById('modelAnswer');
+                if (field) field.value = optionsData[0].option_text;
+            }
         } else {
             dynamicFields.classList.add('d-none');
         }
     }
 
-    // Model Answers setup helper (for short_answer and fill_blank)
-    function setupModelAnswersForm(prefix, optionsData = null) {
-        const container = document.getElementById(prefix + 'AnswersContainer');
-        const addBtn = document.getElementById('add' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'AnswerBtn');
-
-        if (optionsData && optionsData.length > 0) {
-            optionsData.forEach((opt) => {
-                if (opt.is_correct) addModelAnswerRow(container);
-            });
-            // Fill values after creation
-            const rows = container.querySelectorAll('input[name="model_answers[]"]');
-            optionsData.filter(o => o.is_correct).forEach((opt, i) => {
-                if (rows[i]) rows[i].value = opt.option_text;
-            });
-        } else {
-            addModelAnswerRow(container);
-        }
-
-        addBtn.addEventListener('click', function() {
-            addModelAnswerRow(container);
-        });
-    }
-
-    function addModelAnswerRow(container) {
-        const div = document.createElement('div');
-        div.className = 'input-group mb-2 model-answer-row';
-        const isFirst = container.children.length === 0;
-        div.innerHTML = `
-            <input type="text" class="form-control form-control-sm" name="model_answers[]" placeholder="اكتب الإجابة الصحيحة هنا..." required>
-            ${!isFirst ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
-        `;
-        container.appendChild(div);
-        const removeBtn = div.querySelector('.remove-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => div.remove());
-        }
-    }
-
-    // MCQ setup helper
     function setupMcqForm(optionsData = null) {
         const container = document.getElementById('mcqContainer');
-        const addBtn = document.getElementById('addMcqOptionBtn');
-
-        if (optionsData && optionsData.length > 0) {
-            optionsData.forEach((opt, idx) => {
-                addMcqOptionRow(container, idx, opt.option_text, opt.is_correct);
-            });
+        const addBtn    = document.getElementById('addMcqOptionBtn');
+        if (optionsData?.length > 0) {
+            optionsData.forEach((opt, idx) => addMcqOptionRow(container, idx, opt.option_text, opt.is_correct));
         } else {
             addMcqOptionRow(container, 0, '', true);
             addMcqOptionRow(container, 1, '', false);
         }
-
-        addBtn.addEventListener('click', function() {
-            const count = container.children.length;
-            addMcqOptionRow(container, count, '', false);
-        });
+        addBtn.addEventListener('click', () => addMcqOptionRow(container, container.children.length, '', false));
     }
 
     function addMcqOptionRow(container, index, val = '', checked = false) {
         const div = document.createElement('div');
         div.className = 'input-group mb-2 mcq-option-row';
         div.innerHTML = `
-            <div class="input-group-text">
+            <div class="input-group-text bg-white">
                 <input class="form-check-input mt-0" type="radio" name="correct_option_index" value="${index}" required ${checked ? 'checked' : ''}>
             </div>
-            <input type="text" class="form-control form-control-sm" name="options[]" value="${val}" placeholder="الخيار ${index + 1}" required>
-            ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
+            <input type="text" class="form-control" name="options[]" value="${val}" placeholder="الخيار ${index + 1}" required>
+            ${index > 1 ? '<button class="btn btn-outline-danger remove-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
         `;
         container.appendChild(div);
-        const removeBtn = div.querySelector('.remove-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => {
-                div.remove();
-                reindexRadios(container, 'correct_option_index');
-            });
-        }
+        div.querySelector('.remove-btn')?.addEventListener('click', () => {
+            div.remove();
+            container.querySelectorAll('input[type="radio"]').forEach((r, i) => r.value = i);
+        });
     }
 
-    // Matching setup helper
     function setupMatchingForm(optionsData = null) {
         const container = document.getElementById('matchingContainer');
-        const addBtn = document.getElementById('addMatchPairBtn');
-
-        if (optionsData && optionsData.length > 0) {
-            optionsData.forEach((opt, idx) => {
-                addMatchingRow(container, idx, opt.left_item, opt.right_item, opt.partial_mark);
-            });
+        const addBtn    = document.getElementById('addMatchPairBtn');
+        if (optionsData?.length > 0) {
+            optionsData.forEach((opt, idx) => addMatchingRow(container, idx, opt.left_item, opt.right_item, opt.partial_mark));
         } else {
-            addMatchingRow(container, 0, '', '', '');
-            addMatchingRow(container, 1, '', '', '');
+            addMatchingRow(container, 0);
+            addMatchingRow(container, 1);
         }
-
-        addBtn.addEventListener('click', function() {
-            const count = container.querySelectorAll('.match-row').length;
-            addMatchingRow(container, count, '', '', '');
-        });
+        addBtn.addEventListener('click', () => addMatchingRow(container, container.querySelectorAll('.match-row').length));
     }
 
     function addMatchingRow(container, index, left = '', right = '', partial = '') {
         const div = document.createElement('div');
         div.className = 'row mb-2 match-row align-items-center g-1';
         div.innerHTML = `
-            <div class="col-4">
-                <input type="text" class="form-control form-control-sm" name="pairs[${index}][left]" value="${left}" placeholder="العنصر الأيمن" required>
-            </div>
+            <div class="col-4"><input type="text" class="form-control" name="pairs[${index}][left]" value="${left}" placeholder="العنصر الأيمن" required></div>
             <div class="col-1 text-center"><i class="fas fa-arrow-right text-muted small"></i></div>
-            <div class="col-4">
-                <input type="text" class="form-control form-control-sm" name="pairs[${index}][right]" value="${right}" placeholder="العنصر الأيسر" required>
-            </div>
-            <div class="col-2">
-                <input type="number" step="0.25" min="0" class="form-control form-control-sm" name="pairs[${index}][partial_mark]" value="${partial}" placeholder="درجة جزئية">
-            </div>
-            <div class="col-1 text-end">
-                ${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn w-100" type="button"><i class="fas fa-times"></i></button>' : ''}
-            </div>
+            <div class="col-4"><input type="text" class="form-control" name="pairs[${index}][right]" value="${right}" placeholder="العنصر الأيسر" required></div>
+            <div class="col-2"><input type="number" step="0.25" min="0" class="form-control" name="pairs[${index}][partial_mark]" value="${partial ?? ''}" placeholder="درجة جزئية"></div>
+            <div class="col-1 text-end">${index > 1 ? '<button class="btn btn-sm btn-outline-danger remove-btn w-100" type="button"><i class="fas fa-times"></i></button>' : ''}</div>
         `;
         container.appendChild(div);
-        const removeBtn = div.querySelector('.remove-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => {
-                div.remove();
-                reindexMatchingRows(container);
-            });
-        }
-    }
-
-    function reindexRadios(container, name) {
-        container.querySelectorAll('input[type="radio"]').forEach((radio, idx) => {
-            radio.value = idx;
-        });
-    }
-
-    function reindexMatchingRows(container) {
-        container.querySelectorAll('.match-row').forEach((row, idx) => {
-            row.querySelectorAll('input').forEach(input => {
-                const name = input.getAttribute('name');
-                if (name.includes('left')) input.setAttribute('name', `pairs[${idx}][left]`);
-                if (name.includes('right')) input.setAttribute('name', `pairs[${idx}][right]`);
-                if (name.includes('partial_mark')) input.setAttribute('name', `pairs[${idx}][partial_mark]`);
+        div.querySelector('.remove-btn')?.addEventListener('click', () => {
+            div.remove();
+            container.querySelectorAll('.match-row').forEach((row, i) => {
+                row.querySelectorAll('input').forEach(inp => {
+                    const n = inp.getAttribute('name');
+                    if (n) inp.setAttribute('name', n.replace(/pairs\[\d+\]/, `pairs[${i}]`));
+                });
             });
         });
     }
 
-    // 2. Drag & Drop (SortableJS)
+    // ── 2. Drag & Drop Reorder ────────────────────────────────────────────────
     if (questionsContainer) {
         new Sortable(questionsContainer, {
             handle: '.drag-handle',
             ghostClass: 'sortable-ghost',
             animation: 150,
-            onEnd: function() {
+            onEnd: function () {
                 const orderedIds = Array.from(questionsContainer.querySelectorAll('.question-item')).map(el => el.dataset.id);
-                
-                fetch(`{{ route('admin.questions.reorder', $exam->id) }}`, {
+                fetch(REORDER_URL, {
                     method: 'POST',
                     headers: { ...headers, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ordered_ids: orderedIds })
                 })
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        // Re-index displayed badges
                         questionsContainer.querySelectorAll('.question-item').forEach((card, idx) => {
                             const badge = card.querySelector('.badge.bg-secondary');
                             if (badge) badge.textContent = `سؤال ${idx + 1}`;
                         });
                     }
-                })
-                .catch(err => console.error(err));
+                });
             }
         });
     }
 
-    // 3. Save / Update Question Form Submit
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // ── 3. Save / Update Question ─────────────────────────────────────────────
+    saveBtn.addEventListener('click', function () {
+        if (!form.reportValidity()) return;
+
         const spinner = saveBtn.querySelector('.spinner-border');
         saveBtn.disabled = true;
         spinner.classList.remove('d-none');
 
-        const qId = editQuestionId.value;
+        const qId    = editQuestionId.value;
         const isEdit = !!qId;
-        const url = isEdit 
-            ? `{{ url('admin/exams/'.$exam->id.'/questions') }}/${qId}`
-            : `{{ route('admin.questions.store', $exam->id) }}`;
-        
+        const url    = isEdit ? `${BASE_URL}/${qId}` : BASE_URL;
         const method = isEdit ? 'PUT' : 'POST';
         const formData = new FormData(form);
 
-        // Convert FormData to standard request for PUT if necessary
-        let bodyPayload;
-        let requestHeaders = { ...headers };
-        
+        let body, reqHeaders = { ...headers };
         if (isEdit) {
-            // Laravel PUT support for FormData can be tricky, convert to JSON
-            const object = {};
+            const obj = {};
             formData.forEach((value, key) => {
                 if (key.endsWith('[]')) {
-                    const actualKey = key.slice(0, -2);
-                    if (!object[actualKey]) object[actualKey] = [];
-                    object[actualKey].push(value);
-                } else if (key.startsWith('pairs[')) {
-                    // Extract match pairs
-                    const matches = key.match(/pairs\[(\d+)\]\[(\w+)\]/);
-                    if (matches) {
-                        const idx = matches[1];
-                        const field = matches[2];
-                        if (!object['pairs']) object['pairs'] = [];
-                        if (!object['pairs'][idx]) object['pairs'][idx] = {};
-                        object['pairs'][idx][field] = value;
+                    const k = key.slice(0, -2);
+                    if (!obj[k]) obj[k] = [];
+                    obj[k].push(value);
+                } else if (key.match(/^pairs\[/)) {
+                    const m = key.match(/pairs\[(\d+)\]\[(\w+)\]/);
+                    if (m) {
+                        if (!obj['pairs']) obj['pairs'] = [];
+                        if (!obj['pairs'][m[1]]) obj['pairs'][m[1]] = {};
+                        obj['pairs'][m[1]][m[2]] = value;
                     }
                 } else {
-                    object[key] = value;
+                    obj[key] = value;
                 }
             });
-            bodyPayload = JSON.stringify(object);
-            requestHeaders['Content-Type'] = 'application/json';
+            body = JSON.stringify(obj);
+            reqHeaders['Content-Type'] = 'application/json';
         } else {
-            bodyPayload = formData;
+            body = formData;
         }
 
-        fetch(url, {
-            method: method,
-            headers: requestHeaders,
-            body: bodyPayload
-        })
-        .then(res => res.json())
+        fetch(url, { method, headers: reqHeaders, body })
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
                 window.location.reload();
@@ -444,334 +621,170 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinner.classList.add('d-none');
             }
         })
-        .catch(err => {
-            console.error(err);
+        .catch(() => {
             saveBtn.disabled = false;
             spinner.classList.add('d-none');
         });
     });
 
-    // 4. Edit Question Mode Trigger
-    document.addEventListener('click', function(e) {
+    // ── 4. Edit Mode ──────────────────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
         const btn = e.target.closest('.edit-question');
         if (!btn) return;
 
-        const id = btn.dataset.id;
-        const type = btn.dataset.type;
-        const text = btn.dataset.text;
-        const mark = btn.dataset.mark;
-        const difficulty = btn.dataset.difficulty;
-        const time = btn.dataset.estimatedTime;
-        const isPublic = btn.dataset.public === '1';
-        const options = JSON.parse(btn.dataset.options);
+        editQuestionId.value = btn.dataset.id;
+        typeSelect.value = btn.dataset.type;
+        document.getElementById('questionText').value = btn.dataset.text;
+        document.getElementById('questionMark').value = btn.dataset.mark;
+        document.getElementById('questionDifficulty').value = btn.dataset.difficulty;
 
-        // Switch UI to Edit Mode
-        editQuestionId.value = id;
-        typeSelect.value = type;
-        typeSelect.disabled = true; // Block changing type on edit for safety, or leave enabled since Service handles it. We'll disable it for simplicity.
-        document.getElementById('questionText').value = text;
-        document.getElementById('questionMark').value = mark;
-        document.getElementById('questionDifficulty').value = difficulty;
-        document.getElementById('questionEstimatedTime').value = time;
-        document.getElementById('questionIsPublic').checked = isPublic;
+        let options = [];
+        try { options = JSON.parse(btn.dataset.options); } catch(e) {}
+        renderFormForType(btn.dataset.type, options);
 
-        renderFormForType(type, options);
-
-        creatorCardTitle.innerHTML = `<i class="fas fa-edit text-warning"></i> تعديل السؤال`;
+        modalTitle.innerHTML = '<i class="fas fa-pencil-alt me-2 text-warning"></i> تعديل السؤال';
         saveBtnText.textContent = 'تحديث السؤال';
-        saveBtn.className = 'btn btn-warning w-100';
-        cancelEditBtn.classList.remove('d-none');
+        saveBtn.className = 'btn btn-warning';
+        bsAddModal.show();
     });
-
-    // Cancel Edit Trigger
-    cancelEditBtn.addEventListener('click', resetForm);
 
     function resetForm() {
         form.reset();
         editQuestionId.value = '';
-        typeSelect.disabled = false;
-        typeSelect.value = '';
         dynamicFields.innerHTML = '';
         dynamicFields.classList.add('d-none');
-
-        creatorCardTitle.innerHTML = `<i class="fas fa-plus-circle"></i> إضافة سؤال جديد`;
+        modalTitle.innerHTML = '<i class="fas fa-plus-circle me-2 text-primary"></i> إضافة سؤال جديد';
         saveBtnText.textContent = 'حفظ السؤال';
-        saveBtn.className = 'btn btn-primary w-100';
-        cancelEditBtn.classList.add('d-none');
+        saveBtn.className = 'btn btn-primary';
+        saveBtn.disabled = false;
+        saveBtn.querySelector('.spinner-border').classList.add('d-none');
     }
 
-    // 5. Duplicate Question
-    document.addEventListener('click', function(e) {
+    // ── 5. Duplicate Question ─────────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
         const btn = e.target.closest('.duplicate-question');
         if (!btn) return;
-
-        const id = btn.dataset.id;
         btn.disabled = true;
-
-        fetch(`{{ url('admin/exams/'.$exam->id.'/questions') }}/${id}/duplicate`, {
-            method: 'POST',
-            headers: headers
-        })
-        .then(res => res.json())
+        fetch(`${BASE_URL}/${btn.dataset.id}/duplicate`, { method: 'POST', headers })
+        .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert(data.message || 'فشل في نسخ السؤال');
-                btn.disabled = false;
-            }
+            if (data.success) window.location.reload();
+            else { alert(data.message || 'فشل النسخ'); btn.disabled = false; }
         })
-        .catch(err => {
-            console.error(err);
-            btn.disabled = false;
-        });
+        .catch(() => btn.disabled = false);
     });
 
-    // 6. Delete/Remove Question
-    document.addEventListener('click', function(e) {
+    // ── 6. Delete Question ────────────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
         const btn = e.target.closest('.delete-question');
         if (!btn) return;
-
-        if (!confirm('هل أنت متأكد من رغبتك في حذف هذا السؤال من الامتحان؟')) return;
-
-        const id = btn.dataset.id;
+        if (!confirm('هل أنت متأكد من حذف هذا السؤال؟')) return;
         btn.disabled = true;
-
-        fetch(`{{ url('admin/exams/'.$exam->id.'/questions') }}/${id}`, {
-            method: 'DELETE',
-            headers: headers
-        })
-        .then(res => res.json())
+        fetch(`${BASE_URL}/${btn.dataset.id}`, { method: 'DELETE', headers })
+        .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert(data.message || 'فشل في حذف السؤال');
-                btn.disabled = false;
-            }
+            if (data.success) window.location.reload();
+            else { alert(data.message || 'فشل الحذف'); btn.disabled = false; }
         })
-        .catch(err => {
-            console.error(err);
-            btn.disabled = false;
-        });
+        .catch(() => btn.disabled = false);
     });
 
-    // 7. Question Bank Import Modal Handling
-    const bankModal = document.getElementById('questionBankModal');
-    const bankQuestionsList = document.getElementById('bankQuestionsList');
+    // ── 7. Question Bank Modal ────────────────────────────────────────────────
+    const bankModal  = document.getElementById('questionBankModal');
+    const bankList   = document.getElementById('bankQuestionsList');
     const bankSearch = document.getElementById('bankSearch');
-    const bankTypeFilter = document.getElementById('bankTypeFilter');
-    const bankDifficultyFilter = document.getElementById('bankDifficultyFilter');
-    const refreshBankBtn = document.getElementById('refreshBankBtn');
+    const bankType   = document.getElementById('bankTypeFilter');
+    const bankDiff   = document.getElementById('bankDifficultyFilter');
+    const refreshBtn = document.getElementById('refreshBankBtn');
 
     if (bankModal) {
-        bankModal.addEventListener('show.bs.modal', loadBankQuestions);
-        bankSearch.addEventListener('input', debounce(loadBankQuestions, 400));
-        bankTypeFilter.addEventListener('change', loadBankQuestions);
-        bankDifficultyFilter.addEventListener('change', loadBankQuestions);
-        refreshBankBtn.addEventListener('click', loadBankQuestions);
+        bankModal.addEventListener('show.bs.modal', loadBank);
+        bankSearch.addEventListener('input', debounce(loadBank, 400));
+        bankType.addEventListener('change', loadBank);
+        bankDiff.addEventListener('change', loadBank);
+        refreshBtn.addEventListener('click', loadBank);
     }
 
-    function loadBankQuestions() {
-        bankQuestionsList.innerHTML = `
-            <div class="text-center py-5 text-muted">
-                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                جاري تحميل الأسئلة من البنك...
-            </div>
-        `;
-
-        const queryParams = new URLSearchParams({
-            search: bankSearch.value,
-            type: bankTypeFilter.value,
-            difficulty: bankDifficultyFilter.value
-        });
-
-        fetch(`{{ route('admin.questions.bank', $exam->id) }}?${queryParams.toString()}`, {
-            method: 'GET',
-            headers: headers
-        })
-        .then(res => res.json())
+    function loadBank() {
+        bankList.innerHTML = '<div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>جاري التحميل...</div>';
+        const params = new URLSearchParams({ search: bankSearch.value, type: bankType.value, difficulty: bankDiff.value });
+        fetch(`${BANK_URL}?${params}`, { method: 'GET', headers })
+        .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                renderBankList(data.questions);
-            } else {
-                bankQuestionsList.innerHTML = `<div class="alert alert-danger text-center">فشل تحميل بنك الأسئلة.</div>`;
-            }
+            if (data.success) renderBankList(data.questions);
+            else bankList.innerHTML = '<div class="alert alert-danger text-center">فشل تحميل البنك.</div>';
         })
-        .catch(err => {
-            console.error(err);
-            bankQuestionsList.innerHTML = `<div class="alert alert-danger text-center">خطأ أثناء معالجة الطلب.</div>`;
-        });
+        .catch(() => bankList.innerHTML = '<div class="alert alert-danger text-center">خطأ في الاتصال.</div>');
     }
 
     function renderBankList(questions) {
-        if (questions.length === 0) {
-            bankQuestionsList.innerHTML = `
-                <div class="text-center py-5 text-muted">
-                    <i class="fas fa-info-circle fa-2x d-block mb-2"></i>
-                    لا توجد أسئلة متوفرة في البنك تطابق البحث.
-                </div>
-            `;
+        if (!questions.length) {
+            bankList.innerHTML = '<div class="text-center py-5 text-muted"><i class="fas fa-info-circle fa-2x mb-2 d-block opacity-25"></i>لا توجد أسئلة مطابقة.</div>';
             return;
         }
-
-        let html = '';
-        questions.forEach(q => {
-            let optionsHtml = '';
+        bankList.innerHTML = questions.map(q => {
+            let opts = '';
             if (q.type === 'mcq' && q.options) {
-                optionsHtml = '<ul class="list-group list-group-flush border rounded my-2 bg-white small">';
-                q.options.forEach(opt => {
-                    optionsHtml += `
-                        <li class="list-group-item py-1 ${opt.is_correct ? 'list-group-item-success fw-bold text-success' : ''}">
-                            ${opt.is_correct ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="far fa-circle me-1"></i>'}
-                            ${opt.option_text}
-                        </li>
-                    `;
-                });
-                optionsHtml += '</ul>';
-            } else if (q.type === 'true_false' && q.options && q.options[0]) {
-                optionsHtml = `
-                    <div class="my-2 p-1 bg-white border rounded small text-success fw-bold">
-                        إجابة صحيحة: ${q.options[0].is_correct ? 'True (صح)' : 'False (خطأ)'}
-                    </div>
-                `;
-            } else if (q.type === 'matching' && q.options) {
-                optionsHtml = '<div class="row g-1 my-2">';
-                q.options.forEach(opt => {
-                    optionsHtml += `
-                        <div class="col-6">
-                            <span class="badge bg-white border text-dark p-1 w-100 text-start text-truncate">
-                                ${opt.left_item} <i class="fas fa-arrow-right mx-1 text-muted"></i> ${opt.right_item}
-                            </span>
-                        </div>
-                    `;
-                });
-                optionsHtml += '</div>';
+                opts = '<ul class="list-group list-group-flush border rounded my-2 bg-white small">';
+                q.options.forEach(o => { opts += `<li class="list-group-item py-1 ${o.is_correct ? 'list-group-item-success fw-bold' : ''}">${o.is_correct ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="far fa-circle me-1"></i>'}${o.option_text}</li>`; });
+                opts += '</ul>';
+            } else if (q.type === 'true_false' && q.options?.[0]) {
+                opts = `<div class="my-1 small text-success fw-bold"><i class="fas fa-check-circle me-1"></i>الإجابة: ${q.options[0].is_correct ? 'صح' : 'خطأ'}</div>`;
             }
-
-            html += `
-                <div class="card mb-2 border-0 shadow-sm">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-start gap-2">
-                            <div>
-                                <span class="badge bg-secondary text-uppercase small">${q.type}</span>
-                                <span class="badge bg-success small">${parseFloat(q.mark)} درجات</span>
-                                <span class="badge bg-light text-dark border small">${q.difficulty}</span>
-                                <span class="badge bg-light text-muted border small">${q.question_code}</span>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-primary import-to-exam-btn" data-id="${q.id}" data-mark="${q.mark}">
-                                <i class="fas fa-plus-circle"></i> استيراد
-                            </button>
+            return `
+            <div class="card mb-2 border-0 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-secondary small">${q.type}</span>
+                            <span class="badge bg-success small">${parseFloat(q.mark)} درجة</span>
+                            <span class="badge bg-light text-dark border small">${q.difficulty}</span>
                         </div>
-                        <p class="mb-1 mt-2 text-dark fw-bold small">${q.question_text}</p>
-                        ${optionsHtml}
+                        <button type="button" class="btn btn-sm btn-primary flex-shrink-0 import-to-exam-btn" data-id="${q.id}" data-mark="${q.mark}">
+                            <i class="fas fa-plus-circle me-1"></i>استيراد
+                        </button>
                     </div>
+                    <p class="mb-1 mt-2 text-dark fw-bold small">${q.question_text}</p>
+                    ${opts}
                 </div>
-            `;
-        });
+            </div>`;
+        }).join('');
 
-        bankQuestionsList.innerHTML = html;
-
-        // Setup import listener
-        bankQuestionsList.querySelectorAll('.import-to-exam-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const defaultMark = this.dataset.mark;
+        bankList.querySelectorAll('.import-to-exam-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
                 this.disabled = true;
-
-                fetch(`{{ route('admin.questions.import', $exam->id) }}`, {
+                fetch(IMPORT_URL, {
                     method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ question_id: id, mark_override: defaultMark })
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: this.dataset.id, mark_override: this.dataset.mark })
                 })
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
-                    if (data.success) {
-                        window.location.reload();
-                    } else {
-                        alert(data.message || 'فشل استيراد السؤال');
-                        this.disabled = false;
-                    }
+                    if (data.success) window.location.reload();
+                    else { alert(data.message || 'فشل الاستيراد'); this.disabled = false; }
                 })
-                .catch(err => {
-                    console.error(err);
-                    this.disabled = false;
-                });
+                .catch(() => this.disabled = false);
             });
         });
     }
 
-    // Debounce helper
-    function debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
-    // 8. Local Questions Filter Search
-    const searchExamInput = document.getElementById('searchExamQuestions');
-    if (searchExamInput) {
-        searchExamInput.addEventListener('input', function() {
-            const val = this.value.toLowerCase().trim();
-            document.querySelectorAll('#questionsContainer .question-item').forEach(card => {
-                const text = card.querySelector('.question-text-content').textContent.toLowerCase();
-                const type = card.querySelector('.badge.bg-info').textContent.toLowerCase();
-                if (text.includes(val) || type.includes(val)) {
-                    card.style.setProperty('display', 'block', 'important');
-                } else {
-                    card.style.setProperty('display', 'none', 'important');
-                }
+    // ── 8. Search in Questions ────────────────────────────────────────────────
+    const searchInput = document.getElementById('searchExamQuestions');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const val = this.value.toLowerCase();
+            questionsContainer.querySelectorAll('.question-item').forEach(card => {
+                const text = card.querySelector('.question-text-content')?.textContent.toLowerCase() || '';
+                card.style.setProperty('display', text.includes(val) ? 'block' : 'none', 'important');
             });
         });
     }
 
-    // 9. Auto-save local draft feature on field blurs (for questionText/Mark)
-    // We will auto-save the active question creator form to localStorage on changes
-    const inputsToTrack = ['questionText', 'questionMark', 'questionDifficulty', 'questionEstimatedTime', 'questionType'];
-    inputsToTrack.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('change', saveFormDraft);
-            el.addEventListener('blur', saveFormDraft);
-        }
-    });
-
-    function saveFormDraft() {
-        if (editQuestionId.value) return; // Don't auto-save active edits to general draft
-        const draft = {
-            text: document.getElementById('questionText').value,
-            type: typeSelect.value,
-            mark: document.getElementById('questionMark').value,
-            difficulty: document.getElementById('questionDifficulty').value,
-            time: document.getElementById('questionEstimatedTime').value,
-        };
-        localStorage.setItem(`exam_${{$exam->id}}_question_draft`, JSON.stringify(draft));
+    function debounce(fn, wait) {
+        let t;
+        return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
     }
-
-    // Load draft on load
-    const savedDraftStr = localStorage.getItem(`exam_${{$exam->id}}_question_draft`);
-    if (savedDraftStr && !editQuestionId.value) {
-        try {
-            const draft = JSON.parse(savedDraftStr);
-            if (draft.type) {
-                typeSelect.value = draft.type;
-                renderFormForType(draft.type);
-            }
-            if (draft.text) document.getElementById('questionText').value = draft.text;
-            if (draft.mark) document.getElementById('questionMark').value = draft.mark;
-            if (draft.difficulty) document.getElementById('questionDifficulty').value = draft.difficulty;
-            if (draft.time) document.getElementById('questionEstimatedTime').value = draft.time;
-        } catch (e) {
-            console.error('Error loading draft', e);
-        }
-    }
-
-    // Clear draft on successful submit
-    form.addEventListener('submit', function() {
-        localStorage.removeItem(`exam_${{$exam->id}}_question_draft`);
-    });
 });
 </script>
 @endpush
+

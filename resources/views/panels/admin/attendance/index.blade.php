@@ -110,7 +110,7 @@
                         <option value="">{{ __('attendance.all_sections') }}</option>
                         @foreach($filters['sections'] as $sec)
                             <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>
-                                {{ $sec->grade?->name ?? '' }} — {{ $sec->name }}
+                                {{ $sec->schoolClass?->name ?? '' }} — {{ $sec->name }}
                             </option>
                         @endforeach
                     </x-form.select>
@@ -148,7 +148,7 @@
                 @forelse($sessions as $session)
                     <tr>
                         <td>{{ $session->date?->format('D, d M Y') ?? '—' }}</td>
-                        <td>{{ $session->section?->grade?->name ?? '' }} — {{ $session->section->name ?? '—' }}</td>
+                        <td>{{ $session->section?->schoolClass?->name ?? '' }} — {{ $session->section->name ?? '—' }}</td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="bg-sms-light text-sms-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;">

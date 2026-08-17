@@ -21,7 +21,7 @@
                     <option value="">-- {{ __('attendance_reports.section') }} --</option>
                     @foreach($sections as $sec)
                         <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>
-                            {{ $sec->grade->name ?? '' }} — {{ $sec->name }}
+                            {{ $sec->schoolClass->name ?? '' }} — {{ $sec->name }}
                         </option>
                     @endforeach
                 </x-form.select>
@@ -107,7 +107,7 @@
                     <ul class="list-group list-group-flush mb-4 border rounded">
                         @forelse(array_slice($data['rankings'], 0, 5) as $rank)
                             <li class="list-group-item d-flex justify-content-between align-items-center px-3 border-bottom border-light">
-                                <span>{{ $rank['section']->grade->name ?? '' }} — {{ $rank['section']->name ?? '' }}</span>
+                                <span>{{ $rank['section']->schoolClass->name ?? '' }} — {{ $rank['section']->name ?? '' }}</span>
                                 <span class="badge bg-sms-{{ $rank['rate'] >= 75 ? 'success' : ($rank['rate'] >= 50 ? 'warning' : 'danger') }} rounded-pill">
                                     {{ $rank['rate'] }}%
                                 </span>

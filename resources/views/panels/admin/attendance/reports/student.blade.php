@@ -65,7 +65,7 @@
                     <h3 class="mb-1 fw-bold">{{ $data['student']->name }}</h3>
                     <p class="text-sms-muted mb-0">
                         Student ID: <strong>{{ $data['student']->student_id }}</strong> &nbsp;|&nbsp;
-                        {{ __('attendance_reports.section') }}: <strong>{{ $data['student']->section->grade->name ?? '' }} — {{ $data['student']->section->name ?? '' }}</strong>
+                        {{ __('attendance_reports.section') }}: <strong>{{ $data['student']->section->schoolClass->name ?? '' }} — {{ $data['student']->section->name ?? '' }}</strong>
                     </p>
                 </div>
                 <div class="ms-auto text-end">

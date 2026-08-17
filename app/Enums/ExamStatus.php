@@ -12,10 +12,10 @@ enum ExamStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => 'Draft',
-            self::PUBLISHED => 'Published',
-            self::CLOSED => 'Closed',
-            self::ARCHIVED => 'Archived',
+            self::DRAFT => 'مسودة',
+            self::PUBLISHED => 'منشور',
+            self::CLOSED => 'مغلق',
+            self::ARCHIVED => 'مؤرشف',
         };
     }
 

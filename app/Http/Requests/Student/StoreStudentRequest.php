@@ -32,14 +32,18 @@ class StoreStudentRequest extends FormRequest
             'avatar'           => 'nullable|image|max:2048',
 
             // Parent
-            'parent_id'         => 'nullable|exists:parents,id',
-            'parent_full_name'  => 'required_without:parent_id|nullable|string',
-            'parent_national_id'=> 'required_without:parent_id|nullable|string',
-            'guardian_type'     => 'required_without:parent_id|nullable|string',
-            'parent_phone_1'    => 'required_without:parent_id|nullable|string',
-            'parent_phone_2'    => 'nullable|string',
-            'parent_occupation' => 'nullable|string',
-            'parent_workplace'  => 'nullable|string',
+            'parent_id'              => 'nullable|exists:parents,id',
+            'parent_first_name'      => 'required_without:parent_id|nullable|string',
+            'parent_father_name'     => 'required_without:parent_id|nullable|string',
+            'parent_grandfather_name'=> 'required_without:parent_id|nullable|string',
+            'parent_family_name'     => 'required_without:parent_id|nullable|string',
+            'parent_national_id'     => 'required_without:parent_id|nullable|string',
+            'guardian_type'          => 'required_without:parent_id|nullable|string',
+            'parent_phone_1'         => 'required_without:parent_id|nullable|string',
+            'parent_phone_2'         => 'nullable|string',
+            'parent_occupation'      => 'nullable|string',
+            'parent_workplace'       => 'nullable|string',
+            'parent_address'         => 'nullable|string',
 
             // Address
             'governorate'      => 'required|string',

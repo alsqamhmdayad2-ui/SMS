@@ -301,6 +301,20 @@ class ExamController extends Controller
             ->with('success', 'تم نشر الاختبار بنجاح.');
     }
 
+    // ─── Unlock Exam (Revert to Draft) ────────────────────────────────────────
+    public function unlock(Exam $exam)
+    {
+        $this->authorizeTeacherExam($exam);
+
+        if ($exam->status !== ExamStatus::PUBLISHED) {
+            return back()->with('error', 'الاختبار ليس في حالة منشور.');
+        }
+
+        $exam->update(['status' => ExamStatus::DRAFT->value]);
+
+        return back()->with('success', 'تم إلغاء النشر وإعادة الاختبار كمسودة بنجاح.');
+    }
+
     // ─── Toggle: show/hide marks to student ──────────────────────────────────
     public function toggleMarks(Exam $exam)
     {

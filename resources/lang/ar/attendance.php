@@ -75,7 +75,6 @@ return [
     'unlock_reason' => 'سبب إلغاء الإغلاق',
     'confirm_unlock' => 'تأكيد إلغاء الإغلاق',
     
-    // Table Headers
     'student' => 'الطالب',
     'current_status' => 'الحالة الحالية',
     'marked_by' => 'تم التسجيل بواسطة',
@@ -84,4 +83,12 @@ return [
     'actions' => 'إجراءات',
     'remarks' => 'ملاحظات',
     'view' => 'عرض',
+
+    // Added
+    'back' => 'رجوع',
+    'recorded_by' => 'تم التسجيل بواسطة',
+    'period_label' => 'الحصة',
+    'lock_confirm' => 'هل أنت متأكد من إغلاق هذه الجلسة؟',
+    'daily_section_attendance' => 'حضور الشعبة اليومي',
+    'session_status' => 'حالة الجلسة',
 ];
