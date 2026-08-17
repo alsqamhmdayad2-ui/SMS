@@ -352,11 +352,27 @@ return [
         'roles'  => ['student'],
     ],
 
+    // الجدول الدراسي
+    [
+        'title'  => 'الجدول الدراسي',
+        'icon'   => 'calendar-alt',
+        'route'  => 'student.timetable',
+        'roles'  => ['student'],
+    ],
+
     // الحضور والغياب
     [
         'title'  => 'الحضور والغياب',
         'icon'   => 'calendar-check',
-        'route'  => 'student.reports', // We map this to reports page since reports page handles attendance details for students
+        'route'  => 'student.attendance',
+        'roles'  => ['student'],
+    ],
+
+    // المستندات
+    [
+        'title'  => 'المستندات',
+        'icon'   => 'folder-open',
+        'route'  => 'student.documents.index',
         'roles'  => ['student'],
     ],
 
@@ -376,7 +392,71 @@ return [
     [
         'title'  => 'لوحة التحكم',
         'icon'   => 'tachometer-alt',
-        'route'  => 'dashboard',
+        'route'  => 'parent.dashboard',
+        'roles'  => ['parent'],
+    ],
+
+    // التقويم الأكاديمي
+    [
+        'title'  => 'التقويم الأكاديمي',
+        'icon'   => 'calendar-alt',
+        'route'  => 'parent.academic-calendar',
+        'roles'  => ['parent'],
+    ],
+
+    // الأبناء
+    [
+        'title'  => 'الأبناء',
+        'icon'   => 'children',
+        'route'  => 'parent.children',
+        'roles'  => ['parent'],
+    ],
+
+    // الحضور والغياب
+    [
+        'title'  => 'متابعة الغياب',
+        'icon'   => 'clipboard-user',
+        'route'  => 'parent.attendance',
+        'roles'  => ['parent'],
+    ],
+
+    // جدول الحصص
+    [
+        'title'  => 'جدول الحصص',
+        'icon'   => 'calendar-alt',
+        'route'  => 'parent.timetable',
+        'roles'  => ['parent'],
+    ],
+
+    // المستندات
+    [
+        'title'  => 'المستندات',
+        'icon'   => 'folder-open',
+        'route'  => 'parent.documents',
+        'roles'  => ['parent'],
+    ],
+
+    // السجل الأكاديمي
+    [
+        'title'  => 'السجل الأكاديمي',
+        'icon'   => 'history',
+        'route'  => 'parent.academic-history',
+        'roles'  => ['parent'],
+    ],
+
+    // النتائج
+    [
+        'title'  => 'النتائج الدراسية',
+        'icon'   => 'award',
+        'route'  => 'parent.results',
+        'roles'  => ['parent'],
+    ],
+
+    // الملف الشخصي
+    [
+        'title'  => 'الملف الشخصي',
+        'icon'   => 'user-circle',
+        'route'  => 'parent.profile',
         'roles'  => ['parent'],
     ],
 

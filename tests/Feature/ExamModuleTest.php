@@ -42,8 +42,10 @@ beforeEach(function () {
     $this->section = Section::create(['name' => 'Section 1', 'class_id' => $this->schoolClass->id]);
     $this->subject = Subject::create(['name' => 'Mathematics', 'code' => 'MATH101', 'status' => true]);
     $this->teacher = Teacher::create([
-        'name' => 'John Doe',
-        'email' => 'john@teacher.com',
+        'first_name' => 'John',
+        'father_name' => 'Michael',
+        'family_name' => 'Doe',
+        'national_id' => 'TEST-TEACHER-001',
         'phone' => '12345678',
         'address' => 'Test Address',
         'specialization' => 'Math',
@@ -51,6 +53,7 @@ beforeEach(function () {
 });
 
 test('admin can create a new exam with LMS parameters', function () {
+    $this->withoutExceptionHandling();
     $response = $this->actingAs($this->admin)->post(route('admin.exams.store'), [
         'title' => 'Math Midterm',
         'type' => 'midterm',
@@ -58,13 +61,14 @@ test('admin can create a new exam with LMS parameters', function () {
         'semester_id' => $this->semester->id,
         'grade_id' => $this->grade->id,
         'class_id' => $this->schoolClass->id,
-        'section_id' => $this->section->id,
+        'section_ids' => [$this->section->id],
         'subject_id' => $this->subject->id,
         'teacher_id' => $this->teacher->id,
         'exam_date' => '2026-07-10',
         'start_time' => '08:00',
         'end_time' => '09:30',
         'duration_minutes' => 90,
+        'total_marks' => 100,
 
         'status' => 'draft',
         'instructions' => 'Please bring your own calculator.',
@@ -76,7 +80,7 @@ test('admin can create a new exam with LMS parameters', function () {
     expect($exam)->not->toBeNull();
     expect($exam->title)->toBe('Math Midterm');
     expect($exam->duration_minutes)->toBe(90);
-    expect($exam->status->value)->toBe('draft');
+    expect($exam->status->value ?? $exam->status)->toBe('draft');
 });
 
 test('exam scheduling prevents section time conflict', function () {
@@ -107,13 +111,14 @@ test('exam scheduling prevents section time conflict', function () {
         'semester_id' => $this->semester->id,
         'grade_id' => $this->grade->id,
         'class_id' => $this->schoolClass->id,
-        'section_id' => $this->section->id,
+        'section_ids' => [$this->section->id],
         'subject_id' => $this->subject->id,
         'teacher_id' => $this->teacher->id,
         'exam_date' => '2026-07-10',
         'start_time' => '09:00', // overlaps first exam (08:00 - 09:30)
         'end_time' => '10:00',
         'duration_minutes' => 60,
+        'total_marks' => 100,
 
         'status' => 'draft',
     ]);

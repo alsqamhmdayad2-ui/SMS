@@ -74,12 +74,12 @@ class ResultPublicationService
             // Check if assigned at class level
             $section = \App\Models\Section::with('schoolClass.subjects')->find($sectionId);
             $subjects = $section->schoolClass->subjects ?? collect();
+        }
             
-            if ($subjects->isEmpty()) {
-                throw ValidationException::withMessages([
-                    'publish' => 'لا يمكن الاعتماد: لا توجد مواد دراسية مرتبطة بهذه الشعبة.'
-                ]);
-            }
+        if ($subjects->isEmpty()) {
+            throw ValidationException::withMessages([
+                'publish' => 'لا يمكن الاعتماد: لا توجد مواد دراسية مرتبطة بهذه الشعبة.'
+            ]);
         }
 
         foreach ($subjects as $subject) {
