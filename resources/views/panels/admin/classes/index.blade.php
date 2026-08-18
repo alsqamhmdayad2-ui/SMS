@@ -66,7 +66,34 @@
 
         @if(method_exists($classes, 'hasPages') && $classes->hasPages())
             <x-slot:pagination>
-                {{ $classes->links() }}
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100 px-3 py-2">
+                    <small class="text-muted">
+                        عرض {{ $classes->firstItem() }}–{{ $classes->lastItem() }} من {{ $classes->total() }} صف
+                    </small>
+                    <nav aria-label="pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            {{-- السابق --}}
+                            <li class="page-item {{ $classes->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $classes->previousPageUrl() }}" aria-label="السابق">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+            
+                            @foreach($classes->getUrlRange(max(1, $classes->currentPage()-2), min($classes->lastPage(), $classes->currentPage()+2)) as $page => $url)
+                                <li class="page-item {{ $page == $classes->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                            @endforeach
+            
+                            {{-- التالي --}}
+                            <li class="page-item {{ !$classes->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $classes->nextPageUrl() }}" aria-label="التالي">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </x-slot:pagination>
         @endif
     </x-table.data-table>

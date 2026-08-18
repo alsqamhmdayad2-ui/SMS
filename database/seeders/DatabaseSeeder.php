@@ -24,9 +24,7 @@ class DatabaseSeeder extends Seeder
             SchoolClassSeeder::class,
             SectionSeeder::class,
             SubjectSeeder::class,
-            ParentSeeder::class,
-            TeacherSeeder::class,
-            StudentSeeder::class,
+            DemoDataSeeder::class,
             TimetableSeeder::class,
         ]);
     }

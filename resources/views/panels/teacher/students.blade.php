@@ -20,11 +20,11 @@
             <input type="text" id="studentSearch" class="form-control form-control-sm" style="padding-right: 32px;" placeholder="بحث بالاسم، رقم الطالب، الهوية...">
         </div>
         <form method="GET" class="d-flex flex-wrap gap-2">
-            <select name="section_id" class="form-select" style="width:160px" onchange="this.form.submit()">
+            <select name="section_id" class="form-select" style="width:200px" onchange="this.form.submit()">
                 <option value="">جميع الشعب</option>
                 @foreach($sections as $sec)
                     <option value="{{ $sec->id }}" {{ request('section_id') == $sec->id ? 'selected' : '' }}>
-                        {{ $sec->schoolClass?->grade?->name ?? '' }} - {{ $sec->name }}
+                        {{ $sec->schoolClass?->name ?? '' }} - {{ $sec->name }}
                     </option>
                 @endforeach
             </select>

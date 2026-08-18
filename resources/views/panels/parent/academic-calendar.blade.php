@@ -56,7 +56,7 @@
                     <select name="student_id" id="student_id" class="form-select w-50" onchange="this.form.submit()">
                         @forelse($children as $child)
                             <option value="{{ $child->id }}" {{ ($selectedStudent && $selectedStudent->id == $child->id) ? 'selected' : '' }}>
-                                {{ $child->user->name }}
+                                {{ $child->name }}
                             </option>
                         @empty
                             <option value="">لا يوجد أبناء مسجلين</option>

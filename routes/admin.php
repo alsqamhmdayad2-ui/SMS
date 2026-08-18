@@ -30,6 +30,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('transfers/external', [App\Http\Controllers\Admin\TransferController::class, 'externalTransfer'])->name('transfers.external');
         
         Route::post('students/{student}/transfer', [StudentController::class, 'transfer'])->name('students.transfer');
+        Route::get('parents/search', [ParentController::class, 'search'])->name('parents.search');
         Route::resource('students', StudentController::class);
         Route::resource('teachers', TeacherController::class);
         Route::resource('parents', ParentController::class);
@@ -111,7 +112,7 @@ Route::middleware(['auth', 'role:admin'])
         // Result Publications
         Route::get('result-publications', [ResultPublicationController::class, 'index'])->name('result-publications.index');
         Route::post('result-publications', [ResultPublicationController::class, 'store'])->name('result-publications.store');
-        Route::post('result-publications/{publication}/unpublish', [ResultPublicationController::class, 'unpublish'])->name('result-publications.unpublish');
+        Route::post('result-publications/{publication}/update-status', [ResultPublicationController::class, 'updateStatus'])->name('result-publications.update-status');
         Route::delete('result-publications/{publication}', [ResultPublicationController::class, 'destroy'])->name('result-publications.destroy');
 
         // Reports

@@ -22,8 +22,7 @@
     <div class="card-header bg-white border-light pt-4 pb-3 d-flex justify-content-between align-items-center">
         <h5 class="fw-bold m-0"><i class="fas fa-user-graduate ms-2 text-primary"></i>{{ $child->name }}</h5>
         <div>
-            <button class="btn btn-sm btn-outline-primary"><i class="fas fa-download ms-1"></i> تحميل PDF</button>
-            <button class="btn btn-sm btn-primary" onclick="window.print()"><i class="fas fa-print ms-1"></i> طباعة</button>
+            <button class="btn btn-sm btn-primary" onclick="window.print()"><i class="fas fa-print ms-1"></i> طباعة / حفظ كـ PDF</button>
         </div>
     </div>
     <div class="card-body p-0">

@@ -70,7 +70,15 @@
                                         <a href="{{ route('admin.students.show', $student->id) }}" class="text-decoration-none">{{ $student->name ?? ($student->first_name . ' ' . $student->family_name) }}</a>
                                     </td>
                                     <td>{{ $student->student_number ?? $student->national_id ?? '—' }}</td>
-                                    <td>{{ $student->parent->father_name ?? $student->parent->full_name ?? '—' }}</td>
+                                    <td>
+                                        @if($student->parent)
+                                            <a href="{{ route('admin.parents.show', $student->parent->id) }}" class="text-decoration-none">
+                                                {{ $student->parent->full_name }}
+                                            </a>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
@@ -79,6 +87,52 @@
                                             title="لا يوجد طلاب" 
                                             message="لم يتم تسجيل أي طلاب في هذه الشعبة بعد."
                                             icon="user-graduate" 
+                                        />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-chalkboard-teacher text-primary me-2"></i> المواد والمعلمون</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th>المادة</th>
+                                <th>المعلم المسند</th>
+                                <th>التخصص</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($assignedTeachers ?? [] as $assignment)
+                                <tr>
+                                    <td class="fw-bold text-dark">
+                                        <i class="fas fa-book text-muted me-2"></i>{{ $assignment->subject->name ?? '—' }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.teachers.show', $assignment->teacher_id) }}" class="text-decoration-none">
+                                            {{ $assignment->teacher->full_name ?? ($assignment->teacher->first_name . ' ' . $assignment->teacher->family_name) }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ $assignment->teacher->specialization ?? '—' }}</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3">
+                                        <x-empty-state 
+                                            title="لا يوجد معلمين" 
+                                            message="لم يتم إسناد أي مواد أو معلمين لهذه الشعبة في الجدول الدراسي حتى الآن."
+                                            icon="chalkboard-teacher" 
                                         />
                                     </td>
                                 </tr>

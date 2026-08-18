@@ -60,6 +60,39 @@
                 <!-- Empty state handled by component -->
             @endforelse
         </x-slot:body>
+        
+        @if(method_exists($sections, 'hasPages') && $sections->hasPages())
+            <x-slot:pagination>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100 px-3 py-2">
+                    <small class="text-muted">
+                        عرض {{ $sections->firstItem() }}–{{ $sections->lastItem() }} من {{ $sections->total() }} شعبة
+                    </small>
+                    <nav aria-label="pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            {{-- السابق --}}
+                            <li class="page-item {{ $sections->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $sections->previousPageUrl() }}" aria-label="السابق">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+            
+                            @foreach($sections->getUrlRange(max(1, $sections->currentPage()-2), min($sections->lastPage(), $sections->currentPage()+2)) as $page => $url)
+                                <li class="page-item {{ $page == $sections->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                            @endforeach
+            
+                            {{-- التالي --}}
+                            <li class="page-item {{ !$sections->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $sections->nextPageUrl() }}" aria-label="التالي">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </x-slot:pagination>
+        @endif
     </x-table.data-table>
 </x-shared.card>
 

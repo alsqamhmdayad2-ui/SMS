@@ -27,9 +27,14 @@ class StudentController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('student_number', 'like', "%{$search}%")
                   ->orWhere('national_id', 'like', "%{$search}%")
-                  ->orWhereRaw("CONCAT(first_name, ' ', father_name, ' ', grandfather_name, ' ', family_name) LIKE ?", ["%{$search}%"])
                   ->orWhere('first_name', 'like', "%{$search}%")
                   ->orWhere('family_name', 'like', "%{$search}%");
+                  
+                if (\Illuminate\Support\Facades\DB::getDriverName() === 'sqlite') {
+                    $q->orWhereRaw("(first_name || ' ' || father_name || ' ' || grandfather_name || ' ' || family_name) LIKE ?", ["%{$search}%"]);
+                } else {
+                    $q->orWhereRaw("CONCAT(first_name, ' ', father_name, ' ', grandfather_name, ' ', family_name) LIKE ?", ["%{$search}%"]);
+                }
             });
         }
 

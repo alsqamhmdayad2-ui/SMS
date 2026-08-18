@@ -59,7 +59,16 @@ class SectionController extends Controller
             })
             ->get();
 
-        return view('panels.admin.sections.show', compact('section', 'availableStudents'));
+        // Get assigned teachers and subjects from timetable
+        $assignedTeachers = \App\Models\Timetable::with(['subject', 'teacher'])
+            ->where('section_id', $section->id)
+            ->get()
+            ->unique(function ($item) {
+                return $item->subject_id . '-' . $item->teacher_id;
+            })
+            ->values();
+
+        return view('panels.admin.sections.show', compact('section', 'availableStudents', 'assignedTeachers'));
     }
 
     /**

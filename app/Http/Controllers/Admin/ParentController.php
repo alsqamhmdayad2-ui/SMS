@@ -32,6 +32,28 @@ class ParentController extends Controller
         return view('panels.admin.parents.index', compact('parents'));
     }
 
+    public function search(Request $request)
+    {
+        $q = $request->get('q', '');
+        $parents = ParentModel::query()
+            ->where(function ($query) use ($q) {
+                $query->where('full_name', 'like', "%{$q}%")
+                      ->orWhere('first_name', 'like', "%{$q}%")
+                      ->orWhere('family_name', 'like', "%{$q}%")
+                      ->orWhere('national_id', 'like', "%{$q}%")
+                      ->orWhere('phone_1', 'like', "%{$q}%");
+            })
+            ->limit(15)
+            ->get(['id', 'first_name', 'father_name', 'grandfather_name', 'family_name', 'full_name', 'national_id', 'phone_1']);
+
+        return response()->json($parents->map(fn($p) => [
+            'id'         => $p->id,
+            'text'       => ($p->full_name ?: trim("{$p->first_name} {$p->father_name} {$p->family_name}")) . ' — ' . $p->national_id,
+            'national_id'=> $p->national_id,
+            'phone'      => $p->phone_1,
+        ]));
+    }
+
     public function create()
     {
         return view('panels.admin.parents.create');

@@ -95,13 +95,20 @@
                                 </div>
                                 <div>
                                     <div class="fw-semibold">{{ $user->name }}</div>
+                                    <small class="text-muted">{{ $user->email }}</small>
                                     @if($user->id === auth()->id())
-                                        <span class="badge bg-success-subtle text-success" style="font-size:10px;">أنت</span>
+                                        <span class="badge bg-success-subtle text-success ms-1" style="font-size:10px;">أنت</span>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        <td class="text-muted fw-semibold" style="letter-spacing: 0.5px;">{{ $user->national_id ?? '-' }}</td>
+                        <td>
+                            @if($user->national_id)
+                                <code class="bg-light px-2 py-1 rounded text-dark" style="font-size:.82rem;letter-spacing:1px;">{{ $user->national_id }}</code>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td>
                             @php $role = $user->roles->first() @endphp
                             @if($role)
@@ -157,8 +164,33 @@
         </div>
     </div>
     @if($users->hasPages())
-    <div class="card-footer bg-white">
-        {{ $users->links() }}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+        <small class="text-muted">
+            عرض {{ $users->firstItem() }}–{{ $users->lastItem() }} من {{ $users->total() }} مستخدم
+        </small>
+        <nav aria-label="pagination">
+            <ul class="pagination pagination-sm mb-0">
+                {{-- السابق --}}
+                <li class="page-item {{ $users->onFirstPage() ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ $users->previousPageUrl() }}" aria-label="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @foreach($users->getUrlRange(max(1, $users->currentPage()-2), min($users->lastPage(), $users->currentPage()+2)) as $page => $url)
+                    <li class="page-item {{ $page == $users->currentPage() ? 'active' : '' }}">
+                        <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                    </li>
+                @endforeach
+
+                {{-- التالي --}}
+                <li class="page-item {{ !$users->hasMorePages() ? 'disabled' : '' }}">
+                    <a class="page-link" href="{{ $users->nextPageUrl() }}" aria-label="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
     @endif
 </div>

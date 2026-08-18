@@ -169,100 +169,117 @@
         {{-- ─── بيانات ولي الأمر ─── --}}
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-user-tie me-2"></i>بيانات ولي الأمر</h3>
+                <div class="card-header d-flex align-items-center gap-2">
+                    <h3 class="mb-0"><i class="fas fa-user-tie me-2"></i>بيانات ولي الأمر</h3>
+                    <span id="selectedParentBadge" class="badge bg-success ms-auto d-none">
+                        <i class="fas fa-check-circle me-1"></i><span id="selectedParentName"></span>
+                        <button type="button" class="btn-close btn-close-white ms-2" id="clearParentBtn" aria-label="إلغاء الاختيار" style="font-size:0.6rem;vertical-align:middle;"></button>
+                    </span>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
 
-                        {{-- البحث عن ولي أمر مسجل --}}
-                        <div class="col-md-12 mb-2">
-                            <label class="form-label fw-bold text-primary">
-                                <i class="fas fa-search me-1"></i>ابحث عن ولي أمر مسجل مسبقاً (اختياري)
-                            </label>
-                            <select class="form-select searchable-select" name="parent_id" data-placeholder="-- اختر ولي الأمر --" style="width: 100%;">
-                                <option value="" selected>اكتب للبحث بالاسم أو رقم الهوية، أو اترك فارغاً لإضافة ولي أمر جديد...</option>
-                                @foreach($parents as $parent)
-                                    <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
-                                        {{ $parent->full_name }} ({{ $parent->national_id }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">إذا اخترت ولي أمر من القائمة، تُتجاهل الحقول أدناه تلقائياً.</small>
+                    {{-- ── البحث الحي ── --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-search me-1"></i>ابحث عن ولي أمر مسجل مسبقاً
+                            <small class="text-muted fw-normal">(اختياري — ابحث بالاسم أو رقم الهوية أو رقم الجوال)</small>
+                        </label>
+                        <div class="position-relative">
+                            <input type="text" id="parentSearchInput" class="form-control ps-4"
+                                   placeholder="اكتب للبحث... مثال: أحمد، 9xxxxxxxx"
+                                   autocomplete="off" />
+                            <i class="fas fa-search position-absolute text-muted" style="right:12px;top:50%;transform:translateY(-50%);pointer-events:none;"></i>
+                            <div id="parentSearchDropdown" class="position-absolute w-100 bg-white border rounded-3 shadow-sm z-3 d-none" style="top:calc(100% + 4px);max-height:280px;overflow-y:auto;z-index:9999;">
+                                <div id="parentSearchResults"></div>
+                            </div>
                         </div>
-
-                        <div class="col-12"><hr class="my-1"><p class="text-muted mb-2 small">أو أضف ولي أمر جديد:</p></div>
-
-                        {{-- صلة القرابة --}}
-                        <div class="col-md-3">
-                            <label class="form-label">صلة القرابة</label>
-                            <select class="form-select" name="guardian_type">
-                                <option value="Father"   {{ old('guardian_type', 'Father') == 'Father'   ? 'selected' : '' }}>الأب</option>
-                                <option value="Mother"   {{ old('guardian_type') == 'Mother'   ? 'selected' : '' }}>الأم</option>
-                                <option value="Guardian" {{ old('guardian_type') == 'Guardian' ? 'selected' : '' }}>وصي قانوني</option>
-                            </select>
-                        </div>
-
-                        {{-- الاسم الأول --}}
-                        <div class="col-md-2">
-                            <label class="form-label">الاسم الأول</label>
-                            <input type="text" class="form-control" name="parent_first_name" value="{{ old('parent_first_name') }}" />
-                        </div>
-                        {{-- اسم الأب --}}
-                        <div class="col-md-2">
-                            <label class="form-label">اسم الأب</label>
-                            <input type="text" class="form-control" name="parent_father_name" value="{{ old('parent_father_name') }}" />
-                        </div>
-                        {{-- اسم الجد --}}
-                        <div class="col-md-2">
-                            <label class="form-label">اسم الجد</label>
-                            <input type="text" class="form-control" name="parent_grandfather_name" value="{{ old('parent_grandfather_name') }}" />
-                        </div>
-                        {{-- اسم العائلة --}}
-                        <div class="col-md-3">
-                            <label class="form-label">اسم العائلة</label>
-                            <input type="text" class="form-control" name="parent_family_name" value="{{ old('parent_family_name') }}" />
-                        </div>
-
-                        {{-- رقم هوية ولي الأمر --}}
-                        <div class="col-md-3">
-                            <label class="form-label">رقم الهوية</label>
-                            <input type="text" class="form-control" name="parent_national_id" value="{{ old('parent_national_id') }}" />
-                        </div>
-
-                        {{-- رقم الجوال الأول --}}
-                        <div class="col-md-3">
-                            <label class="form-label">رقم الجوال الأول</label>
-                            <input type="text" class="form-control" name="parent_phone_1" value="{{ old('parent_phone_1') }}" />
-                        </div>
-
-                        {{-- رقم الجوال الثاني --}}
-                        <div class="col-md-3">
-                            <label class="form-label">رقم الجوال الثاني</label>
-                            <input type="text" class="form-control" name="parent_phone_2" value="{{ old('parent_phone_2') }}" />
-                        </div>
-
-                        {{-- المهنة --}}
-                        <div class="col-md-3">
-                            <label class="form-label">المهنة</label>
-                            <input type="text" class="form-control" name="parent_occupation" value="{{ old('parent_occupation') }}" />
-                        </div>
-
-                        {{-- جهة العمل --}}
-                        <div class="col-md-4">
-                            <label class="form-label">جهة العمل</label>
-                            <input type="text" class="form-control" name="parent_workplace" value="{{ old('parent_workplace') }}" />
-                        </div>
-
-                        {{-- العنوان --}}
-                        <div class="col-md-8">
-                            <label class="form-label">العنوان</label>
-                            <input type="text" class="form-control" name="parent_address" value="{{ old('parent_address') }}" placeholder="اتركه فارغاً لاعتماد عنوان السكن الخاص بالطالب..." />
-                        </div>
+                        <input type="hidden" name="parent_id" id="parentIdInput" value="{{ old('parent_id') }}" />
+                        <small class="text-muted">إذا اخترت ولي أمر من نتائج البحث، تُخفى حقول بيانات ولي الأمر الجديد تلقائياً.</small>
                     </div>
+
+                    {{-- ── حقول ولي أمر جديد ── --}}
+                    <div id="newParentFields">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <hr class="flex-grow-1 my-0">
+                            <span class="text-muted small px-2">أو أضف ولي أمر جديد</span>
+                            <hr class="flex-grow-1 my-0">
+                        </div>
+
+                        <div class="row g-3">
+                            {{-- صلة القرابة --}}
+                            <div class="col-md-3">
+                                <label class="form-label">صلة القرابة</label>
+                                <select class="form-select" name="guardian_type">
+                                    <option value="Father"   {{ old('guardian_type', 'Father') == 'Father'   ? 'selected' : '' }}>الأب</option>
+                                    <option value="Mother"   {{ old('guardian_type') == 'Mother'   ? 'selected' : '' }}>الأم</option>
+                                    <option value="Guardian" {{ old('guardian_type') == 'Guardian' ? 'selected' : '' }}>وصي قانوني</option>
+                                </select>
+                            </div>
+
+                            {{-- الاسم الأول --}}
+                            <div class="col-md-2">
+                                <label class="form-label">الاسم الأول</label>
+                                <input type="text" class="form-control" name="parent_first_name" value="{{ old('parent_first_name') }}" />
+                            </div>
+                            {{-- اسم الأب --}}
+                            <div class="col-md-2">
+                                <label class="form-label">اسم الأب</label>
+                                <input type="text" class="form-control" name="parent_father_name" value="{{ old('parent_father_name') }}" />
+                            </div>
+                            {{-- اسم الجد --}}
+                            <div class="col-md-2">
+                                <label class="form-label">اسم الجد</label>
+                                <input type="text" class="form-control" name="parent_grandfather_name" value="{{ old('parent_grandfather_name') }}" />
+                            </div>
+                            {{-- اسم العائلة --}}
+                            <div class="col-md-3">
+                                <label class="form-label">اسم العائلة</label>
+                                <input type="text" class="form-control" name="parent_family_name" value="{{ old('parent_family_name') }}" />
+                            </div>
+
+                            {{-- رقم هوية ولي الأمر --}}
+                            <div class="col-md-3">
+                                <label class="form-label">رقم الهوية</label>
+                                <input type="text" class="form-control" name="parent_national_id" value="{{ old('parent_national_id') }}" />
+                            </div>
+
+                            {{-- رقم الجوال الأول --}}
+                            <div class="col-md-3">
+                                <label class="form-label">رقم الجوال الأول</label>
+                                <input type="text" class="form-control" name="parent_phone_1" value="{{ old('parent_phone_1') }}" />
+                            </div>
+
+                            {{-- رقم الجوال الثاني --}}
+                            <div class="col-md-3">
+                                <label class="form-label">رقم الجوال الثاني</label>
+                                <input type="text" class="form-control" name="parent_phone_2" value="{{ old('parent_phone_2') }}" />
+                            </div>
+
+                            {{-- المهنة --}}
+                            <div class="col-md-3">
+                                <label class="form-label">المهنة</label>
+                                <input type="text" class="form-control" name="parent_occupation" value="{{ old('parent_occupation') }}" />
+                            </div>
+
+                            {{-- جهة العمل --}}
+                            <div class="col-md-4">
+                                <label class="form-label">جهة العمل</label>
+                                <input type="text" class="form-control" name="parent_workplace" value="{{ old('parent_workplace') }}" />
+                            </div>
+
+                            {{-- العنوان --}}
+                            <div class="col-md-8">
+                                <label class="form-label">العنوان</label>
+                                <input type="text" class="form-control" name="parent_address" value="{{ old('parent_address') }}"
+                                       placeholder="اتركه فارغاً لاعتماد عنوان سكن الطالب..." />
+                            </div>
+                        </div>
+                    </div>{{-- /newParentFields --}}
+
                 </div>
             </div>
         </div>
+
 
         {{-- ─── عنوان السكن ─── --}}
         <div class="col-lg-12">
@@ -427,8 +444,54 @@
         ];
     })->values();
 @endphp
+
+@push('styles')
+<style>
+/* ── Parent Search Dropdown ── */
+#parentSearchDropdown .parent-option {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f5;
+    transition: background .15s;
+}
+#parentSearchDropdown .parent-option:last-child { border-bottom: none; }
+#parentSearchDropdown .parent-option:hover,
+#parentSearchDropdown .parent-option.active  { background: #f0f6ff; }
+#parentSearchDropdown .parent-option .avatar {
+    width: 38px; height: 38px; min-width: 38px; border-radius: 50%;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: .85rem;
+}
+#parentSearchDropdown .parent-option .info strong { display: block; font-size: .9rem; color: #1a1a2e; }
+#parentSearchDropdown .parent-option .info small  { color: #888; font-size: .78rem; }
+#parentSearchDropdown .search-loading,
+#parentSearchDropdown .search-empty {
+    padding: 1.2rem; text-align: center; color: #888; font-size: .9rem;
+}
+#parentSearchInput.has-selection {
+    background: #f0fff4; border-color: #28a745; color: #155724; font-weight: 600;
+}
+/* Animate new-parent fields */
+#newParentFields {
+    transition: opacity .25s ease, max-height .35s ease;
+    overflow: hidden;
+}
+#newParentFields.hiding {
+    opacity: 0; max-height: 0; pointer-events: none;
+}
+</style>
+@endpush
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ══════════════════════════════════════
+       1. Grade / Class / Section Cascade
+    ══════════════════════════════════════ */
     const gradesData    = @json($gradesJsonData);
     const stageSelect   = document.getElementById('stage_id');
     const classSelect   = document.getElementById('grade_id');
@@ -441,11 +504,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const stageId = stageSelect.value;
         classSelect.innerHTML   = '<option value="">اختر الصف</option>';
         sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
-        sectionSelect.disabled = true;
+        sectionSelect.disabled  = true;
 
         if (!stageId) { classSelect.disabled = true; return; }
-
         classSelect.disabled = false;
+
         const stage = gradesData.find(g => g.id == stageId);
         if (stage && stage.classes) {
             stage.classes.forEach(cls => {
@@ -477,8 +540,146 @@ document.addEventListener('DOMContentLoaded', function() {
 
     stageSelect.addEventListener('change', updateClasses);
     classSelect.addEventListener('change', updateSections);
-
     if (stageSelect.value) updateClasses();
+
+    /* ══════════════════════════════════════
+       2. Parent Live Search
+    ══════════════════════════════════════ */
+    const searchInput    = document.getElementById('parentSearchInput');
+    const dropdown       = document.getElementById('parentSearchDropdown');
+    const resultsEl      = document.getElementById('parentSearchResults');
+    const hiddenInput    = document.getElementById('parentIdInput');
+    const newParentBlock = document.getElementById('newParentFields');
+    const badge          = document.getElementById('selectedParentBadge');
+    const badgeName      = document.getElementById('selectedParentName');
+    const clearBtn       = document.getElementById('clearParentBtn');
+
+    let debounceTimer = null;
+    let currentFocus  = -1;
+
+    const SEARCH_URL = '{{ route("admin.parents.search") }}';
+
+    function showDropdown()  { dropdown.classList.remove('d-none'); }
+    function hideDropdown()  { dropdown.classList.add('d-none'); currentFocus = -1; }
+
+    function selectParent(id, text) {
+        hiddenInput.value       = id;
+        searchInput.value       = text;
+        searchInput.classList.add('has-selection');
+        badgeName.textContent   = text.split(' — ')[0]; // show only name
+        badge.classList.remove('d-none');
+        // Hide new-parent fields
+        newParentBlock.classList.add('hiding');
+        hideDropdown();
+    }
+
+    function clearSelection() {
+        hiddenInput.value = '';
+        searchInput.value = '';
+        searchInput.classList.remove('has-selection');
+        badge.classList.add('d-none');
+        badgeName.textContent = '';
+        // Show new-parent fields
+        newParentBlock.classList.remove('hiding');
+        searchInput.focus();
+    }
+
+    clearBtn.addEventListener('click', clearSelection);
+
+    function buildItem(p) {
+        const initials = p.text.charAt(0).toUpperCase();
+        const div = document.createElement('div');
+        div.className = 'parent-option';
+        div.dataset.id   = p.id;
+        div.dataset.text = p.text;
+        div.innerHTML = `
+            <div class="avatar">${initials}</div>
+            <div class="info">
+                <strong>${p.text.split(' — ')[0]}</strong>
+                <small><i class="fas fa-id-card me-1 text-muted"></i>${p.national_id ?? ''}
+                  ${p.phone ? ' | <i class="fas fa-phone me-1 text-muted"></i>' + p.phone : ''}
+                </small>
+            </div>`;
+        div.addEventListener('mousedown', e => { e.preventDefault(); selectParent(p.id, p.text); });
+        return div;
+    }
+
+    function doSearch(q) {
+        resultsEl.innerHTML = '<div class="search-loading"><i class="fas fa-spinner fa-spin me-2"></i>جاري البحث...</div>';
+        showDropdown();
+
+        fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => {
+                resultsEl.innerHTML = '';
+                if (!data.length) {
+                    resultsEl.innerHTML = '<div class="search-empty"><i class="fas fa-user-slash me-2 text-muted"></i>لم يُعثر على ولي أمر مسجل بهذا الاسم أو الرقم</div>';
+                    return;
+                }
+                data.forEach(p => resultsEl.appendChild(buildItem(p)));
+            })
+            .catch(() => {
+                resultsEl.innerHTML = '<div class="search-empty text-danger"><i class="fas fa-exclamation-triangle me-2"></i>حدث خطأ، حاول مجدداً</div>';
+            });
+    }
+
+    searchInput.addEventListener('input', function () {
+        const q = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        if (!q) { hideDropdown(); return; }
+
+        debounceTimer = setTimeout(() => doSearch(q), 280);
+    });
+
+    // Keyboard navigation inside dropdown
+    searchInput.addEventListener('keydown', function (e) {
+        const items = resultsEl.querySelectorAll('.parent-option');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            currentFocus = Math.min(currentFocus + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            currentFocus = Math.max(currentFocus - 1, 0);
+        } else if (e.key === 'Enter' && currentFocus >= 0) {
+            e.preventDefault();
+            const active = items[currentFocus];
+            selectParent(active.dataset.id, active.dataset.text);
+            return;
+        } else if (e.key === 'Escape') {
+            hideDropdown(); return;
+        } else { return; }
+
+        items.forEach((el, i) => el.classList.toggle('active', i === currentFocus));
+        items[currentFocus]?.scrollIntoView({ block: 'nearest' });
+    });
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+
+    searchInput.addEventListener('focus', function () {
+        if (this.value.trim() && !hiddenInput.value) doSearch(this.value.trim());
+    });
+
+    /* If old parent_id was set (form re-submit with error), restore label */
+    const oldParentId = '{{ old("parent_id") }}';
+    if (oldParentId) {
+        newParentBlock.classList.add('hiding');
+        fetch(`${SEARCH_URL}?q=`)
+            .then(r => r.json())
+            .then(() => {
+                /* already hidden — just show badge placeholder */
+                badgeName.textContent = 'ولي الأمر المحدد';
+                badge.classList.remove('d-none');
+                searchInput.classList.add('has-selection');
+            });
+    }
 });
 
 function previewAvatar(input) {
