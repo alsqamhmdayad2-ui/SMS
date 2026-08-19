@@ -28,11 +28,12 @@ class GradebookService
         // 3. Get all exams for this subject/section/year/semester
         $examsQuery = Exam::where('academic_year_id', $academicYearId)
             ->where('subject_id', $subjectId)
-            ->where('section_id', $sectionId);
+            ->whereHas('sections', fn($q) => $q->where('sections.id', $sectionId));
         if ($semesterId) {
             $examsQuery->where('semester_id', $semesterId);
         }
         $exams = $examsQuery->get();
+
         $examIds = $exams->pluck('id');
 
         // 4. Get all results for these exams

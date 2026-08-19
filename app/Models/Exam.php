@@ -66,6 +66,15 @@ class Exam extends Model
         return $this->belongsToMany(Section::class, 'exam_section');
     }
 
+    /**
+     * Alias to get the "primary" section (the first one in the pivot).
+     * This exists to satisfy eager-loading calls like with('section').
+     */
+    public function section()
+    {
+        return $this->belongsToMany(Section::class, 'exam_section')->limit(1);
+    }
+
     public function subject()
     {
         return $this->belongsTo(Subject::class);

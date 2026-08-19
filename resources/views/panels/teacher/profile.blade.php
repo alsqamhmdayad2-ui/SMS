@@ -150,13 +150,13 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-sms-primary">كلمة المرور الجديدة</label>
                             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                                   placeholder="اتركه فارغاً إذا لم تريد التغيير">
+                                   placeholder="اتركه فارغاً إذا لم تريد التغيير" autocomplete="new-password">
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-sms-primary">تأكيد كلمة المرور</label>
                             <input type="password" name="password_confirmation" class="form-control"
-                                   placeholder="أعد كتابة كلمة المرور">
+                                   placeholder="أعد كتابة كلمة المرور" autocomplete="new-password">
                         </div>
                     </div>
                 </div>

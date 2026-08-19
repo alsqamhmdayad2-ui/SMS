@@ -381,17 +381,24 @@
 <template id="fillblank-form-template">
     <div class="mb-2">
         <div class="alert alert-warning small py-2 mb-3"><i class="fas fa-fill-drip me-1"></i>استخدم <strong>___</strong> في نص السؤال للإشارة إلى مكان الفراغ. مثال: <em>عاصمة المملكة هي ___</em></div>
-        <label class="form-label fw-bold small">الإجابة الصحيحة <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" name="model_answer" id="modelAnswer" placeholder="اكتب الإجابة الصحيحة المتوقعة..." required>
-        <div class="form-text">سيتم مقارنة إجابة الطالب بهذه الإجابة عند التصحيح.</div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label fw-bold small mb-0">الإجابات الصحيحة المقبولة <span class="text-danger">*</span></label>
+            <button type="button" class="btn btn-sm btn-outline-success" id="addAnswerBtn"><i class="fas fa-plus-circle me-1"></i>إضافة إجابة بديلة</button>
+        </div>
+        <div id="answersContainer"></div>
+        <div class="form-text mt-1"><i class="fas fa-info-circle me-1 text-muted"></i>يمكنك إضافة عدة إجابات مقبولة (مثل: كتابات مختلفة لنفس الإجابة). سيُعتبر الطالب صحيحاً إذا طابقت إجابته أي واحدة منها.</div>
     </div>
 </template>
 
 <template id="shortanswer-form-template">
     <div class="mb-2">
-        <div class="alert alert-info small py-2 mb-3"><i class="fas fa-pen me-1"></i>سؤال إجابة قصيرة — يمكنك تحديد الإجابة النموذجية للمرجعية.</div>
-        <label class="form-label fw-bold small">الإجابة النموذجية <span class="text-muted fw-normal">(للمرجعية عند التصحيح)</span></label>
-        <input type="text" class="form-control" name="model_answer" id="modelAnswer" placeholder="اكتب الإجابة النموذجية...">
+        <div class="alert alert-info small py-2 mb-3"><i class="fas fa-pen me-1"></i>سؤال إجابة قصيرة — يمكنك تحديد عدة إجابات نموذجية مقبولة للمقارنة التلقائية.</div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label fw-bold small mb-0">الإجابات المقبولة <span class="text-muted fw-normal">(للمقارنة التلقائية)</span></label>
+            <button type="button" class="btn btn-sm btn-outline-success" id="addAnswerBtn"><i class="fas fa-plus-circle me-1"></i>إضافة إجابة بديلة</button>
+        </div>
+        <div id="answersContainer"></div>
+        <div class="form-text mt-1"><i class="fas fa-info-circle me-1 text-muted"></i>يمكنك إضافة عدة إجابات مقبولة. سيُعتبر الطالب صحيحاً إذا طابقت إجابته أي واحدة منها.</div>
     </div>
 </template>
 
@@ -462,10 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setupMatchingForm(optionsData);
         } else if (type === 'short_answer') {
             dynamicFields.innerHTML = document.getElementById('shortanswer-form-template').innerHTML;
-            if (optionsData?.length > 0 && optionsData[0].option_text) {
-                const field = document.getElementById('modelAnswer');
-                if (field) field.value = optionsData[0].option_text;
-            }
+            setupMultiAnswerForm(optionsData);
         } else if (type === 'essay') {
             dynamicFields.innerHTML = document.getElementById('essay-form-template').innerHTML;
             if (optionsData?.length > 0 && optionsData[0].option_text) {
@@ -474,10 +478,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else if (type === 'fill_blank') {
             dynamicFields.innerHTML = document.getElementById('fillblank-form-template').innerHTML;
-            if (optionsData?.length > 0 && optionsData[0].option_text) {
-                const field = document.getElementById('modelAnswer');
-                if (field) field.value = optionsData[0].option_text;
-            }
+            setupMultiAnswerForm(optionsData);
         } else {
             dynamicFields.classList.add('d-none');
         }
@@ -542,6 +543,39 @@ document.addEventListener('DOMContentLoaded', function () {
                     const n = inp.getAttribute('name');
                     if (n) inp.setAttribute('name', n.replace(/pairs\[\d+\]/, `pairs[${i}]`));
                 });
+            });
+        });
+    }
+
+    // ── Multi-Answer Form (fill_blank / short_answer) ─────────────────────────
+    function setupMultiAnswerForm(optionsData = null) {
+        const container = document.getElementById('answersContainer');
+        const addBtn    = document.getElementById('addAnswerBtn');
+        if (!container || !addBtn) return;
+
+        if (optionsData && optionsData.length > 0) {
+            optionsData.forEach((opt, idx) => addAnswerRow(container, idx, opt.option_text));
+        } else {
+            addAnswerRow(container, 0, '');
+        }
+        addBtn.addEventListener('click', () => addAnswerRow(container, container.querySelectorAll('.answer-row').length, ''));
+    }
+
+    function addAnswerRow(container, index, val = '') {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2 answer-row';
+        const isFirst = index === 0;
+        div.innerHTML = `
+            <span class="input-group-text bg-success text-white"><i class="fas fa-check-circle"></i></span>
+            <input type="text" class="form-control" name="model_answers[]" value="${val.replace(/"/g, '&quot;')}" placeholder="الإجابة الصحيحة ${index + 1}" ${isFirst ? 'required' : ''}>
+            ${!isFirst ? '<button class="btn btn-outline-danger remove-answer-btn" type="button"><i class="fas fa-times"></i></button>' : ''}
+        `;
+        container.appendChild(div);
+        div.querySelector('.remove-answer-btn')?.addEventListener('click', () => {
+            div.remove();
+            container.querySelectorAll('.answer-row input').forEach((inp, i) => {
+                inp.placeholder = `الإجابة الصحيحة ${i + 1}`;
+                inp.required = i === 0;
             });
         });
     }

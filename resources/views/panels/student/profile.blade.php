@@ -35,7 +35,7 @@
                     <div class="col-md-12">
                         <div class="p-3 rounded-3 bg-light border border-light-subtle">
                             <small class="text-muted d-block mb-1">البريد الإلكتروني</small>
-                            <span class="fw-bold text-dark">{{ $student->email ?? '-' }}</span>
+                            <span class="fw-bold text-dark">{{ $student->email ?: ($student->user->email ?? '-') }}</span>
                         </div>
                     </div>
                     <div class="col-md-6">

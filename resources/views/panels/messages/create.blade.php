@@ -306,10 +306,9 @@
     }
 
     // Section chips toggle
-    document.querySelectorAll('.section-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            chip.classList.toggle('active');
-            chip.querySelector('.section-cb').checked = chip.classList.contains('active');
+    document.querySelectorAll('.section-cb').forEach(cb => {
+        cb.addEventListener('change', function () {
+            this.closest('.section-chip').classList.toggle('active', this.checked);
         });
     });
 })();
